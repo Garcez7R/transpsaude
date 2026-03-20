@@ -1,0 +1,165 @@
+import {
+  Ambulance,
+  Building2,
+  ClipboardList,
+  MapPinned,
+  ShieldCheck,
+  Smartphone,
+} from 'lucide-react'
+import { Link, Navigate, Route, Routes } from 'react-router-dom'
+import { DashboardPage } from './pages/DashboardPage'
+import { PublicStatusPage } from './pages/PublicStatusPage'
+
+const highlights = [
+  {
+    title: 'Painel do operador',
+    description: 'Cadastro presencial de solicitações, revisão rápida de dados e atualização de status.',
+    icon: ClipboardList,
+  },
+  {
+    title: 'Consulta pública',
+    description: 'PWA simples para o cidadão acompanhar protocolo, deslocamento e pendências.',
+    icon: Smartphone,
+  },
+  {
+    title: 'Governança básica',
+    description: 'Histórico de status, trilha de auditoria e estrutura preparada para perfis internos.',
+    icon: ShieldCheck,
+  },
+]
+
+function HomePage() {
+  return (
+    <div className="shell">
+      <section className="institutional-bar">
+        <div className="crest-mark" aria-hidden="true">
+          <span />
+        </div>
+        <div className="institutional-copy">
+          <strong>Prefeitura Municipal</strong>
+          <span>Secretaria de Saude • Transporte de Pacientes</span>
+        </div>
+      </section>
+
+      <header className="hero-panel">
+        <div className="hero-copy">
+          <div className="eyebrow">
+            <Ambulance size={16} />
+            Transporte em Saude
+          </div>
+          <h1>Agendamento municipal de viagens para tratamento fora do domicilio.</h1>
+          <p className="hero-text">
+            Uma base inicial para prefeitura cadastrar solicitacoes, acompanhar aprovacoes e
+            permitir que o cidadao veja o andamento pelo celular.
+          </p>
+          <div className="hero-actions">
+            <Link className="primary-link" to="/operador">
+              Abrir painel do operador
+            </Link>
+            <Link className="secondary-link" to="/acompanhar">
+              Testar consulta publica
+            </Link>
+          </div>
+        </div>
+
+        <div className="hero-card">
+          <div className="hero-card-top">
+            <span className="status-pill status-pill-live">MVP Cloudflare</span>
+            <span className="status-pill">D1 only</span>
+          </div>
+          <div className="public-seal">
+            <div className="seal-icon">
+              <Building2 size={22} />
+            </div>
+            <div>
+              <strong>Uso institucional</strong>
+              <p>Base pensada para atendimento municipal e consulta publica com linguagem mais oficial.</p>
+            </div>
+          </div>
+          <h2>Escopo inicial recomendado</h2>
+          <ul className="check-list">
+            <li>Cadastro de pacientes e solicitacoes</li>
+            <li>Status operacionais e historico</li>
+            <li>Painel interno com filtros</li>
+            <li>PWA publico por protocolo</li>
+          </ul>
+          <div className="mini-metrics">
+            <div>
+              <strong>2</strong>
+              <span>areas principais</span>
+            </div>
+            <div>
+              <strong>7</strong>
+              <span>status iniciais</span>
+            </div>
+            <div>
+              <strong>100%</strong>
+              <span>Cloudflare</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section className="feature-grid">
+        {highlights.map(({ title, description, icon: Icon }) => (
+          <article className="feature-card" key={title}>
+            <div className="feature-icon">
+              <Icon size={20} />
+            </div>
+            <h3>{title}</h3>
+            <p>{description}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="journey-panel">
+        <div className="journey-copy">
+          <span className="section-label">
+            <Building2 size={16} />
+            Fluxo sugerido
+          </span>
+          <h2>Do balcao da prefeitura ao celular do paciente.</h2>
+        </div>
+        <div className="timeline">
+          <div className="timeline-item">
+            <strong>1. Atendimento</strong>
+            <p>Operador registra paciente, destino, especialidade e necessidade de acompanhante.</p>
+          </div>
+          <div className="timeline-item">
+            <strong>2. Analise interna</strong>
+            <p>Solicitacao recebe protocolo, passa por validacao e segue para aprovacao ou pendencias.</p>
+          </div>
+          <div className="timeline-item">
+            <strong>3. Consulta publica</strong>
+            <p>O cidadao acompanha status, data da viagem, orientacoes e documentos pendentes no PWA.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="institutional-panel">
+        <article className="institutional-card">
+          <span className="section-label">
+            <MapPinned size={16} />
+            Identidade do projeto
+          </span>
+          <h2>Visual mais proximo de portal oficial da prefeitura.</h2>
+          <p>
+            A interface agora usa verde como base institucional, amarelo para destaques, cinza para
+            estados neutros e branco nas superficies principais.
+          </p>
+        </article>
+      </section>
+    </div>
+  )
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/operador" element={<DashboardPage />} />
+      <Route path="/acompanhar" element={<PublicStatusPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
