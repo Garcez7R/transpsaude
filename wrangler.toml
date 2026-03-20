@@ -5,4 +5,4 @@ pages_build_output_dir = "dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "transpsaude-db"
-database_id = "SUBSTITUA_PELO_ID_DO_D1"
+database_id = "a705c477-c28e-4045-91e3-95750e686623"
