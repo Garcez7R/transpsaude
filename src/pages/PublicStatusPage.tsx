@@ -1,6 +1,5 @@
 import { KeyRound, Search, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { activateCitizenPin, loginCitizen } from '../lib/api'
 import type { CitizenAccessResponse, PublicRequestDetails } from '../types'
 
@@ -114,9 +113,6 @@ export function PublicStatusPage() {
                 <Search size={16} />
                 {loading ? 'Entrando...' : 'Entrar e acompanhar'}
               </button>
-              <Link className="action-button secondary" to="/operador">
-                Ir para painel interno
-              </Link>
             </div>
           </form>
           <p className="table-note">
