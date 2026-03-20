@@ -13,7 +13,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   }
 
   if (!body.name || !body.cpf || !body.email || !body.password) {
-    return badRequest('Preencha nome, CPF, email e senha do gerente.')
+    return badRequest('Preencha nome, CPF, e-mail e senha do gerente.')
   }
 
   const cpf = normalizeCpf(body.cpf)

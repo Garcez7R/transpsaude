@@ -19,22 +19,22 @@ import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } fro
 const statusOptions: Array<{ value: RequestStatus | 'todos'; label: string }> = [
   { value: 'todos', label: 'Todos os status' },
   { value: 'recebida', label: 'Recebida' },
-  { value: 'em_analise', label: 'Em analise' },
+  { value: 'em_analise', label: 'Em análise' },
   { value: 'aguardando_documentos', label: 'Aguardando documentos' },
   { value: 'aprovada', label: 'Aprovada' },
   { value: 'agendada', label: 'Agendada' },
   { value: 'cancelada', label: 'Cancelada' },
-  { value: 'concluida', label: 'Concluida' },
+  { value: 'concluida', label: 'Concluída' },
 ]
 
 const labelByStatus: Record<RequestStatus, string> = {
   recebida: 'Recebida',
-  em_analise: 'Em analise',
+  em_analise: 'Em análise',
   aguardando_documentos: 'Aguardando documentos',
   aprovada: 'Aprovada',
   agendada: 'Agendada',
   cancelada: 'Cancelada',
-  concluida: 'Concluida',
+  concluida: 'Concluída',
 }
 
 function formatCpf(value: string) {
@@ -90,7 +90,7 @@ export function DashboardPage() {
           return
         }
 
-        setError('Nao foi possivel carregar os dados do painel.')
+        setError('Não foi possível carregar os dados do painel.')
       } finally {
         if (active) {
           setLoading(false)
@@ -114,14 +114,14 @@ export function DashboardPage() {
       const result = await loginAdmin(cpf, password)
 
       if (!isValidInternalRole(result.session.role) || !canAccessOperator(result.session)) {
-        setAuthError('Esse perfil nao pode acessar a area do operador.')
+        setAuthError('Esse perfil não pode acessar a área do operador.')
         return
       }
 
       saveAdminSession(result.session)
       setSession(result.session)
     } catch {
-      setAuthError('Nao foi possivel autenticar esse acesso administrativo.')
+      setAuthError('Não foi possível autenticar esse acesso administrativo.')
     } finally {
       setAuthLoading(false)
     }
@@ -136,10 +136,10 @@ export function DashboardPage() {
 
   const visibleCountLabel = useMemo(() => {
     if (loading) {
-      return 'Carregando solicitacoes...'
+      return 'Carregando solicitações...'
     }
 
-    return `${requests.length} solicitacao(oes) encontradas`
+    return `${requests.length} solicitação(ões) encontradas`
   }, [loading, requests.length])
 
   if (!session) {
@@ -151,7 +151,7 @@ export function DashboardPage() {
           </div>
           <div className="institutional-copy">
             <strong>Ambiente interno da Prefeitura de Capão do Leão</strong>
-            <span>Acesso destinado a operador, regulacao e apoio administrativo</span>
+            <span>Acesso destinado a operador, regulação e apoio administrativo</span>
           </div>
         </section>
 
@@ -192,7 +192,7 @@ export function DashboardPage() {
                   {authLoading ? 'Entrando...' : 'Entrar como admin'}
                 </button>
                 <Link className="action-button secondary" to="/acompanhar">
-                  Ver fluxo do cidadao
+                  Ver fluxo do cidadão
                 </Link>
               </div>
             </form>
@@ -202,8 +202,8 @@ export function DashboardPage() {
           <article className="content-card">
             <h2>Escopo liberado para esse acesso</h2>
             <ul className="check-list">
-              <li>Visao geral das solicitacoes</li>
-              <li>Abertura de nova solicitacao</li>
+              <li>Visão geral das solicitações</li>
+              <li>Abertura de nova solicitação</li>
               <li>Base para evoluir autenticação real e perfis</li>
             </ul>
           </article>
@@ -217,10 +217,10 @@ export function DashboardPage() {
       <div className="dashboard-shell">
         <article className="content-card">
           <h2>Acesso negado</h2>
-          <p>Esse perfil nao tem permissao para entrar na area do operador.</p>
+          <p>Esse perfil não tem permissão para entrar na área do operador.</p>
           <div className="form-actions">
             <Link className="action-button secondary" to="/gerente">
-              Ir para gerencia
+              Ir para gerência
             </Link>
             <button className="action-button primary" type="button" onClick={handleLogout}>
               <LogOut size={16} />
@@ -240,7 +240,7 @@ export function DashboardPage() {
         </div>
         <div className="institutional-copy">
           <strong>Ambiente interno da Prefeitura de Capão do Leão</strong>
-          <span>Acesso destinado a operador, regulacao e apoio administrativo</span>
+          <span>Acesso destinado a operador, regulação e apoio administrativo</span>
         </div>
       </section>
 
@@ -250,7 +250,7 @@ export function DashboardPage() {
             <ListChecks size={16} />
             Painel do operador
           </div>
-          <h1>Solicitacoes de transporte em saude</h1>
+          <h1>Solicitações de transporte em saúde</h1>
           <p>
             Sessão ativa para <strong>{session.name}</strong> com perfil <strong>{session.role}</strong>.
           </p>
@@ -259,7 +259,7 @@ export function DashboardPage() {
         <div className="page-actions">
           <Link className="action-button secondary" to="/gerente">
             <Route size={16} />
-            Gerencia
+            Gerência
           </Link>
           <Link className="action-button secondary" to="/gerente/motoristas">
             <BusFront size={16} />
@@ -273,7 +273,7 @@ export function DashboardPage() {
           ) : null}
           <Link className="action-button secondary" to="/operador/cadastro">
             <Plus size={16} />
-            Nova solicitacao
+            Nova solicitação
           </Link>
           <button className="action-button primary" type="button" onClick={handleLogout}>
             <LogOut size={16} />
@@ -285,7 +285,7 @@ export function DashboardPage() {
       <section className="metrics-grid">
         <article className="metric-card">
           <strong>{summary?.totalRequests ?? '--'}</strong>
-          <p>solicitacoes registradas</p>
+          <p>solicitações registradas</p>
         </article>
         <article className="metric-card">
           <strong>{summary?.scheduledToday ?? '--'}</strong>
@@ -297,7 +297,7 @@ export function DashboardPage() {
         </article>
         <article className="metric-card">
           <strong>{summary?.approvedRequests ?? '--'}</strong>
-          <p>solicitacoes aprovadas</p>
+          <p>solicitações aprovadas</p>
         </article>
       </section>
 
@@ -371,7 +371,7 @@ export function DashboardPage() {
                 ))}
                 {!loading && requests.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>Nenhuma solicitacao encontrada para o filtro atual.</td>
+                    <td colSpan={6}>Nenhuma solicitação encontrada para o filtro atual.</td>
                   </tr>
                 ) : null}
               </tbody>
@@ -388,7 +388,7 @@ export function DashboardPage() {
                 <p>Atendimento feito no balcao e protocolo emitido.</p>
               </div>
               <div className="status-card">
-                <h3>Em analise</h3>
+                <h3>Em análise</h3>
                 <p>Equipe valida elegibilidade, datas e documentos apresentados.</p>
               </div>
               <div className="status-card">
@@ -405,10 +405,10 @@ export function DashboardPage() {
           <article className="content-card">
             <h2>Campos do cadastro inicial</h2>
             <ul className="check-list">
-              <li>Paciente, CPF, telefone, endereco e sinalizacao de WhatsApp</li>
-              <li>Responsavel com CPF de acesso quando necessario</li>
-              <li>Acompanhante com telefone e endereco proprios ou herdados do paciente</li>
-              <li>Observacoes internas, historico e acesso inicial do cidadao</li>
+              <li>Paciente, CPF, telefone, endereço e sinalização de WhatsApp</li>
+              <li>Responsável com CPF de acesso quando necessário</li>
+              <li>Acompanhante com telefone e endereço próprios ou herdados do paciente</li>
+              <li>Observações internas, histórico e acesso inicial do cidadão</li>
             </ul>
           </article>
 
@@ -419,7 +419,7 @@ export function DashboardPage() {
             </div>
             <h2>Administrador liberado</h2>
             <p>
-              Este acesso tem visao total do MVP e pode abrir solicitacoes, distribuir viagens e
+              Este acesso tem visão total do MVP e pode abrir solicitações, distribuir viagens e
               organizar a base de motoristas.
             </p>
             <p className="table-note">
@@ -432,7 +432,7 @@ export function DashboardPage() {
             <h2>Fluxo operacional novo</h2>
             <ul className="check-list">
               <li>Operador cadastra e organiza os dados do paciente</li>
-              <li>Gerencia analisa a fila e atribui motorista e horario</li>
+              <li>Gerência analisa a fila e atribui motorista e horário</li>
               <li>Motorista acessa um portal proprio para ver suas viagens</li>
             </ul>
           </article>

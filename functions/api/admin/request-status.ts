@@ -8,13 +8,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   }
 
   if (!body.requestId || !body.status) {
-    return badRequest('Informe a solicitacao e o novo status.')
+    return badRequest('Informe a solicitação e o novo status.')
   }
 
   const result = await updateRequestStatus(env, body.requestId, body.status, body.note ?? '', 1)
 
   if (!result) {
-    return notFound('Solicitacao nao encontrada.')
+    return notFound('Solicitação não encontrada.')
   }
 
   return ok(result)

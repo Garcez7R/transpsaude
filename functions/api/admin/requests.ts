@@ -57,11 +57,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   }
 
   if (!body.patientName || !body.cpf || !body.phone || !body.addressLine || !body.accessCpf || !body.destinationCity || !body.destinationState || !body.treatmentUnit || !body.specialty || !body.travelDate) {
-    return badRequest('Preencha os campos obrigatorios da solicitacao.')
+    return badRequest('Preencha os campos obrigatórios da solicitação.')
   }
 
   if (body.useResponsibleCpfForAccess && (!body.responsibleName || !body.responsibleCpf)) {
-    return badRequest('Informe nome e CPF do responsavel quando esse CPF for usado para acesso.')
+    return badRequest('Informe nome e CPF do responsável quando esse CPF for usado para acesso.')
   }
 
   if (
@@ -71,7 +71,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       !body.companionPhone ||
       (!body.usePatientAddressForCompanion && !body.companionAddressLine))
   ) {
-    return badRequest('Informe nome, CPF, telefone e endereco do acompanhante quando houver acompanhante.')
+    return badRequest('Informe nome, CPF, telefone e endereço do acompanhante quando houver acompanhante.')
   }
 
   const protocol = buildProtocol()
@@ -85,7 +85,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   const companionCpfMasked = companionCpf ? maskCpf(companionCpf) : ''
 
   if (!env.DB) {
-    throw new Error('DB binding nao configurado.')
+    throw new Error('Binding do banco D1 não configurado.')
   }
 
   const patient = await env.DB.prepare(
@@ -282,7 +282,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
           updated_at,
           sort_order
         )
-        values (?1, ?2, 'recebida', 'Recebida', 'Solicitacao cadastrada pelo painel interno.', 2, datetime('now'), 1)
+        values (?1, ?2, 'recebida', 'Recebida', 'Solicitação cadastrada pelo painel interno.', 2, datetime('now'), 1)
       `,
     )
       .bind(createdRequest.id, protocol)
@@ -293,6 +293,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     protocol,
     temporaryPassword: '0000',
     status: 'recebida',
-    message: `Solicitacao salva. O acesso inicial fica no CPF ${accessCpfMasked} com senha 0000.`,
+    message: `Solicitação salva. O acesso inicial fica no CPF ${accessCpfMasked} com senha 0000.`,
   })
 }

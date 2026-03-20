@@ -37,7 +37,7 @@ export function InstallAppBar() {
           Instalar
         </button>
         <button className="install-dismiss-button" type="button" onClick={() => setDismissed(true)}>
-          Agora nao
+          Agora não
         </button>
       </div>
     </div>

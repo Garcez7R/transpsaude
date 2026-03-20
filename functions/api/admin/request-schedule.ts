@@ -9,7 +9,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   }
 
   if (!body.requestId || !body.travelDate || !body.departureTime) {
-    return badRequest('Informe a solicitacao, a nova data e o horario de saida.')
+    return badRequest('Informe a solicitação, a nova data e o horário de saída.')
   }
 
   const result = await updateRequestSchedule(
@@ -22,7 +22,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   )
 
   if (!result) {
-    return notFound('Solicitacao nao encontrada.')
+    return notFound('Solicitação não encontrada.')
   }
 
   return ok(result)

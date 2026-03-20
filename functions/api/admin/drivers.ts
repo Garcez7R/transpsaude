@@ -28,7 +28,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   }
 
   if (!body.name || !body.cpf || !body.phone || !body.vehicleId || !body.password) {
-    return badRequest('Preencha nome, CPF, telefone, veiculo e senha do motorista.')
+    return badRequest('Preencha nome, CPF, telefone, veículo e senha do motorista.')
   }
 
   const cpf = normalizeCpf(body.cpf)
@@ -45,7 +45,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     .first<Record<string, unknown>>()
 
   if (!vehicle) {
-    return badRequest('Veiculo nao encontrado.')
+    return badRequest('Veículo não encontrado.')
   }
 
   await env.DB.prepare(

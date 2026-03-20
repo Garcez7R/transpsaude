@@ -11,7 +11,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   }
 
   if (!body.requestId || !body.driverId || !body.departureTime) {
-    return badRequest('Informe a solicitacao, o motorista e o horario de saida.')
+    return badRequest('Informe a solicitação, o motorista e o horário de saída.')
   }
 
   if (body.useCustomBoardingLocation && !body.boardingLocationName) {
@@ -33,7 +33,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     .first<Record<string, unknown>>()
 
   if (!driver) {
-    return notFound('Motorista nao encontrado.')
+    return notFound('Motorista não encontrado.')
   }
 
   const travelRequest = await env.DB.prepare(
@@ -50,7 +50,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     .first<Record<string, unknown>>()
 
   if (!travelRequest) {
-    return notFound('Solicitacao nao encontrada.')
+    return notFound('Solicitação não encontrada.')
   }
 
   await env.DB.prepare(
@@ -97,7 +97,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     .bind(
       travelRequest.id,
       travelRequest.protocol,
-      `Viagem direcionada para ${String(driver.name)} com saida prevista as ${body.departureTime}. ${body.managerNotes ?? ''}`.trim(),
+      `Viagem direcionada para ${String(driver.name)} com saída prevista às ${body.departureTime}. ${body.managerNotes ?? ''}`.trim(),
     )
     .run()
 

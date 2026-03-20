@@ -92,7 +92,7 @@ export function DriversPage() {
         }
       } catch {
         if (active) {
-          setError('Nao foi possivel carregar motoristas e veiculos.')
+          setError('Não foi possível carregar motoristas e veículos.')
         }
       } finally {
         if (active) {
@@ -125,7 +125,7 @@ export function DriversPage() {
         }
       } catch {
         if (active) {
-          setError('Nao foi possivel carregar as viagens desse motorista.')
+          setError('Não foi possível carregar as viagens desse motorista.')
         }
       }
     }
@@ -161,7 +161,7 @@ export function DriversPage() {
       setDriverForm(initialDriverForm)
       setMessage(`Motorista ${created.name} cadastrado com sucesso.`)
     } catch {
-      setError('Nao foi possivel salvar o motorista.')
+      setError('Não foi possível salvar o motorista.')
     } finally {
       setSavingDriver(false)
     }
@@ -177,9 +177,9 @@ export function DriversPage() {
       const created = await createVehicle(vehicleForm)
       setVehicles((current) => [created, ...current])
       setVehicleForm(initialVehicleForm)
-      setMessage(`Veiculo ${created.name} cadastrado com sucesso.`)
+      setMessage(`Veículo ${created.name} cadastrado com sucesso.`)
     } catch {
-      setError('Nao foi possivel salvar o veiculo.')
+      setError('Não foi possível salvar o veículo.')
     } finally {
       setSavingVehicle(false)
     }
@@ -201,7 +201,7 @@ export function DriversPage() {
       })
       setMessage(result.message)
     } catch {
-      setError('Nao foi possivel salvar o operador.')
+      setError('Não foi possível salvar o operador.')
     } finally {
       setSavingOperator(false)
     }
@@ -211,11 +211,11 @@ export function DriversPage() {
     return (
       <div className="dashboard-shell">
         <article className="content-card">
-          <h2>Sessao administrativa necessaria</h2>
-          <p>Cadastros de motoristas e veiculos ficam disponiveis somente para a equipe interna.</p>
+          <h2>Sessão administrativa necessária</h2>
+          <p>Cadastros de motoristas e veículos ficam disponíveis somente para a equipe interna.</p>
           <div className="form-actions">
             <Link className="action-button primary" to="/gerente">
-              Ir para login da gerencia
+              Ir para login da gerência
             </Link>
           </div>
         </article>
@@ -228,10 +228,10 @@ export function DriversPage() {
       <div className="dashboard-shell">
         <article className="content-card">
           <h2>Acesso negado</h2>
-          <p>Somente gerente e administrador podem cadastrar ou gerenciar motoristas e veiculos.</p>
+          <p>Somente gerente e administrador podem cadastrar ou gerenciar motoristas e veículos.</p>
           <div className="form-actions">
             <Link className="action-button primary" to="/gerente">
-              Ir para gerencia
+              Ir para gerência
             </Link>
           </div>
         </article>
@@ -246,8 +246,8 @@ export function DriversPage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Gerencia de motoristas e veiculos</strong>
-          <span>Cadastros administrativos e visao operacional das viagens por motorista</span>
+          <strong>Gerência de motoristas e veículos</strong>
+          <span>Cadastros administrativos e visão operacional das viagens por motorista</span>
         </div>
       </section>
 
@@ -255,16 +255,16 @@ export function DriversPage() {
         <div className="page-title-block">
           <div className="eyebrow">
             <BusFront size={16} />
-            Motoristas e veiculos
+            Motoristas e veículos
           </div>
-          <h1>Base administrativa da gerencia</h1>
-          <p>Cadastre veiculos, vincule um veiculo ao motorista e acompanhe as viagens atribuidas.</p>
+          <h1>Base administrativa da gerência</h1>
+          <p>Cadastre veículos, vincule um veículo ao motorista e acompanhe as viagens atribuídas.</p>
         </div>
 
         <div className="page-actions">
           <Link className="action-button secondary" to="/gerente">
             <ArrowLeft size={16} />
-            Voltar para gerencia
+            Voltar para gerência
           </Link>
         </div>
       </header>
@@ -274,16 +274,16 @@ export function DriversPage() {
 
       <section className="dashboard-grid">
         <article className="content-card">
-          <h2>Novo veiculo</h2>
+          <h2>Novo veículo</h2>
           <form onSubmit={handleVehicleSubmit}>
             <div className="form-grid">
               <div className="field">
-                <label htmlFor="vehicle-name">Nome do veiculo</label>
+                <label htmlFor="vehicle-name">Nome do veículo</label>
                 <input
                   id="vehicle-name"
                   value={vehicleForm.name}
                   onChange={(event) => updateVehicleField('name', event.target.value)}
-                  placeholder="Van 01, Micro-onibus..."
+                  placeholder="Van 01, Micro-ônibus..."
                   required
                 />
               </div>
@@ -303,7 +303,7 @@ export function DriversPage() {
                   id="vehicle-category"
                   value={vehicleForm.category}
                   onChange={(event) => updateVehicleField('category', event.target.value)}
-                  placeholder="Van, Ambulancia, Micro-onibus..."
+                  placeholder="Van, Ambulância, Micro-ônibus..."
                   required
                 />
               </div>
@@ -311,7 +311,7 @@ export function DriversPage() {
             <div className="form-actions">
               <button className="action-button primary" disabled={savingVehicle} type="submit">
                 <CarFront size={16} />
-                {savingVehicle ? 'Salvando...' : 'Cadastrar veiculo'}
+                {savingVehicle ? 'Salvando...' : 'Cadastrar veículo'}
               </button>
             </div>
           </form>
@@ -354,14 +354,14 @@ export function DriversPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="driver-vehicle">Veiculo vinculado</label>
+                <label htmlFor="driver-vehicle">Veículo vinculado</label>
                 <select
                   id="driver-vehicle"
                   value={driverForm.vehicleId ?? ''}
                   onChange={(event) => updateDriverField('vehicleId', event.target.value ? Number(event.target.value) : null)}
                   required
                 >
-                  <option value="">Selecione um veiculo</option>
+                  <option value="">Selecione um veículo</option>
                   {vehicles.map((vehicle) => (
                     <option key={vehicle.id} value={vehicle.id}>
                       {vehicle.name} • {vehicle.plate}
@@ -430,7 +430,7 @@ export function DriversPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="operator-email">Email institucional</label>
+                <label htmlFor="operator-email">E-mail institucional</label>
                 <input
                   id="operator-email"
                   value={operatorForm.email}
@@ -461,12 +461,12 @@ export function DriversPage() {
 
         <aside className="dashboard-side">
           <article className="content-card">
-            <h2>Permissoes nesta area</h2>
+            <h2>Permissões nesta área</h2>
             <ul className="check-list">
               <li>Gerente e admin criam motoristas</li>
               <li>Gerente e admin criam operadores</li>
               <li>Somente admin cria gerentes</li>
-              <li>Veiculos ficam vinculados aos motoristas cadastrados</li>
+              <li>Veículos ficam vinculados aos motoristas cadastrados</li>
             </ul>
           </article>
         </aside>
@@ -474,9 +474,9 @@ export function DriversPage() {
 
       <section className="dashboard-grid">
         <article className="content-card">
-          <h2>Veiculos cadastrados</h2>
+          <h2>Veículos cadastrados</h2>
           {loading ? (
-            <p className="table-note">Carregando veiculos...</p>
+            <p className="table-note">Carregando veículos...</p>
           ) : (
             <div className="assignment-list">
               {vehicles.map((vehicle) => (
@@ -502,7 +502,7 @@ export function DriversPage() {
                     <p className="table-note">
                       {driver.cpfMasked} • {driver.phone}
                     </p>
-                    <p className="table-note">Veiculo: {driver.vehicleName}</p>
+                    <p className="table-note">Veículo: {driver.vehicleName}</p>
                   </article>
                 ))}
               </div>
@@ -547,18 +547,18 @@ export function DriversPage() {
                       <span className={`status-badge ${trip.status}`}>{trip.status}</span>
                     </div>
                     <div className="assignment-meta">
-                      <span>Saida: {trip.travelDate} {trip.departureTime ? `as ${trip.departureTime}` : ''}</span>
-                      <span>Embarque: {trip.boardingLocationLabel || trip.addressLine || 'Nao informado'}</span>
-                      <span>Acompanhante: {trip.companionRequired ? trip.companionName || 'Sim' : 'Nao'}</span>
+                      <span>Saída: {trip.travelDate} {trip.departureTime ? `às ${trip.departureTime}` : ''}</span>
+                      <span>Embarque: {trip.boardingLocationLabel || trip.addressLine || 'Não informado'}</span>
+                      <span>Acompanhante: {trip.companionRequired ? trip.companionName || 'Sim' : 'Não'}</span>
                     </div>
                   </article>
                 ))}
               </div>
             ) : (
-              <p className="table-note">Esse motorista ainda nao possui viagens atribuidas.</p>
+              <p className="table-note">Esse motorista ainda não possui viagens atribuídas.</p>
             )
           ) : (
-            <p className="table-note">Selecione um motorista para ver as viagens atribuidas a ele.</p>
+            <p className="table-note">Selecione um motorista para ver as viagens atribuídas a ele.</p>
           )}
         </article>
       </section>

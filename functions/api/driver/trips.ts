@@ -5,7 +5,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
   const driverId = Number(url.searchParams.get('driverId') ?? '')
 
   if (!Number.isFinite(driverId) || driverId <= 0) {
-    return badRequest('Informe um motorista valido.')
+    return badRequest('Informe um motorista válido.')
   }
 
   const trips = await listDriverTrips(env, driverId)

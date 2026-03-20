@@ -6,13 +6,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   const password = body.password?.trim()
 
   if (!cpf || !password) {
-    return badRequest('Informe CPF e senha do motorista.')
+    return badRequest('Informe CPF e PIN do motorista.')
   }
 
   const record = await loginDriver(env, cpf, password)
 
   if (!record) {
-    return notFound('Motorista nao encontrado.')
+    return notFound('Motorista não encontrado.')
   }
 
   return ok({

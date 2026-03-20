@@ -6,7 +6,7 @@ export interface Env {
 
 function requireDb(env: Env) {
   if (!env.DB) {
-    throw new Error('DB binding nao configurado.')
+    throw new Error('Binding do banco D1 não configurado.')
   }
 
   return env.DB
@@ -267,7 +267,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       loginHint:
         typeof requestResult.notes === 'string'
           ? requestResult.notes
-          : 'Guarde seu CPF e seu PIN para futuras consultas.',
+          : 'Guarde seu CPF e seu PIN para consultas futuras.',
       history: historyResult.results ?? [],
     },
   }

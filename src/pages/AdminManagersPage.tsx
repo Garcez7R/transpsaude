@@ -54,7 +54,7 @@ export function AdminManagersPage() {
       setMessage(result.message)
       setForm(initialForm)
     } catch {
-      setError('Nao foi possivel cadastrar esse gerente.')
+      setError('Não foi possível cadastrar esse gerente.')
     } finally {
       setSaving(false)
     }
@@ -76,7 +76,7 @@ export function AdminManagersPage() {
         password: '',
       })
     } catch {
-      setError('Nao foi possivel cadastrar esse operador.')
+      setError('Não foi possível cadastrar esse operador.')
     } finally {
       setSavingOperator(false)
     }
@@ -105,8 +105,8 @@ export function AdminManagersPage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Area administrativa do sistema</strong>
-          <span>Cadastro de gerentes com permissao de gestao total</span>
+          <strong>Área administrativa do sistema</strong>
+          <span>Cadastro de gerentes com permissão de gestão total</span>
         </div>
       </section>
 
@@ -155,7 +155,7 @@ export function AdminManagersPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="manager-email">Email institucional</label>
+                <label htmlFor="manager-email">E-mail institucional</label>
                 <input
                   id="manager-email"
                   value={form.email}
@@ -212,7 +212,7 @@ export function AdminManagersPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="operator-email">Email institucional</label>
+                <label htmlFor="operator-email">E-mail institucional</label>
                 <input
                   id="operator-email"
                   value={operatorForm.email}
@@ -243,10 +243,10 @@ export function AdminManagersPage() {
 
         <aside className="dashboard-side">
           <article className="content-card">
-            <h2>Permissoes por perfil</h2>
+            <h2>Permissões por perfil</h2>
             <ul className="check-list">
               <li>Admin cria gerente e operador</li>
-              <li>Acesso ao operador, gerencia e area funcional de motoristas</li>
+              <li>Acesso ao operador, gerência e área funcional de motoristas</li>
               <li>Gerente e admin criam motorista e operador</li>
               <li>Somente admin cria novos gerentes</li>
             </ul>

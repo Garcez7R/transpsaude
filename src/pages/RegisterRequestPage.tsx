@@ -80,7 +80,7 @@ export function RegisterRequestPage() {
       setSuccess({ protocol: result.protocol, message: result.message })
       setForm(initialForm)
     } catch {
-      setError('Nao foi possivel cadastrar a solicitacao no momento.')
+      setError('Não foi possível cadastrar a solicitação no momento.')
     } finally {
       setLoading(false)
     }
@@ -100,8 +100,8 @@ export function RegisterRequestPage() {
         </section>
 
         <article className="content-card">
-          <h2>Sessao de operador necessaria</h2>
-          <p>Para cadastrar uma nova solicitacao, entre com um perfil liberado para a area do operador.</p>
+          <h2>Sessão de operador necessária</h2>
+          <p>Para cadastrar uma nova solicitação, entre com um perfil liberado para a área do operador.</p>
           <div className="form-actions">
             <Link className="action-button primary" to="/operador">
               Ir para login do painel
@@ -128,7 +128,7 @@ export function RegisterRequestPage() {
         <div className="page-title-block">
           <div className="eyebrow">
             <FilePlus2 size={16} />
-            Nova solicitacao
+            Nova solicitação
           </div>
           <h1>Cadastrar viagem de paciente</h1>
           <p>
@@ -160,7 +160,7 @@ export function RegisterRequestPage() {
               </div>
               <div className="field">
                 <label htmlFor="cns-register">CNS</label>
-                <input id="cns-register" value={form.cns} onChange={(event) => updateField('cns', event.target.value)} placeholder="Numero do cartao SUS" />
+                <input id="cns-register" value={form.cns} onChange={(event) => updateField('cns', event.target.value)} placeholder="Número do cartão SUS" />
               </div>
               <div className="field">
                 <label htmlFor="phone-register">Telefone</label>
@@ -173,7 +173,7 @@ export function RegisterRequestPage() {
                 </label>
               </div>
               <div className="field full">
-                <label htmlFor="address-line">Endereco do paciente</label>
+                <label htmlFor="address-line">Endereço do paciente</label>
                 <input id="address-line" value={form.addressLine} onChange={(event) => updateField('addressLine', event.target.value)} placeholder="Rua, numero, bairro e referencia" required />
               </div>
               <div className="field full checkbox-field">
@@ -197,8 +197,8 @@ export function RegisterRequestPage() {
               <div className="field">
                 <label htmlFor="companion-required">Acompanhante</label>
                 <select id="companion-required" value={form.companionRequired ? 'sim' : 'nao'} onChange={(event) => updateField('companionRequired', event.target.value === 'sim')}>
-                  <option value="nao">Nao necessario</option>
-                  <option value="sim">Necessario</option>
+                  <option value="nao">Não necessário</option>
+                  <option value="sim">Necessário</option>
                 </select>
               </div>
               {form.companionRequired ? (
@@ -224,11 +224,11 @@ export function RegisterRequestPage() {
                   <div className="field full checkbox-field">
                     <label className="checkbox-row" htmlFor="use-patient-address">
                       <input id="use-patient-address" type="checkbox" checked={form.usePatientAddressForCompanion} onChange={(event) => updateField('usePatientAddressForCompanion', event.target.checked)} />
-                      <span>Usar o mesmo endereco do paciente para o acompanhante</span>
+                      <span>Usar o mesmo endereço do paciente para o acompanhante</span>
                     </label>
                   </div>
                   <div className="field full">
-                    <label htmlFor="companion-address">Endereco do acompanhante</label>
+                    <label htmlFor="companion-address">Endereço do acompanhante</label>
                     <input
                       id="companion-address"
                       value={form.usePatientAddressForCompanion ? form.addressLine : form.companionAddressLine}
@@ -250,7 +250,7 @@ export function RegisterRequestPage() {
               </div>
               <div className="field">
                 <label htmlFor="treatment-unit">Unidade de tratamento</label>
-                <input id="treatment-unit" value={form.treatmentUnit} onChange={(event) => updateField('treatmentUnit', event.target.value)} placeholder="Hospital, clinica ou centro" required />
+                <input id="treatment-unit" value={form.treatmentUnit} onChange={(event) => updateField('treatmentUnit', event.target.value)} placeholder="Hospital, clínica ou centro" required />
               </div>
               <div className="field">
                 <label htmlFor="specialty">Especialidade</label>
@@ -261,14 +261,14 @@ export function RegisterRequestPage() {
                 <input id="travel-date" type="date" value={form.travelDate} onChange={(event) => updateField('travelDate', event.target.value)} required />
               </div>
               <div className="field full">
-                <label htmlFor="notes-register">Observacoes</label>
-                <textarea id="notes-register" value={form.notes} onChange={(event) => updateField('notes', event.target.value)} placeholder="Documentos apresentados, orientacoes ou observacoes internas" rows={5} />
+                <label htmlFor="notes-register">Observações</label>
+                <textarea id="notes-register" value={form.notes} onChange={(event) => updateField('notes', event.target.value)} placeholder="Documentos apresentados, orientações ou observações internas" rows={5} />
               </div>
             </div>
 
             <div className="form-actions">
               <button className="action-button primary" disabled={loading} type="submit">
-                {loading ? 'Salvando...' : 'Salvar solicitacao'}
+                {loading ? 'Salvando...' : 'Salvar solicitação'}
               </button>
             </div>
           </form>
@@ -279,10 +279,10 @@ export function RegisterRequestPage() {
           <article className="content-card">
             <h2>Acesso do cidadão</h2>
             <ul className="check-list">
-              <li>CPF, telefone e endereco do paciente agora sao obrigatorios</li>
+              <li>CPF, telefone e endereço do paciente agora são obrigatórios</li>
               <li>O telefone pode ser marcado como WhatsApp</li>
-              <li>Quando houver acompanhante, nome, CPF, telefone e endereco ficam obrigatorios</li>
-              <li>O endereco do acompanhante pode reaproveitar o do paciente ou usar outro</li>
+              <li>Quando houver acompanhante, nome, CPF, telefone e endereço ficam obrigatórios</li>
+              <li>O endereço do acompanhante pode reaproveitar o do paciente ou usar outro</li>
             </ul>
           </article>
 
@@ -290,9 +290,9 @@ export function RegisterRequestPage() {
             <article className="content-card success-card">
               <div className="eyebrow">
                 <CheckCircle2 size={16} />
-                Cadastro concluido
+                Cadastro concluído
               </div>
-              <h2>Solicitacao registrada</h2>
+              <h2>Solicitação registrada</h2>
               <p><strong>Protocolo:</strong> {success.protocol}</p>
               <p>{success.message}</p>
             </article>
@@ -301,7 +301,7 @@ export function RegisterRequestPage() {
               <h2>O que acontece depois</h2>
               <ul className="check-list">
                 <li>Solicitação nasce com status `recebida`</li>
-                <li>Painel interno pode evoluir para analise e agendamento</li>
+                <li>Painel interno pode evoluir para análise e agendamento</li>
                 <li>Cidadão ou responsável consulta andamento no PWA com CPF de acesso e PIN</li>
               </ul>
             </article>

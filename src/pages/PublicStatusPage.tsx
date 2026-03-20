@@ -33,7 +33,7 @@ export function PublicStatusPage() {
     } catch {
       setAccess(null)
       setRequest(null)
-      setError('Nao encontramos acesso para esse CPF e senha/PIN.')
+      setError('Não encontramos acesso para esse CPF e senha/PIN.')
     } finally {
       setLoading(false)
     }
@@ -51,7 +51,7 @@ export function PublicStatusPage() {
       setPassword(newPin)
       setNewPin('')
     } catch {
-      setError('Nao foi possivel ativar o novo PIN. Confira se ele tem 4 digitos.')
+      setError('Não foi possível ativar o novo PIN. Confira se ele tem 4 dígitos.')
     } finally {
       setLoading(false)
     }
@@ -72,9 +72,9 @@ export function PublicStatusPage() {
       <header className="public-header">
         <div className="eyebrow">
           <ShieldCheck size={16} />
-          Consulta do cidadao
+          Consulta do cidadão
         </div>
-        <h1>Acompanhe sua solicitacao de viagem</h1>
+        <h1>Acompanhe sua solicitação de viagem</h1>
         <p>
           Informe seu CPF e a senha atual. No primeiro acesso, o cidadão entra com a senha
           temporária <strong>0000</strong> e já define um PIN numérico de 4 dígitos.
@@ -120,7 +120,7 @@ export function PublicStatusPage() {
             Primeiro acesso: use o CPF cadastrado pelo operador e a senha temporária <strong>0000</strong>.
           </p>
           <p className="table-note">
-            Consulte novamente algumas horas antes da viagem para confirmar horario, embarque e eventuais alteracoes.
+            Consulte novamente algumas horas antes da viagem para confirmar horário, embarque e eventuais alterações.
           </p>
           {error ? <p className="table-note">{error}</p> : null}
         </article>
@@ -164,10 +164,10 @@ export function PublicStatusPage() {
             <article className="public-card departure-highlight">
               <div className="eyebrow">
                 <ShieldCheck size={16} />
-                Saida prevista
+                Saída prevista
               </div>
               <h2>
-                {request.travelDate || 'Data a definir'} {request.departureTime ? `as ${request.departureTime}` : ''}
+                    {request.travelDate || 'Data a definir'} {request.departureTime ? `às ${request.departureTime}` : ''}
               </h2>
               <p>
                 Embarque em <strong>{request.boardingLocationLabel || request.addressLine || 'local a definir'}</strong>.
@@ -201,7 +201,7 @@ export function PublicStatusPage() {
                   <dd>{request.travelDate}</dd>
                 </div>
                 <div>
-                  <dt>Horario de saida</dt>
+                  <dt>Horário de saída</dt>
                   <dd>{request.departureTime || 'A definir'}</dd>
                 </div>
                 <div>
@@ -210,21 +210,21 @@ export function PublicStatusPage() {
                 </div>
                 <div>
                   <dt>Acompanhante</dt>
-                  <dd>{request.companionRequired ? 'Necessario' : 'Nao necessario'}</dd>
+                  <dd>{request.companionRequired ? 'Necessário' : 'Não necessário'}</dd>
                 </div>
                 <div>
                   <dt>Motorista designado</dt>
                   <dd>{request.assignedDriverName || 'A definir'}</dd>
                 </div>
                 <div>
-                  <dt>Orientacao</dt>
+                  <dt>Orientação</dt>
                   <dd>{request.loginHint}</dd>
                 </div>
               </dl>
             </article>
 
             <article className="public-card">
-              <h2>Historico recente</h2>
+              <h2>Histórico recente</h2>
               <ol className="status-history">
                 {request.history.map((entry) => (
                   <li key={`${entry.status}-${entry.updatedAt}`}>

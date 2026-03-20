@@ -17,7 +17,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   const password = body.password?.trim()
 
   if (!cpf || !password) {
-    return badRequest('Informe CPF e senha do administrador.')
+    return badRequest('Informe CPF e senha do acesso administrativo.')
   }
 
   const normalizedCpf = normalizeCpf(cpf)

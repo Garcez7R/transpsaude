@@ -89,7 +89,7 @@ export function ManagerPage() {
         )
       } catch {
         if (active) {
-          setError('Nao foi possivel carregar a tela de gerencia.')
+          setError('Não foi possível carregar a tela de gerência.')
         }
       } finally {
         if (active) {
@@ -133,14 +133,14 @@ export function ManagerPage() {
       const result = await loginAdmin(cpf, password)
 
       if (!isValidInternalRole(result.session.role) || !canAccessManager(result.session)) {
-        setAuthError('Esse perfil nao tem permissao para acessar a gerencia.')
+        setAuthError('Esse perfil não tem permissão para acessar a gerência.')
         return
       }
 
       saveAdminSession(result.session)
       setSession(result.session)
     } catch {
-      setAuthError('Nao foi possivel autenticar esse acesso de gerencia.')
+      setAuthError('Não foi possível autenticar esse acesso de gerência.')
     } finally {
       setAuthLoading(false)
     }
@@ -157,12 +157,12 @@ export function ManagerPage() {
     const data = assignment[requestId]
 
     if (!data?.driverId || !data.departureTime) {
-      setError('Selecione um motorista e informe o horario de saida.')
+      setError('Selecione um motorista e informe o horário de saída.')
       return
     }
 
     if (data.useCustomBoardingLocation && !data.boardingLocationName) {
-      setError('Selecione um ponto oficial de embarque quando essa opcao estiver ativada.')
+      setError('Selecione um ponto oficial de embarque quando essa opção estiver ativada.')
       return
     }
 
@@ -184,7 +184,7 @@ export function ManagerPage() {
       const refreshed = await fetchRequests()
       setRequests(refreshed)
     } catch {
-      setError('Nao foi possivel atribuir o motorista para essa viagem.')
+      setError('Não foi possível atribuir o motorista para essa viagem.')
     } finally {
       setSavingId(null)
     }
@@ -198,7 +198,7 @@ export function ManagerPage() {
             <span />
           </div>
           <div className="institutional-copy">
-            <strong>Gerencia de transporte em saude</strong>
+            <strong>Gerência de transporte em saúde</strong>
             <span>Acesso reservado a gerente e administrador</span>
           </div>
         </section>
@@ -207,10 +207,10 @@ export function ManagerPage() {
           <article className="content-card login-card">
             <div className="eyebrow">
               <LockKeyhole size={16} />
-              Acesso da gerencia
+              Acesso da gerência
             </div>
-            <h1>Entrar na gerencia</h1>
-            <p>Somente perfis com role `manager` ou `admin` podem acessar esta area.</p>
+            <h1>Entrar na gerência</h1>
+            <p>Somente perfis com role `manager` ou `admin` podem acessar esta área.</p>
             <form onSubmit={handleLogin}>
               <div className="login-grid">
                 <div className="field">
@@ -237,7 +237,7 @@ export function ManagerPage() {
               <div className="form-actions">
                 <button className="action-button primary" disabled={authLoading} type="submit">
                   <ShieldCheck size={16} />
-                  {authLoading ? 'Entrando...' : 'Entrar na gerencia'}
+                  {authLoading ? 'Entrando...' : 'Entrar na gerência'}
                 </button>
                 <Link className="action-button secondary" to="/operador">
                   Ir para operador
@@ -256,7 +256,7 @@ export function ManagerPage() {
       <div className="dashboard-shell">
         <article className="content-card">
           <h2>Acesso negado</h2>
-          <p>Seu perfil atual nao tem permissao para entrar na gerencia.</p>
+          <p>Seu perfil atual não tem permissão para entrar na gerência.</p>
           <div className="form-actions">
             <Link className="action-button secondary" to="/operador">
               Ir para operador
@@ -278,8 +278,8 @@ export function ManagerPage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Gerencia de transporte em saude</strong>
-          <span>Analise, organizacao de viagens e atribuicao de motoristas</span>
+          <strong>Gerência de transporte em saúde</strong>
+          <span>Análise, organização de viagens e atribuição de motoristas</span>
         </div>
       </section>
 
@@ -318,7 +318,7 @@ export function ManagerPage() {
 
       <section className="dashboard-grid">
         <div className="content-card">
-          <h2>Solicitacoes para analise e distribuicao</h2>
+          <h2>Solicitações para análise e distribuição</h2>
           {loading ? (
             <p className="table-note">Carregando viagens...</p>
           ) : (
@@ -341,10 +341,10 @@ export function ManagerPage() {
                     <div className="assignment-meta">
                       <span>CPF de acesso: {request.accessCpfMasked ?? request.cpfMasked}</span>
                       <span>Unidade: {request.treatmentUnit}</span>
-                      <span>Motorista designado: {request.assignedDriverName || 'Nao atribuido'}</span>
-                      <span>Horario de saida: {request.departureTime || 'Nao definido'}</span>
-                      <span>Embarque: {request.boardingLocationLabel || request.addressLine || 'Nao informado'}</span>
-                      <span>Acompanhante: {request.companionRequired ? 'Sim' : 'Nao'}</span>
+                      <span>Motorista designado: {request.assignedDriverName || 'Não atribuído'}</span>
+                      <span>Horário de saída: {request.departureTime || 'Não definido'}</span>
+                      <span>Embarque: {request.boardingLocationLabel || request.addressLine || 'Não informado'}</span>
+                      <span>Acompanhante: {request.companionRequired ? 'Sim' : 'Não'}</span>
                       {request.companionRequired && request.companionName ? (
                         <span>
                           Acompanhante: {request.companionName} {request.companionCpfMasked ? `• ${request.companionCpfMasked}` : ''}
@@ -369,7 +369,7 @@ export function ManagerPage() {
                         </select>
                       </div>
                       <div className="field">
-                        <label htmlFor={`departure-${request.id}`}>Horario de saida</label>
+                        <label htmlFor={`departure-${request.id}`}>Horário de saída</label>
                         <input
                           id={`departure-${request.id}`}
                           type="time"
@@ -378,13 +378,13 @@ export function ManagerPage() {
                         />
                       </div>
                       <div className="field full">
-                        <label htmlFor={`notes-${request.id}`}>Observacoes do gerente</label>
+                        <label htmlFor={`notes-${request.id}`}>Observações do gerente</label>
                         <textarea
                           id={`notes-${request.id}`}
                           rows={3}
                           value={data.managerNotes}
                           onChange={(event) => updateAssignment(request.id, 'managerNotes', event.target.value)}
-                          placeholder="Ponto de saida, observacoes de rota, documentos ou orientacoes para o motorista."
+                          placeholder="Ponto de saída, observações de rota, documentos ou orientações para o motorista."
                         />
                       </div>
                       <div className="field full checkbox-field">
@@ -397,7 +397,7 @@ export function ManagerPage() {
                               updateAssignment(request.id, 'useCustomBoardingLocation', event.target.checked)
                             }
                           />
-                          <span>Usar ponto oficial de embarque em vez do endereco do paciente</span>
+                          <span>Usar ponto oficial de embarque em vez do endereço do paciente</span>
                         </label>
                       </div>
                       {data.useCustomBoardingLocation ? (
@@ -420,8 +420,8 @@ export function ManagerPage() {
                         </div>
                       ) : (
                         <div className="field full">
-                          <label>Endereco padrao de embarque</label>
-                          <input value={request.addressLine || 'Nao informado'} readOnly />
+                          <label>Endereço padrão de embarque</label>
+                          <input value={request.addressLine || 'Não informado'} readOnly />
                         </div>
                       )}
                     </div>
@@ -448,9 +448,9 @@ export function ManagerPage() {
           <article className="content-card">
             <h2>Regras de acesso</h2>
             <ul className="check-list">
-              <li>Operator entra apenas na area de operador</li>
-              <li>Manager entra em operador, gerencia e motorista</li>
-              <li>Admin tambem tem acesso total</li>
+              <li>Operator entra apenas na área de operador</li>
+              <li>Manager entra em operador, gerência e motorista</li>
+              <li>Admin também tem acesso total</li>
               <li>Driver fica restrito ao portal do motorista</li>
             </ul>
           </article>

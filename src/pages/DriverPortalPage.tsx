@@ -49,7 +49,7 @@ export function DriverPortalPage() {
         }
       } catch {
         if (active) {
-          setError('Nao foi possivel carregar as viagens do motorista.')
+          setError('Não foi possível carregar as viagens do motorista.')
         }
       } finally {
         if (active) {
@@ -75,7 +75,7 @@ export function DriverPortalPage() {
       saveDriverSession(result.session)
       setSession(result.session)
     } catch {
-      setError('Nao foi possivel autenticar esse motorista.')
+      setError('Não foi possível autenticar esse motorista.')
     } finally {
       setLoading(false)
     }
@@ -96,19 +96,19 @@ export function DriverPortalPage() {
           </div>
           <div className="institutional-copy">
             <strong>Portal do motorista</strong>
-            <span>Acesso funcional do motorista com visualizacao administrativa liberada para gerente e admin</span>
+            <span>Acesso funcional do motorista com visualização administrativa liberada para gerente e admin</span>
           </div>
         </section>
 
         <article className="public-card">
           <h2>Acesso administrativo liberado</h2>
-          <p>Gerente e admin podem acessar esta tela, mas a visao operacional por motorista ficou centralizada na gerencia.</p>
+          <p>Gerente e admin podem acessar esta tela, mas a visão operacional por motorista ficou centralizada na gerência.</p>
           <div className="form-actions">
             <Link className="action-button primary" to="/gerente/motoristas">
-              Ir para gerencia de motoristas
+              Ir para gerência de motoristas
             </Link>
             <Link className="action-button secondary" to="/gerente">
-              Ir para gerencia
+              Ir para gerência
             </Link>
           </div>
         </article>
@@ -125,7 +125,7 @@ export function DriverPortalPage() {
           </div>
           <div className="institutional-copy">
             <strong>Portal do motorista</strong>
-            <span>Consulte suas viagens, passageiros e orientacoes da gerencia</span>
+            <span>Consulte suas viagens, passageiros e orientações da gerência</span>
           </div>
         </section>
 
@@ -135,7 +135,7 @@ export function DriverPortalPage() {
             Acesso do motorista
           </div>
           <h1>Entrar para ver minhas viagens</h1>
-          <p>Use seu CPF e PIN para consultar as viagens atribuidas ao seu nome.</p>
+          <p>Use seu CPF e PIN para consultar as viagens atribuídas ao seu nome.</p>
           <form onSubmit={handleLogin}>
             <div className="form-grid">
               <div className="field">
@@ -181,7 +181,7 @@ export function DriverPortalPage() {
         </div>
         <div className="institutional-copy">
           <strong>Portal do motorista</strong>
-          <span>Viagens atribuidas pela gerencia do transporte em saude</span>
+          <span>Viagens atribuídas pela gerência do transporte em saúde</span>
         </div>
       </section>
 
@@ -191,7 +191,7 @@ export function DriverPortalPage() {
           Motorista autenticado
         </div>
         <h1>{session.name}</h1>
-        <p>Veiculo designado: <strong>{session.vehicleName}</strong></p>
+        <p>Veículo designado: <strong>{session.vehicleName}</strong></p>
         <div className="form-actions">
           <button className="action-button secondary" type="button" onClick={handleLogout}>
             <LogOut size={16} />
@@ -227,7 +227,7 @@ export function DriverPortalPage() {
                   </dd>
                 </div>
                 <div>
-                  <dt>Horario de saida</dt>
+                  <dt>Horário de saída</dt>
                   <dd>{trip.departureTime || 'A definir'}</dd>
                 </div>
                 <div>
@@ -244,19 +244,19 @@ export function DriverPortalPage() {
                 </div>
                 <div>
                   <dt>Telefone</dt>
-                  <dd>{trip.phone || 'Nao informado'}</dd>
+                  <dd>{trip.phone || 'Não informado'}</dd>
                 </div>
                 <div>
-                  <dt>Endereco de embarque</dt>
-                  <dd>{trip.boardingLocationLabel || trip.addressLine || 'Nao informado'}</dd>
+                  <dt>Endereço de embarque</dt>
+                  <dd>{trip.boardingLocationLabel || trip.addressLine || 'Não informado'}</dd>
                 </div>
                 <div>
                   <dt>Acompanhante</dt>
-                  <dd>{trip.companionRequired ? trip.companionName || 'Sim' : 'Nao'}</dd>
+                  <dd>{trip.companionRequired ? trip.companionName || 'Sim' : 'Não'}</dd>
                 </div>
                 <div>
-                  <dt>Observacoes da gerencia</dt>
-                  <dd>{trip.managerNotes || trip.notes || 'Sem observacoes adicionais.'}</dd>
+                  <dt>Observações da gerência</dt>
+                  <dd>{trip.managerNotes || trip.notes || 'Sem observações adicionais.'}</dd>
                 </div>
               </dl>
             </article>
@@ -265,7 +265,7 @@ export function DriverPortalPage() {
           <article className="empty-state">
             <BusFront size={28} />
             <h2>Nenhuma viagem atribuida ainda</h2>
-            <p>Quando a gerencia vincular um roteiro ao seu CPF, ele aparecera aqui com passageiros, embarque e orientacoes.</p>
+            <p>Quando a gerência vincular um roteiro ao seu CPF, ele aparecerá aqui com passageiros, embarque e orientações.</p>
           </article>
         )}
       </div>

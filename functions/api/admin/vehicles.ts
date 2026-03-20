@@ -13,7 +13,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   }
 
   if (!body.name || !body.plate || !body.category) {
-    return badRequest('Preencha nome, placa e categoria do veiculo.')
+    return badRequest('Preencha nome, placa e categoria do veículo.')
   }
 
   await env.DB.prepare(

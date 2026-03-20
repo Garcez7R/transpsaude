@@ -8,12 +8,12 @@ import type { RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '..
 
 const statusOptions: Array<{ value: RequestStatus; label: string }> = [
   { value: 'recebida', label: 'Recebida' },
-  { value: 'em_analise', label: 'Em analise' },
+  { value: 'em_analise', label: 'Em análise' },
   { value: 'aguardando_documentos', label: 'Aguardando documentos' },
   { value: 'aprovada', label: 'Aprovada' },
   { value: 'agendada', label: 'Agendada' },
   { value: 'cancelada', label: 'Cancelada' },
-  { value: 'concluida', label: 'Concluida' },
+  { value: 'concluida', label: 'Concluída' },
 ]
 
 export function RequestDetailsPage() {
@@ -59,7 +59,7 @@ export function RequestDetailsPage() {
         setScheduleTime(requestData.departureTime ?? '')
       } catch {
         if (active) {
-          setError('Nao foi possivel carregar os detalhes da solicitacao.')
+          setError('Não foi possível carregar os detalhes da solicitação.')
         }
       } finally {
         if (active) {
@@ -100,7 +100,7 @@ export function RequestDetailsPage() {
       setMessage(result.message)
       setNote('')
     } catch {
-      setError('Nao foi possivel atualizar o status dessa solicitacao.')
+      setError('Não foi possível atualizar o status desta solicitação.')
     } finally {
       setSaving(false)
     }
@@ -134,7 +134,7 @@ export function RequestDetailsPage() {
       setScheduleNote('')
       setMessage(result.message)
     } catch {
-      setError('Nao foi possivel reagendar a viagem.')
+      setError('Não foi possível reagendar a viagem.')
     } finally {
       setSavingSchedule(false)
     }
@@ -144,8 +144,8 @@ export function RequestDetailsPage() {
     return (
       <div className="dashboard-shell">
         <article className="content-card">
-          <h2>Sessao de operador necessaria</h2>
-          <p>Entre com um perfil autorizado para consultar ou atualizar solicitacoes.</p>
+          <h2>Sessão de operador necessária</h2>
+          <p>Entre com um perfil autorizado para consultar ou atualizar solicitações.</p>
           <div className="form-actions">
             <Link className="action-button primary" to="/operador">
               Ir para operador
@@ -160,8 +160,8 @@ export function RequestDetailsPage() {
     return (
       <div className="dashboard-shell">
         <article className="content-card">
-          <h2>Solicitacao invalida</h2>
-          <p>O identificador informado nao e valido.</p>
+          <h2>Solicitação inválida</h2>
+          <p>O identificador informado não é válido.</p>
         </article>
       </div>
     )
@@ -174,8 +174,8 @@ export function RequestDetailsPage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Detalhe da solicitacao</strong>
-          <span>Consulta completa, andamento e historico interno</span>
+          <strong>Detalhe da solicitação</strong>
+          <span>Consulta completa, andamento e histórico interno</span>
         </div>
       </section>
 
@@ -183,9 +183,9 @@ export function RequestDetailsPage() {
         <div className="page-title-block">
           <div className="eyebrow">
             <CheckCircle2 size={16} />
-            Solicitacao #{requestId}
+            Solicitação #{requestId}
           </div>
-          <h1>{details?.patientName ?? 'Carregando solicitacao'}</h1>
+          <h1>{details?.patientName ?? 'Carregando solicitação'}</h1>
           <p>Use essa tela para revisar os dados do cadastro e movimentar o status operacional.</p>
         </div>
 
@@ -202,12 +202,12 @@ export function RequestDetailsPage() {
 
       {loading || !details ? (
         <article className="content-card">
-          <p className="table-note">Carregando detalhes da solicitacao...</p>
+          <p className="table-note">Carregando detalhes da solicitação...</p>
         </article>
       ) : (
         <section className="dashboard-grid">
           <article className="content-card">
-            <h2>Dados da solicitacao</h2>
+            <h2>Dados da solicitação</h2>
             <dl className="request-summary">
               <div>
                 <dt>Protocolo</dt>
@@ -236,24 +236,24 @@ export function RequestDetailsPage() {
                 <dd>{details.phone}{details.isWhatsapp ? ' • WhatsApp' : ''}</dd>
               </div>
               <div>
-                <dt>Endereco de embarque</dt>
-                <dd>{details.boardingLocationLabel || details.addressLine || 'Nao informado'}</dd>
+                <dt>Endereço de embarque</dt>
+                <dd>{details.boardingLocationLabel || details.addressLine || 'Não informado'}</dd>
               </div>
               <div>
                 <dt>Origem do embarque</dt>
-                <dd>{details.useCustomBoardingLocation ? 'Ponto oficial definido pela gerencia' : 'Endereco do paciente'}</dd>
+                <dd>{details.useCustomBoardingLocation ? 'Ponto oficial definido pela gerência' : 'Endereço do paciente'}</dd>
               </div>
               <div>
                 <dt>CNS</dt>
-                <dd>{details.cns || 'Nao informado'}</dd>
+                <dd>{details.cns || 'Não informado'}</dd>
               </div>
               <div>
                 <dt>Responsavel</dt>
-                <dd>{details.responsibleName || 'Nao informado'}</dd>
+                <dd>{details.responsibleName || 'Não informado'}</dd>
               </div>
               <div>
-                <dt>CPF do responsavel</dt>
-                <dd>{details.responsibleCpfMasked || 'Nao informado'}</dd>
+                <dt>CPF do responsável</dt>
+                <dd>{details.responsibleCpfMasked || 'Não informado'}</dd>
               </div>
               <div>
                 <dt>Destino</dt>
@@ -275,28 +275,28 @@ export function RequestDetailsPage() {
               </div>
               <div>
                 <dt>Motorista</dt>
-                <dd>{details.assignedDriverName || 'Nao atribuido'}</dd>
+                <dd>{details.assignedDriverName || 'Não atribuído'}</dd>
               </div>
               <div>
-                <dt>Horario de saida</dt>
-                <dd>{details.departureTime || 'Nao definido'}</dd>
+                <dt>Horário de saída</dt>
+                <dd>{details.departureTime || 'Não definido'}</dd>
               </div>
               <div>
                 <dt>Acompanhante</dt>
-                <dd>{details.companionRequired ? details.companionName || 'Necessario' : 'Nao necessario'}</dd>
+                <dd>{details.companionRequired ? details.companionName || 'Necessário' : 'Não necessário'}</dd>
               </div>
               <div>
-                <dt>Endereco do acompanhante</dt>
-                <dd>{details.companionAddressLine || 'Nao informado'}</dd>
+                <dt>Endereço do acompanhante</dt>
+                <dd>{details.companionAddressLine || 'Não informado'}</dd>
               </div>
               <div>
-                <dt>Obs. gerencia</dt>
-                <dd>{details.managerNotes || 'Sem observacoes'}</dd>
+                <dt>Obs. gerência</dt>
+                <dd>{details.managerNotes || 'Sem observações'}</dd>
               </div>
             </dl>
 
             <div className="detail-note">
-              <strong>Observacoes do cadastro:</strong> {details.notes || 'Sem observacoes registradas.'}
+              <strong>Observações do cadastro:</strong> {details.notes || 'Sem observações registradas.'}
             </div>
           </article>
 
@@ -320,13 +320,13 @@ export function RequestDetailsPage() {
                     </select>
                   </div>
                   <div className="field full">
-                    <label htmlFor="request-note">Observacao interna</label>
+                    <label htmlFor="request-note">Observação interna</label>
                     <textarea
                       id="request-note"
                       rows={4}
                       value={note}
                       onChange={(event) => setNote(event.target.value)}
-                      placeholder="Descreva o motivo da mudanca, pendencia ou orientacao."
+                      placeholder="Descreva o motivo da mudança, pendência ou orientação."
                     />
                   </div>
                 </div>
@@ -355,7 +355,7 @@ export function RequestDetailsPage() {
                       />
                     </div>
                     <div className="field">
-                      <label htmlFor="schedule-time">Novo horario de saida</label>
+                      <label htmlFor="schedule-time">Novo horário de saída</label>
                       <input
                         id="schedule-time"
                         type="time"
@@ -365,20 +365,20 @@ export function RequestDetailsPage() {
                       />
                     </div>
                     <div className="field full">
-                      <label htmlFor="schedule-note">Motivo ou observacao</label>
+                      <label htmlFor="schedule-note">Motivo ou observação</label>
                       <textarea
                         id="schedule-note"
                         rows={3}
                         value={scheduleNote}
                         onChange={(event) => setScheduleNote(event.target.value)}
-                        placeholder="Mudanca de horario, ajuste por rota, indisponibilidade, nova orientacao."
+                        placeholder="Mudança de horário, ajuste por rota, indisponibilidade, nova orientação."
                       />
                     </div>
                   </div>
                   <div className="form-actions">
                     <button className="action-button primary" disabled={savingSchedule} type="submit">
                       <Save size={16} />
-                      {savingSchedule ? 'Reagendando...' : 'Salvar nova data e horario'}
+                      {savingSchedule ? 'Reagendando...' : 'Salvar nova data e horário'}
                     </button>
                   </div>
                 </form>
@@ -386,7 +386,7 @@ export function RequestDetailsPage() {
             ) : null}
 
             <article className="content-card">
-              <h2>Historico da solicitacao</h2>
+              <h2>Histórico da solicitação</h2>
               <ol className="status-history">
                 {history.map((entry) => (
                   <li key={`${entry.status}-${entry.updatedAt}`}>
