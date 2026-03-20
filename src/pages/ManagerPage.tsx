@@ -1,7 +1,7 @@
 import { ArrowLeft, LockKeyhole, LogOut, Route, Save, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { canAccessAdmin, canAccessManager, isValidInternalRole } from '../lib/access'
+import { canAccessAdmin, canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
 import { assignDriver, fetchDrivers, fetchRequests, loginAdmin } from '../lib/api'
 import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
@@ -290,21 +290,23 @@ export function ManagerPage() {
             Painel do gerente
           </div>
           <h1>Distribuir viagens para os motoristas</h1>
-          <p>Analise os pedidos recebidos e direcione cada viagem para o motorista mais adequado.</p>
+          <p>
+            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>{getInternalRoleLabel(session.role)}</strong>.
+          </p>
         </div>
 
         <div className="page-actions">
-          <Link className="action-button secondary" to="/gerente/motoristas">
-            Motoristas
+          <Link className="action-button secondary" to="/gerente/equipe">
+            Equipe e veículos
           </Link>
           {canAccessAdmin(session) ? (
-            <Link className="action-button secondary" to="/admin/gerentes">
-              Gerentes
+            <Link className="action-button secondary" to="/admin">
+              Admin
             </Link>
           ) : null}
           <Link className="action-button secondary" to="/operador">
             <ArrowLeft size={16} />
-            Ir para operador
+            Operador
           </Link>
           <button className="action-button primary" type="button" onClick={handleLogout}>
             <LogOut size={16} />

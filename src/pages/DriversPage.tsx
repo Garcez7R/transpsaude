@@ -1,7 +1,7 @@
 import { ArrowLeft, BusFront, CarFront, ShieldCheck, UserPlus2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { canAccessManager } from '../lib/access'
+import { canAccessAdmin, canAccessManager, getInternalRoleLabel } from '../lib/access'
 import { createDriver, createOperator, createVehicle, fetchDriverTrips, fetchDrivers, fetchVehicles } from '../lib/api'
 import { getAdminSession } from '../lib/admin-session'
 import type {
@@ -255,13 +255,23 @@ export function DriversPage() {
         <div className="page-title-block">
           <div className="eyebrow">
             <BusFront size={16} />
-            Motoristas e veículos
+            Equipe e veículos
           </div>
-          <h1>Base administrativa da gerência</h1>
-          <p>Cadastre veículos, vincule um veículo ao motorista e acompanhe as viagens atribuídas.</p>
+          <h1>Gestão da equipe de transporte</h1>
+          <p>
+            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>{getInternalRoleLabel(session.role)}</strong>.
+          </p>
         </div>
 
         <div className="page-actions">
+          <Link className="action-button secondary" to="/motorista">
+            Painel do motorista
+          </Link>
+          {canAccessAdmin(session) ? (
+            <Link className="action-button secondary" to="/admin">
+              Admin
+            </Link>
+          ) : null}
           <Link className="action-button secondary" to="/gerente">
             <ArrowLeft size={16} />
             Voltar para gerência
@@ -404,60 +414,62 @@ export function DriversPage() {
       </section>
 
       <section className="dashboard-grid">
-        <article className="content-card">
-          <h2>Novo operador</h2>
-          <form onSubmit={handleOperatorSubmit}>
-            <div className="form-grid">
-              <div className="field">
-                <label htmlFor="operator-name">Nome do operador</label>
-                <input
-                  id="operator-name"
-                  value={operatorForm.name}
-                  onChange={(event) => updateOperatorField('name', event.target.value)}
-                  placeholder="Nome completo"
-                  required
-                />
+        {canAccessManager(session) ? (
+          <article className="content-card">
+            <h2>Novo operador</h2>
+            <form onSubmit={handleOperatorSubmit}>
+              <div className="form-grid">
+                <div className="field">
+                  <label htmlFor="operator-name">Nome do operador</label>
+                  <input
+                    id="operator-name"
+                    value={operatorForm.name}
+                    onChange={(event) => updateOperatorField('name', event.target.value)}
+                    placeholder="Nome completo"
+                    required
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="operator-cpf">CPF</label>
+                  <input
+                    id="operator-cpf"
+                    value={operatorForm.cpf}
+                    onChange={(event) => updateOperatorField('cpf', formatCpf(event.target.value))}
+                    inputMode="numeric"
+                    placeholder="000.000.000-00"
+                    required
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="operator-email">E-mail institucional</label>
+                  <input
+                    id="operator-email"
+                    value={operatorForm.email}
+                    onChange={(event) => updateOperatorField('email', event.target.value)}
+                    placeholder="operador@prefeitura.rs.gov.br"
+                    required
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="operator-password">Senha inicial</label>
+                  <input
+                    id="operator-password"
+                    value={operatorForm.password}
+                    onChange={(event) => updateOperatorField('password', event.target.value)}
+                    placeholder="Senha inicial"
+                    required
+                  />
+                </div>
               </div>
-              <div className="field">
-                <label htmlFor="operator-cpf">CPF</label>
-                <input
-                  id="operator-cpf"
-                  value={operatorForm.cpf}
-                  onChange={(event) => updateOperatorField('cpf', formatCpf(event.target.value))}
-                  inputMode="numeric"
-                  placeholder="000.000.000-00"
-                  required
-                />
+              <div className="form-actions">
+                <button className="action-button primary" disabled={savingOperator} type="submit">
+                  <ShieldCheck size={16} />
+                  {savingOperator ? 'Salvando...' : 'Cadastrar operador'}
+                </button>
               </div>
-              <div className="field">
-                <label htmlFor="operator-email">E-mail institucional</label>
-                <input
-                  id="operator-email"
-                  value={operatorForm.email}
-                  onChange={(event) => updateOperatorField('email', event.target.value)}
-                  placeholder="operador@prefeitura.rs.gov.br"
-                  required
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="operator-password">Senha inicial</label>
-                <input
-                  id="operator-password"
-                  value={operatorForm.password}
-                  onChange={(event) => updateOperatorField('password', event.target.value)}
-                  placeholder="Senha inicial"
-                  required
-                />
-              </div>
-            </div>
-            <div className="form-actions">
-              <button className="action-button primary" disabled={savingOperator} type="submit">
-                <ShieldCheck size={16} />
-                {savingOperator ? 'Salvando...' : 'Cadastrar operador'}
-              </button>
-            </div>
-          </form>
-        </article>
+            </form>
+          </article>
+        ) : null}
 
         <aside className="dashboard-side">
           <article className="content-card">

@@ -1,7 +1,7 @@
 import { BusFront, LogOut, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { canAccessManager } from '../lib/access'
+import { canAccessManager, getInternalRoleLabel } from '../lib/access'
 import { getAdminSession } from '../lib/admin-session'
 import { fetchDriverTrips, loginDriver } from '../lib/api'
 import { clearDriverSession, getDriverSession, saveDriverSession } from '../lib/driver-session'
@@ -87,35 +87,6 @@ export function DriverPortalPage() {
     setTrips([])
   }
 
-  if (!session && internalSession && canAccessManager(internalSession)) {
-    return (
-      <div className="public-shell">
-        <section className="institutional-bar institutional-bar-inner">
-          <div className="crest-mark" aria-hidden="true">
-            <span />
-          </div>
-          <div className="institutional-copy">
-            <strong>Portal do motorista</strong>
-            <span>Acesso funcional do motorista com visualização administrativa liberada para gerente e admin</span>
-          </div>
-        </section>
-
-        <article className="public-card">
-          <h2>Acesso administrativo liberado</h2>
-          <p>Gerente e admin podem acessar esta tela, mas a visão operacional por motorista ficou centralizada na gerência.</p>
-          <div className="form-actions">
-            <Link className="action-button primary" to="/gerente/motoristas">
-              Ir para gerência de motoristas
-            </Link>
-            <Link className="action-button secondary" to="/gerente">
-              Ir para gerência
-            </Link>
-          </div>
-        </article>
-      </div>
-    )
-  }
-
   if (!session) {
     return (
       <div className="public-shell">
@@ -136,6 +107,12 @@ export function DriverPortalPage() {
           </div>
           <h1>Entrar para ver minhas viagens</h1>
           <p>Use seu CPF e PIN para consultar as viagens atribuídas ao seu nome.</p>
+          {internalSession && canAccessManager(internalSession) ? (
+            <p className="table-note">
+              Sessão interna ativa para <strong>{internalSession.name}</strong> com perfil{' '}
+              <strong>{getInternalRoleLabel(internalSession.role)}</strong>.
+            </p>
+          ) : null}
           <form onSubmit={handleLogin}>
             <div className="form-grid">
               <div className="field">
@@ -165,6 +142,11 @@ export function DriverPortalPage() {
                 <Search size={16} />
                 {loading ? 'Entrando...' : 'Entrar'}
               </button>
+              {internalSession && canAccessManager(internalSession) ? (
+                <Link className="action-button secondary" to="/gerente/equipe">
+                  Equipe e veículos
+                </Link>
+              ) : null}
             </div>
           </form>
           {error ? <p className="table-note">{error}</p> : null}

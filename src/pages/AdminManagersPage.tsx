@@ -114,13 +114,18 @@ export function AdminManagersPage() {
         <div className="page-title-block">
           <div className="eyebrow">
             <ShieldCheck size={16} />
-            Admin
+            Painel do admin
           </div>
-          <h1>Cadastrar gerente</h1>
-          <p>Somente o administrador pode criar novos acessos de gerente para o sistema.</p>
+          <h1>Gestão administrativa do sistema</h1>
+          <p>
+            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>administrador</strong>.
+          </p>
         </div>
 
         <div className="page-actions">
+          <Link className="action-button secondary" to="/gerente">
+            Gerência
+          </Link>
           <Link className="action-button secondary" to="/operador">
             <ArrowLeft size={16} />
             Voltar ao painel

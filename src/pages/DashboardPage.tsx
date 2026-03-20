@@ -12,7 +12,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { loginAdmin, fetchDashboardSummary, fetchRequests } from '../lib/api'
-import { canAccessAdmin, canAccessOperator, isValidInternalRole } from '../lib/access'
+import { canAccessAdmin, canAccessManager, canAccessOperator, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
 import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } from '../types'
 
@@ -252,23 +252,27 @@ export function DashboardPage() {
           </div>
           <h1>Solicitações de transporte em saúde</h1>
           <p>
-            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>{session.role}</strong>.
+            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>{getInternalRoleLabel(session.role)}</strong>.
           </p>
         </div>
 
         <div className="page-actions">
-          <Link className="action-button secondary" to="/gerente">
-            <Route size={16} />
-            Gerência
-          </Link>
-          <Link className="action-button secondary" to="/gerente/motoristas">
-            <BusFront size={16} />
-            Motoristas
-          </Link>
+          {canAccessManager(session) ? (
+            <Link className="action-button secondary" to="/gerente">
+              <Route size={16} />
+              Gerência
+            </Link>
+          ) : null}
+          {canAccessManager(session) ? (
+            <Link className="action-button secondary" to="/gerente/equipe">
+              <BusFront size={16} />
+              Equipe e veículos
+            </Link>
+          ) : null}
           {canAccessAdmin(session) ? (
-            <Link className="action-button secondary" to="/admin/gerentes">
+            <Link className="action-button secondary" to="/admin">
               <ShieldCheck size={16} />
-              Gerentes
+              Admin
             </Link>
           ) : null}
           <Link className="action-button secondary" to="/operador/cadastro">

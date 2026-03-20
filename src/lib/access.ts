@@ -16,6 +16,18 @@ export function canAccessAdmin(session: AdminSession | null) {
   return Boolean(session && session.role === 'admin')
 }
 
+export function getInternalRoleLabel(role: InternalRole) {
+  if (role === 'admin') {
+    return 'administrador'
+  }
+
+  if (role === 'manager') {
+    return 'gerente'
+  }
+
+  return 'operador'
+}
+
 export function isValidInternalRole(role: string): role is InternalRole {
   return role === 'operator' || role === 'manager' || role === 'admin'
 }

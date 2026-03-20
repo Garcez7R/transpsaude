@@ -18,10 +18,12 @@ export default function App() {
         <Route path="/operador" element={<DashboardPage />} />
         <Route path="/operador/cadastro" element={<RegisterRequestPage />} />
         <Route path="/operador/solicitacoes/:id" element={<RequestDetailsPage />} />
-        <Route path="/operador/motoristas" element={<Navigate to="/gerente/motoristas" replace />} />
-        <Route path="/admin/gerentes" element={<AdminManagersPage />} />
+        <Route path="/operador/motoristas" element={<Navigate to="/gerente/equipe" replace />} />
+        <Route path="/admin" element={<AdminManagersPage />} />
+        <Route path="/admin/gerentes" element={<Navigate to="/admin" replace />} />
         <Route path="/gerente" element={<ManagerPage />} />
-        <Route path="/gerente/motoristas" element={<DriversPage />} />
+        <Route path="/gerente/equipe" element={<DriversPage />} />
+        <Route path="/gerente/motoristas" element={<Navigate to="/motorista" replace />} />
         <Route path="/motorista" element={<DriverPortalPage />} />
         <Route path="/motoristas" element={<Navigate to="/motorista" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
