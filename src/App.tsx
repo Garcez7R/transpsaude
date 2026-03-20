@@ -22,8 +22,8 @@ export default function App() {
         <Route path="/admin/gerentes" element={<AdminManagersPage />} />
         <Route path="/gerente" element={<ManagerPage />} />
         <Route path="/gerente/motoristas" element={<DriversPage />} />
-        <Route path="/motorista" element={<Navigate to="/motoristas" replace />} />
-        <Route path="/motoristas" element={<DriverPortalPage />} />
+        <Route path="/motorista" element={<DriverPortalPage />} />
+        <Route path="/motoristas" element={<Navigate to="/motorista" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <InstallAppBar />
