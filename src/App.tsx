@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { AdminManagersPage } from './pages/AdminManagersPage'
 import { InstallAppBar } from './components/InstallAppBar'
 import { DashboardPage } from './pages/DashboardPage'
 import { DriverPortalPage } from './pages/DriverPortalPage'
@@ -18,9 +19,11 @@ export default function App() {
         <Route path="/operador/cadastro" element={<RegisterRequestPage />} />
         <Route path="/operador/solicitacoes/:id" element={<RequestDetailsPage />} />
         <Route path="/operador/motoristas" element={<Navigate to="/gerente/motoristas" replace />} />
+        <Route path="/admin/gerentes" element={<AdminManagersPage />} />
         <Route path="/gerente" element={<ManagerPage />} />
         <Route path="/gerente/motoristas" element={<DriversPage />} />
-        <Route path="/motorista" element={<DriverPortalPage />} />
+        <Route path="/motorista" element={<Navigate to="/motoristas" replace />} />
+        <Route path="/motoristas" element={<DriverPortalPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <InstallAppBar />

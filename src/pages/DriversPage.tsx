@@ -334,7 +334,7 @@ export function DriversPage() {
                 <input
                   id="driver-password"
                   value={driverForm.password}
-                  onChange={(event) => updateDriverField('password', event.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onChange={(event) => updateDriverField('password', event.target.value.replace(/\D/g, '').slice(0, 4))}
                   inputMode="numeric"
                   placeholder="0000"
                   required

@@ -3,6 +3,7 @@ import type {
   AssignDriverInput,
   CitizenAccessResponse,
   CreateDriverInput,
+  CreateManagerInput,
   CreateTravelRequestInput,
   CreateTravelRequestResponse,
   CreateVehicleInput,
@@ -116,6 +117,16 @@ export async function createVehicle(input: CreateVehicleInput) {
   })
 
   return parseJson<VehicleRecord>(response)
+}
+
+export async function createManager(input: CreateManagerInput) {
+  const response = await fetch('/api/admin/managers', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  return parseJson<{ message: string }>(response)
 }
 
 export async function assignDriver(input: AssignDriverInput) {

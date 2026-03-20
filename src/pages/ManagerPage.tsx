@@ -1,7 +1,7 @@
 import { ArrowLeft, LockKeyhole, LogOut, Route, Save, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { canAccessManager, isValidInternalRole } from '../lib/access'
+import { canAccessAdmin, canAccessManager, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
 import { assignDriver, fetchDrivers, fetchRequests, loginAdmin } from '../lib/api'
 import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
@@ -297,6 +297,11 @@ export function ManagerPage() {
           <Link className="action-button secondary" to="/gerente/motoristas">
             Motoristas
           </Link>
+          {canAccessAdmin(session) ? (
+            <Link className="action-button secondary" to="/admin/gerentes">
+              Gerentes
+            </Link>
+          ) : null}
           <Link className="action-button secondary" to="/operador">
             <ArrowLeft size={16} />
             Ir para operador

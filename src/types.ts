@@ -137,6 +137,13 @@ export interface CreateVehicleInput {
   category: string
 }
 
+export interface CreateManagerInput {
+  name: string
+  cpf: string
+  email: string
+  password: string
+}
+
 export interface AssignDriverInput {
   requestId: number
   driverId: number

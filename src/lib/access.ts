@@ -12,6 +12,10 @@ export function canAccessEverything(session: AdminSession | null) {
   return canAccessManager(session)
 }
 
+export function canAccessAdmin(session: AdminSession | null) {
+  return Boolean(session && session.role === 'admin')
+}
+
 export function isValidInternalRole(role: string): role is InternalRole {
   return role === 'operator' || role === 'manager' || role === 'admin'
 }

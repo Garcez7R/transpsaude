@@ -12,7 +12,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { loginAdmin, fetchDashboardSummary, fetchRequests } from '../lib/api'
-import { canAccessOperator, isValidInternalRole } from '../lib/access'
+import { canAccessAdmin, canAccessOperator, isValidInternalRole } from '../lib/access'
 import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
 import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } from '../types'
 
@@ -265,6 +265,12 @@ export function DashboardPage() {
             <BusFront size={16} />
             Motoristas
           </Link>
+          {canAccessAdmin(session) ? (
+            <Link className="action-button secondary" to="/admin/gerentes">
+              <ShieldCheck size={16} />
+              Gerentes
+            </Link>
+          ) : null}
           <Link className="action-button secondary" to="/operador/cadastro">
             <Plus size={16} />
             Nova solicitacao

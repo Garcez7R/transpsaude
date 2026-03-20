@@ -1,8 +1,11 @@
 import { BusFront, LogOut, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { canAccessManager } from '../lib/access'
+import { getAdminSession } from '../lib/admin-session'
 import { fetchDriverTrips, loginDriver } from '../lib/api'
 import { clearDriverSession, getDriverSession, saveDriverSession } from '../lib/driver-session'
-import type { DriverSession, TravelRequest } from '../types'
+import type { AdminSession, DriverSession, TravelRequest } from '../types'
 
 function formatCpf(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -14,6 +17,7 @@ function formatCpf(value: string) {
 
 export function DriverPortalPage() {
   const [session, setSession] = useState<DriverSession | null>(null)
+  const [internalSession, setInternalSession] = useState<AdminSession | null>(null)
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
   const [trips, setTrips] = useState<TravelRequest[]>([])
@@ -22,6 +26,7 @@ export function DriverPortalPage() {
 
   useEffect(() => {
     setSession(getDriverSession())
+    setInternalSession(getAdminSession())
   }, [])
 
   useEffect(() => {
@@ -82,6 +87,35 @@ export function DriverPortalPage() {
     setTrips([])
   }
 
+  if (!session && internalSession && canAccessManager(internalSession)) {
+    return (
+      <div className="public-shell">
+        <section className="institutional-bar institutional-bar-inner">
+          <div className="crest-mark" aria-hidden="true">
+            <span />
+          </div>
+          <div className="institutional-copy">
+            <strong>Portal do motorista</strong>
+            <span>Acesso funcional do motorista com visualizacao administrativa liberada para gerente e admin</span>
+          </div>
+        </section>
+
+        <article className="public-card">
+          <h2>Acesso administrativo liberado</h2>
+          <p>Gerente e admin podem acessar esta tela, mas a visao operacional por motorista ficou centralizada na gerencia.</p>
+          <div className="form-actions">
+            <Link className="action-button primary" to="/gerente/motoristas">
+              Ir para gerencia de motoristas
+            </Link>
+            <Link className="action-button secondary" to="/gerente">
+              Ir para gerencia
+            </Link>
+          </div>
+        </article>
+      </div>
+    )
+  }
+
   if (!session) {
     return (
       <div className="public-shell">
@@ -101,6 +135,7 @@ export function DriverPortalPage() {
             Acesso do motorista
           </div>
           <h1>Entrar para ver minhas viagens</h1>
+          <p>Use seu CPF e PIN para consultar as viagens atribuidas ao seu nome.</p>
           <form onSubmit={handleLogin}>
             <div className="form-grid">
               <div className="field">
@@ -114,11 +149,11 @@ export function DriverPortalPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="driver-login-password">Senha</label>
+                <label htmlFor="driver-login-password">PIN do motorista</label>
                 <input
                   id="driver-login-password"
                   value={password}
-                  onChange={(event) => setPassword(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onChange={(event) => setPassword(event.target.value.replace(/\D/g, '').slice(0, 4))}
                   inputMode="numeric"
                   placeholder="0000"
                 />
