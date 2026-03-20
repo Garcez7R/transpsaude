@@ -23,15 +23,30 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     cpf?: string
     phone?: string
     isWhatsapp?: boolean
-    vehicleName?: string
+    vehicleId?: number
     password?: string
   }
 
-  if (!body.name || !body.cpf || !body.phone || !body.vehicleName || !body.password) {
+  if (!body.name || !body.cpf || !body.phone || !body.vehicleId || !body.password) {
     return badRequest('Preencha nome, CPF, telefone, veiculo e senha do motorista.')
   }
 
   const cpf = normalizeCpf(body.cpf)
+  const vehicle = await env.DB.prepare(
+    `
+      select id, name
+      from vehicles
+      where id = ?1
+        and active = 1
+      limit 1
+    `,
+  )
+    .bind(body.vehicleId)
+    .first<Record<string, unknown>>()
+
+  if (!vehicle) {
+    return badRequest('Veiculo nao encontrado.')
+  }
 
   await env.DB.prepare(
     `
@@ -40,28 +55,31 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         cpf,
         phone,
         is_whatsapp,
+        vehicle_id,
         vehicle_name,
         password,
         active
       )
-      values (?1, ?2, ?3, ?4, ?5, ?6, 1)
+      values (?1, ?2, ?3, ?4, ?5, ?6, ?7, 1)
     `,
   )
-    .bind(body.name, cpf, body.phone, body.isWhatsapp ? 1 : 0, body.vehicleName, body.password)
+    .bind(body.name, cpf, body.phone, body.isWhatsapp ? 1 : 0, vehicle.id, vehicle.name, body.password)
     .run()
 
   const created = await env.DB.prepare(
     `
       select
-        id,
-        name,
-        cpf,
-        phone,
-        is_whatsapp as isWhatsapp,
-        vehicle_name as vehicleName,
-        active
-      from drivers
-      where cpf = ?1
+        d.id,
+        d.name,
+        d.cpf,
+        d.phone,
+        d.is_whatsapp as isWhatsapp,
+        d.vehicle_id as vehicleId,
+        coalesce(v.name, d.vehicle_name) as vehicleName,
+        d.active
+      from drivers d
+      left join vehicles v on v.id = d.vehicle_id
+      where d.cpf = ?1
       limit 1
     `,
   )

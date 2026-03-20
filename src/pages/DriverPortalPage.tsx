@@ -1,10 +1,8 @@
 import { BusFront, LogOut, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { canAccessEverything } from '../lib/access'
-import { fetchDriverTrips, fetchDrivers, loginDriver } from '../lib/api'
-import { getAdminSession } from '../lib/admin-session'
+import { fetchDriverTrips, loginDriver } from '../lib/api'
 import { clearDriverSession, getDriverSession, saveDriverSession } from '../lib/driver-session'
-import type { AdminSession, DriverRecord, DriverSession, TravelRequest } from '../types'
+import type { DriverSession, TravelRequest } from '../types'
 
 function formatCpf(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -16,62 +14,22 @@ function formatCpf(value: string) {
 
 export function DriverPortalPage() {
   const [session, setSession] = useState<DriverSession | null>(null)
-  const [internalSession, setInternalSession] = useState<AdminSession | null>(null)
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
-  const [selectedDriverId, setSelectedDriverId] = useState('')
-  const [drivers, setDrivers] = useState<DriverRecord[]>([])
   const [trips, setTrips] = useState<TravelRequest[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     setSession(getDriverSession())
-    setInternalSession(getAdminSession())
   }, [])
 
   useEffect(() => {
-    if (!canAccessEverything(internalSession)) {
+    if (!session) {
       return
     }
 
-    let active = true
-
-    async function loadDrivers() {
-      try {
-        const data = await fetchDrivers()
-
-        if (active) {
-          setDrivers(data)
-          if (!selectedDriverId && data[0]) {
-            setSelectedDriverId(String(data[0].id))
-          }
-        }
-      } catch {
-        if (active) {
-          setError('Nao foi possivel carregar a lista de motoristas.')
-        }
-      }
-    }
-
-    void loadDrivers()
-
-    return () => {
-      active = false
-    }
-  }, [internalSession, selectedDriverId])
-
-  useEffect(() => {
-    const resolvedDriverId =
-      session?.driverId ??
-      (canAccessEverything(internalSession) && selectedDriverId ? Number(selectedDriverId) : null)
-
-    if (!resolvedDriverId) {
-      return
-    }
-
-    const driverId = resolvedDriverId
-
+    const driverId = session.driverId
     let active = true
 
     async function loadTrips() {
@@ -100,7 +58,7 @@ export function DriverPortalPage() {
     return () => {
       active = false
     }
-  }, [session, internalSession, selectedDriverId])
+  }, [session])
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -124,18 +82,7 @@ export function DriverPortalPage() {
     setTrips([])
   }
 
-  if (internalSession && !canAccessEverything(internalSession) && !session) {
-    return (
-      <div className="public-shell">
-        <article className="public-card">
-          <h2>Acesso negado</h2>
-          <p>Somente motorista, gerente ou administrador podem acessar esta area.</p>
-        </article>
-      </div>
-    )
-  }
-
-  if (!session && !canAccessEverything(internalSession)) {
+  if (!session) {
     return (
       <div className="public-shell">
         <section className="institutional-bar institutional-bar-inner">
@@ -144,7 +91,7 @@ export function DriverPortalPage() {
           </div>
           <div className="institutional-copy">
             <strong>Portal do motorista</strong>
-            <span>Consulte somente as viagens que foram atribuídas para seu CPF</span>
+            <span>Consulte suas viagens, passageiros e orientacoes da gerencia</span>
           </div>
         </section>
 
@@ -191,11 +138,6 @@ export function DriverPortalPage() {
     )
   }
 
-  const title = session ? session.name : internalSession?.name ?? 'Gerencia'
-  const subtitle = session
-    ? `Veiculo principal: ${session.vehicleName}`
-    : 'Visualizacao ampliada para gerente ou administrador'
-
   return (
     <div className="public-shell">
       <section className="institutional-bar institutional-bar-inner">
@@ -211,35 +153,16 @@ export function DriverPortalPage() {
       <header className="public-header">
         <div className="eyebrow">
           <BusFront size={16} />
-          {session ? 'Motorista autenticado' : 'Acesso ampliado da gerencia'}
+          Motorista autenticado
         </div>
-        <h1>{title}</h1>
-        <p>{subtitle}</p>
-        {canAccessEverything(internalSession) && !session ? (
-          <div className="field">
-            <label htmlFor="driver-selector">Selecionar motorista</label>
-            <select
-              id="driver-selector"
-              value={selectedDriverId}
-              onChange={(event) => setSelectedDriverId(event.target.value)}
-            >
-              <option value="">Selecione um motorista</option>
-              {drivers.map((driver) => (
-                <option key={driver.id} value={driver.id}>
-                  {driver.name} • {driver.vehicleName}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
-        {session ? (
-          <div className="form-actions">
-            <button className="action-button secondary" type="button" onClick={handleLogout}>
-              <LogOut size={16} />
-              Sair
-            </button>
-          </div>
-        ) : null}
+        <h1>{session.name}</h1>
+        <p>Veiculo designado: <strong>{session.vehicleName}</strong></p>
+        <div className="form-actions">
+          <button className="action-button secondary" type="button" onClick={handleLogout}>
+            <LogOut size={16} />
+            Sair
+          </button>
+        </div>
       </header>
 
       {error ? <p className="table-note">{error}</p> : null}
@@ -289,40 +212,25 @@ export function DriverPortalPage() {
                   <dd>{trip.phone || 'Nao informado'}</dd>
                 </div>
                 <div>
-                  <dt>CPF de acesso</dt>
-                  <dd>{trip.accessCpfMasked ?? trip.cpfMasked}</dd>
-                </div>
-                <div>
                   <dt>Endereco de embarque</dt>
-                  <dd>{trip.addressLine || 'Nao informado'}</dd>
+                  <dd>{trip.boardingLocationLabel || trip.addressLine || 'Nao informado'}</dd>
                 </div>
                 <div>
                   <dt>Acompanhante</dt>
                   <dd>{trip.companionRequired ? trip.companionName || 'Sim' : 'Nao'}</dd>
                 </div>
                 <div>
-                  <dt>Motorista designado</dt>
-                  <dd>{trip.assignedDriverName || 'Nao definido'}</dd>
-                </div>
-                <div>
                   <dt>Observacoes da gerencia</dt>
                   <dd>{trip.managerNotes || trip.notes || 'Sem observacoes adicionais.'}</dd>
                 </div>
               </dl>
-              {trip.companionRequired ? (
-                <div className="detail-note">
-                  <strong>Acompanhante:</strong> {trip.companionName || 'Nao informado'}
-                  {trip.companionCpfMasked ? ` • ${trip.companionCpfMasked}` : ''}
-                  {trip.companionAddressLine ? ` • embarque: ${trip.companionAddressLine}` : ''}
-                </div>
-              ) : null}
             </article>
           ))
         ) : (
           <article className="empty-state">
             <BusFront size={28} />
             <h2>Nenhuma viagem atribuida ainda</h2>
-            <p>Quando a gerencia vincular um roteiro ao motorista selecionado, ele aparecera aqui com os passageiros e orientacoes.</p>
+            <p>Quando a gerencia vincular um roteiro ao seu CPF, ele aparecera aqui com passageiros, embarque e orientacoes.</p>
           </article>
         )}
       </div>

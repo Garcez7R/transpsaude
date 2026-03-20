@@ -318,16 +318,18 @@ export async function listDrivers(env: Env) {
   const result = await db.prepare(
     `
       select
-        id,
-        name,
-        cpf,
-        phone,
-        is_whatsapp as isWhatsapp,
-        vehicle_name as vehicleName,
-        active
-      from drivers
-      where active = 1
-      order by name asc
+        d.id,
+        d.name,
+        d.cpf,
+        d.phone,
+        d.is_whatsapp as isWhatsapp,
+        d.vehicle_id as vehicleId,
+        coalesce(v.name, d.vehicle_name) as vehicleName,
+        d.active
+      from drivers d
+      left join vehicles v on v.id = d.vehicle_id
+      where d.active = 1
+      order by d.name asc
     `,
   ).all()
 
@@ -346,14 +348,15 @@ export async function loginDriver(env: Env, cpf: string, password: string) {
   const driver = await db.prepare(
     `
       select
-        id,
-        name,
-        cpf,
-        password,
-        vehicle_name as vehicleName
-      from drivers
-      where cpf = ?1
-        and active = 1
+        d.id,
+        d.name,
+        d.cpf,
+        d.password,
+        coalesce(v.name, d.vehicle_name) as vehicleName
+      from drivers d
+      left join vehicles v on v.id = d.vehicle_id
+      where d.cpf = ?1
+        and d.active = 1
       limit 1
     `,
   )
@@ -370,6 +373,28 @@ export async function loginDriver(env: Env, cpf: string, password: string) {
     cpf: maskCpf(String(driver.cpf ?? '')),
     vehicleName: String(driver.vehicleName ?? ''),
   }
+}
+
+export async function listVehicles(env: Env) {
+  const db = requireDb(env)
+  const result = await db.prepare(
+    `
+      select
+        id,
+        name,
+        plate,
+        category,
+        active
+      from vehicles
+      where active = 1
+      order by name asc
+    `,
+  ).all()
+
+  return (result.results ?? []).map((vehicle) => ({
+    ...vehicle,
+    active: toBoolean(vehicle.active),
+  }))
 }
 
 export async function listDriverTrips(env: Env, driverId: number) {

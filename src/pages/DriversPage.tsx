@@ -1,18 +1,24 @@
-import { ArrowLeft, BusFront, UserPlus2 } from 'lucide-react'
+import { ArrowLeft, BusFront, CarFront, UserPlus2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessManager } from '../lib/access'
-import { createDriver, fetchDrivers } from '../lib/api'
+import { createDriver, createVehicle, fetchDriverTrips, fetchDrivers, fetchVehicles } from '../lib/api'
 import { getAdminSession } from '../lib/admin-session'
-import type { CreateDriverInput, DriverRecord } from '../types'
+import type { CreateDriverInput, CreateVehicleInput, DriverRecord, TravelRequest, VehicleRecord } from '../types'
 
-const initialForm: CreateDriverInput = {
+const initialDriverForm: CreateDriverInput = {
   name: '',
   cpf: '',
   phone: '',
   isWhatsapp: false,
-  vehicleName: '',
+  vehicleId: null,
   password: '',
+}
+
+const initialVehicleForm: CreateVehicleInput = {
+  name: '',
+  plate: '',
+  category: '',
 }
 
 function formatCpf(value: string) {
@@ -36,9 +42,14 @@ function formatPhone(value: string) {
 export function DriversPage() {
   const session = typeof window !== 'undefined' ? getAdminSession() : null
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
-  const [form, setForm] = useState(initialForm)
+  const [vehicles, setVehicles] = useState<VehicleRecord[]>([])
+  const [driverTrips, setDriverTrips] = useState<TravelRequest[]>([])
+  const [selectedDriverId, setSelectedDriverId] = useState('')
+  const [driverForm, setDriverForm] = useState(initialDriverForm)
+  const [vehicleForm, setVehicleForm] = useState(initialVehicleForm)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [savingDriver, setSavingDriver] = useState(false)
+  const [savingVehicle, setSavingVehicle] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
@@ -49,18 +60,25 @@ export function DriversPage() {
 
     let active = true
 
-    async function loadDrivers() {
+    async function loadData() {
       setLoading(true)
 
       try {
-        const data = await fetchDrivers()
+        const [driverData, vehicleData] = await Promise.all([fetchDrivers(), fetchVehicles()])
 
-        if (active) {
-          setDrivers(data)
+        if (!active) {
+          return
+        }
+
+        setDrivers(driverData)
+        setVehicles(vehicleData)
+
+        if (!selectedDriverId && driverData[0]) {
+          setSelectedDriverId(String(driverData[0].id))
         }
       } catch {
         if (active) {
-          setError('Nao foi possivel carregar os motoristas.')
+          setError('Nao foi possivel carregar motoristas e veiculos.')
         }
       } finally {
         if (active) {
@@ -69,32 +87,83 @@ export function DriversPage() {
       }
     }
 
-    void loadDrivers()
+    void loadData()
 
     return () => {
       active = false
     }
-  }, [session])
+  }, [session, selectedDriverId])
 
-  function updateField<K extends keyof CreateDriverInput>(key: K, value: CreateDriverInput[K]) {
-    setForm((current) => ({ ...current, [key]: value }))
+  useEffect(() => {
+    if (!selectedDriverId) {
+      setDriverTrips([])
+      return
+    }
+
+    let active = true
+
+    async function loadTrips() {
+      try {
+        const data = await fetchDriverTrips(Number(selectedDriverId))
+
+        if (active) {
+          setDriverTrips(data)
+        }
+      } catch {
+        if (active) {
+          setError('Nao foi possivel carregar as viagens desse motorista.')
+        }
+      }
+    }
+
+    void loadTrips()
+
+    return () => {
+      active = false
+    }
+  }, [selectedDriverId])
+
+  function updateDriverField<K extends keyof CreateDriverInput>(key: K, value: CreateDriverInput[K]) {
+    setDriverForm((current) => ({ ...current, [key]: value }))
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function updateVehicleField<K extends keyof CreateVehicleInput>(key: K, value: CreateVehicleInput[K]) {
+    setVehicleForm((current) => ({ ...current, [key]: value }))
+  }
+
+  async function handleDriverSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSaving(true)
+    setSavingDriver(true)
     setError('')
     setMessage('')
 
     try {
-      const created = await createDriver(form)
+      const created = await createDriver(driverForm)
       setDrivers((current) => [created, ...current])
-      setForm(initialForm)
+      setDriverForm(initialDriverForm)
       setMessage(`Motorista ${created.name} cadastrado com sucesso.`)
     } catch {
       setError('Nao foi possivel salvar o motorista.')
     } finally {
-      setSaving(false)
+      setSavingDriver(false)
+    }
+  }
+
+  async function handleVehicleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSavingVehicle(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const created = await createVehicle(vehicleForm)
+      setVehicles((current) => [created, ...current])
+      setVehicleForm(initialVehicleForm)
+      setMessage(`Veiculo ${created.name} cadastrado com sucesso.`)
+    } catch {
+      setError('Nao foi possivel salvar o veiculo.')
+    } finally {
+      setSavingVehicle(false)
     }
   }
 
@@ -103,7 +172,7 @@ export function DriversPage() {
       <div className="dashboard-shell">
         <article className="content-card">
           <h2>Sessao administrativa necessaria</h2>
-          <p>Cadastros de motoristas ficam disponiveis somente para a equipe interna.</p>
+          <p>Cadastros de motoristas e veiculos ficam disponiveis somente para a equipe interna.</p>
           <div className="form-actions">
             <Link className="action-button primary" to="/gerente">
               Ir para login da gerencia
@@ -119,11 +188,8 @@ export function DriversPage() {
       <div className="dashboard-shell">
         <article className="content-card">
           <h2>Acesso negado</h2>
-          <p>Somente gerente e administrador podem cadastrar ou gerenciar motoristas.</p>
+          <p>Somente gerente e administrador podem cadastrar ou gerenciar motoristas e veiculos.</p>
           <div className="form-actions">
-            <Link className="action-button secondary" to="/operador">
-              Ir para operador
-            </Link>
             <Link className="action-button primary" to="/gerente">
               Ir para gerencia
             </Link>
@@ -140,8 +206,8 @@ export function DriversPage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Base de motoristas da Prefeitura de Capão do Leão</strong>
-          <span>Cadastre acessos e veiculos para uso na distribuicao das viagens</span>
+          <strong>Gerencia de motoristas e veiculos</strong>
+          <span>Cadastros administrativos e visao operacional das viagens por motorista</span>
         </div>
       </section>
 
@@ -149,16 +215,13 @@ export function DriversPage() {
         <div className="page-title-block">
           <div className="eyebrow">
             <BusFront size={16} />
-            Motoristas
+            Motoristas e veiculos
           </div>
-          <h1>Cadastro e controle de motoristas</h1>
-          <p>Esses acessos serao usados pela gerencia para distribuir as viagens e pelo motorista para consultar suas rotas.</p>
+          <h1>Base administrativa da gerencia</h1>
+          <p>Cadastre veiculos, vincule um veiculo ao motorista e acompanhe as viagens atribuidas.</p>
         </div>
 
         <div className="page-actions">
-          <Link className="action-button secondary" to="/gerente">
-            Gerencia
-          </Link>
           <Link className="action-button secondary" to="/gerente">
             <ArrowLeft size={16} />
             Voltar para gerencia
@@ -166,17 +229,64 @@ export function DriversPage() {
         </div>
       </header>
 
+      {error ? <p className="table-note">{error}</p> : null}
+      {message ? <p className="table-note">{message}</p> : null}
+
       <section className="dashboard-grid">
         <article className="content-card">
+          <h2>Novo veiculo</h2>
+          <form onSubmit={handleVehicleSubmit}>
+            <div className="form-grid">
+              <div className="field">
+                <label htmlFor="vehicle-name">Nome do veiculo</label>
+                <input
+                  id="vehicle-name"
+                  value={vehicleForm.name}
+                  onChange={(event) => updateVehicleField('name', event.target.value)}
+                  placeholder="Van 01, Micro-onibus..."
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="vehicle-plate">Placa</label>
+                <input
+                  id="vehicle-plate"
+                  value={vehicleForm.plate}
+                  onChange={(event) => updateVehicleField('plate', event.target.value.toUpperCase())}
+                  placeholder="ABC1D23"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="vehicle-category">Categoria</label>
+                <input
+                  id="vehicle-category"
+                  value={vehicleForm.category}
+                  onChange={(event) => updateVehicleField('category', event.target.value)}
+                  placeholder="Van, Ambulancia, Micro-onibus..."
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-actions">
+              <button className="action-button primary" disabled={savingVehicle} type="submit">
+                <CarFront size={16} />
+                {savingVehicle ? 'Salvando...' : 'Cadastrar veiculo'}
+              </button>
+            </div>
+          </form>
+        </article>
+
+        <article className="content-card">
           <h2>Novo motorista</h2>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleDriverSubmit}>
             <div className="form-grid">
               <div className="field">
                 <label htmlFor="driver-name">Nome do motorista</label>
                 <input
                   id="driver-name"
-                  value={form.name}
-                  onChange={(event) => updateField('name', event.target.value)}
+                  value={driverForm.name}
+                  onChange={(event) => updateDriverField('name', event.target.value)}
                   placeholder="Nome completo"
                   required
                 />
@@ -185,8 +295,8 @@ export function DriversPage() {
                 <label htmlFor="driver-cpf">CPF</label>
                 <input
                   id="driver-cpf"
-                  value={form.cpf}
-                  onChange={(event) => updateField('cpf', formatCpf(event.target.value))}
+                  value={driverForm.cpf}
+                  onChange={(event) => updateDriverField('cpf', formatCpf(event.target.value))}
                   inputMode="numeric"
                   placeholder="000.000.000-00"
                   required
@@ -196,29 +306,35 @@ export function DriversPage() {
                 <label htmlFor="driver-phone">Telefone</label>
                 <input
                   id="driver-phone"
-                  value={form.phone}
-                  onChange={(event) => updateField('phone', formatPhone(event.target.value))}
+                  value={driverForm.phone}
+                  onChange={(event) => updateDriverField('phone', formatPhone(event.target.value))}
                   inputMode="tel"
                   placeholder="(53) 99999-9999"
                   required
                 />
               </div>
               <div className="field">
-                <label htmlFor="vehicle-name">Veiculo principal</label>
-                <input
-                  id="vehicle-name"
-                  value={form.vehicleName}
-                  onChange={(event) => updateField('vehicleName', event.target.value)}
-                  placeholder="Van 01, Micro-onibus..."
+                <label htmlFor="driver-vehicle">Veiculo vinculado</label>
+                <select
+                  id="driver-vehicle"
+                  value={driverForm.vehicleId ?? ''}
+                  onChange={(event) => updateDriverField('vehicleId', event.target.value ? Number(event.target.value) : null)}
                   required
-                />
+                >
+                  <option value="">Selecione um veiculo</option>
+                  {vehicles.map((vehicle) => (
+                    <option key={vehicle.id} value={vehicle.id}>
+                      {vehicle.name} • {vehicle.plate}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="field">
                 <label htmlFor="driver-password">Senha inicial do motorista</label>
                 <input
                   id="driver-password"
-                  value={form.password}
-                  onChange={(event) => updateField('password', event.target.value.replace(/\D/g, '').slice(0, 6))}
+                  value={driverForm.password}
+                  onChange={(event) => updateDriverField('password', event.target.value.replace(/\D/g, '').slice(0, 6))}
                   inputMode="numeric"
                   placeholder="0000"
                   required
@@ -229,8 +345,8 @@ export function DriversPage() {
                   <input
                     id="driver-whatsapp"
                     type="checkbox"
-                    checked={form.isWhatsapp}
-                    onChange={(event) => updateField('isWhatsapp', event.target.checked)}
+                    checked={driverForm.isWhatsapp}
+                    onChange={(event) => updateDriverField('isWhatsapp', event.target.checked)}
                   />
                   <span>Esse telefone do motorista é WhatsApp</span>
                 </label>
@@ -238,14 +354,30 @@ export function DriversPage() {
             </div>
 
             <div className="form-actions">
-              <button className="action-button primary" disabled={saving} type="submit">
+              <button className="action-button primary" disabled={savingDriver} type="submit">
                 <UserPlus2 size={16} />
-                {saving ? 'Salvando...' : 'Cadastrar motorista'}
+                {savingDriver ? 'Salvando...' : 'Cadastrar motorista'}
               </button>
             </div>
           </form>
-          {error ? <p className="table-note">{error}</p> : null}
-          {message ? <p className="table-note">{message}</p> : null}
+        </article>
+      </section>
+
+      <section className="dashboard-grid">
+        <article className="content-card">
+          <h2>Veiculos cadastrados</h2>
+          {loading ? (
+            <p className="table-note">Carregando veiculos...</p>
+          ) : (
+            <div className="assignment-list">
+              {vehicles.map((vehicle) => (
+                <article className="assignment-card" key={vehicle.id}>
+                  <strong>{vehicle.name}</strong>
+                  <p className="table-note">{vehicle.plate} • {vehicle.category}</p>
+                </article>
+              ))}
+            </div>
+          )}
         </article>
 
         <aside className="dashboard-side">
@@ -262,14 +394,64 @@ export function DriversPage() {
                       {driver.cpfMasked} • {driver.phone}
                     </p>
                     <p className="table-note">Veiculo: {driver.vehicleName}</p>
-                    <p className="table-note">{driver.isWhatsapp ? 'Contato via WhatsApp disponivel' : 'Contato telefonico padrao'}</p>
                   </article>
                 ))}
-                {drivers.length === 0 ? <p className="table-note">Nenhum motorista cadastrado ainda.</p> : null}
               </div>
             )}
           </article>
         </aside>
+      </section>
+
+      <section className="dashboard-grid">
+        <article className="content-card">
+          <h2>Viagens por motorista</h2>
+          <div className="form-grid">
+            <div className="field full">
+              <label htmlFor="trip-driver-selector">Selecionar motorista</label>
+              <select
+                id="trip-driver-selector"
+                value={selectedDriverId}
+                onChange={(event) => setSelectedDriverId(event.target.value)}
+              >
+                <option value="">Selecione um motorista</option>
+                {drivers.map((driver) => (
+                  <option key={driver.id} value={driver.id}>
+                    {driver.name} • {driver.vehicleName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {selectedDriverId ? (
+            driverTrips.length > 0 ? (
+              <div className="assignment-list">
+                {driverTrips.map((trip) => (
+                  <article className="assignment-card" key={trip.id}>
+                    <div className="assignment-header">
+                      <div>
+                        <strong>{trip.patientName}</strong>
+                        <p className="table-note">
+                          {trip.protocol} • {trip.destinationCity}/{trip.destinationState}
+                        </p>
+                      </div>
+                      <span className={`status-badge ${trip.status}`}>{trip.status}</span>
+                    </div>
+                    <div className="assignment-meta">
+                      <span>Saida: {trip.travelDate} {trip.departureTime ? `as ${trip.departureTime}` : ''}</span>
+                      <span>Embarque: {trip.boardingLocationLabel || trip.addressLine || 'Nao informado'}</span>
+                      <span>Acompanhante: {trip.companionRequired ? trip.companionName || 'Sim' : 'Nao'}</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="table-note">Esse motorista ainda nao possui viagens atribuidas.</p>
+            )
+          ) : (
+            <p className="table-note">Selecione um motorista para ver as viagens atribuidas a ele.</p>
+          )}
+        </article>
       </section>
     </div>
   )

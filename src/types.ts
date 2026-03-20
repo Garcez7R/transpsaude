@@ -98,6 +98,7 @@ export interface DriverRecord {
   cpfMasked: string
   phone: string
   isWhatsapp: boolean
+  vehicleId?: number | null
   vehicleName: string
   active: boolean
 }
@@ -118,8 +119,22 @@ export interface CreateDriverInput {
   cpf: string
   phone: string
   isWhatsapp: boolean
-  vehicleName: string
+  vehicleId: number | null
   password: string
+}
+
+export interface VehicleRecord {
+  id: number
+  name: string
+  plate: string
+  category: string
+  active: boolean
+}
+
+export interface CreateVehicleInput {
+  name: string
+  plate: string
+  category: string
 }
 
 export interface AssignDriverInput {

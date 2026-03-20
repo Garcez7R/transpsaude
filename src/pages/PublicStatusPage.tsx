@@ -119,6 +119,9 @@ export function PublicStatusPage() {
           <p className="table-note">
             Primeiro acesso: use o CPF cadastrado pelo operador e a senha temporária <strong>0000</strong>.
           </p>
+          <p className="table-note">
+            Consulte novamente algumas horas antes da viagem para confirmar horario, embarque e eventuais alteracoes.
+          </p>
           {error ? <p className="table-note">{error}</p> : null}
         </article>
 

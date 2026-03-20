@@ -5,6 +5,7 @@ import type {
   CreateDriverInput,
   CreateTravelRequestInput,
   CreateTravelRequestResponse,
+  CreateVehicleInput,
   DashboardSummary,
   DriverLoginResponse,
   DriverRecord,
@@ -13,6 +14,7 @@ import type {
   TravelRequestDetails,
   UpdateRequestScheduleInput,
   UpdateRequestStatusInput,
+  VehicleRecord,
 } from '../types'
 
 async function parseJson<T>(response: Response): Promise<T> {
@@ -91,6 +93,11 @@ export async function fetchDrivers() {
   return parseJson<DriverRecord[]>(response)
 }
 
+export async function fetchVehicles() {
+  const response = await fetch('/api/admin/vehicles')
+  return parseJson<VehicleRecord[]>(response)
+}
+
 export async function createDriver(input: CreateDriverInput) {
   const response = await fetch('/api/admin/drivers', {
     method: 'POST',
@@ -99,6 +106,16 @@ export async function createDriver(input: CreateDriverInput) {
   })
 
   return parseJson<DriverRecord>(response)
+}
+
+export async function createVehicle(input: CreateVehicleInput) {
+  const response = await fetch('/api/admin/vehicles', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  return parseJson<VehicleRecord>(response)
 }
 
 export async function assignDriver(input: AssignDriverInput) {
