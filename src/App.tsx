@@ -17,8 +17,9 @@ export default function App() {
         <Route path="/operador" element={<DashboardPage />} />
         <Route path="/operador/cadastro" element={<RegisterRequestPage />} />
         <Route path="/operador/solicitacoes/:id" element={<RequestDetailsPage />} />
-        <Route path="/operador/motoristas" element={<DriversPage />} />
+        <Route path="/operador/motoristas" element={<Navigate to="/gerente/motoristas" replace />} />
         <Route path="/gerente" element={<ManagerPage />} />
+        <Route path="/gerente/motoristas" element={<DriversPage />} />
         <Route path="/motorista" element={<DriverPortalPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

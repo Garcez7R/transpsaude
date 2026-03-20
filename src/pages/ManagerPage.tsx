@@ -294,7 +294,7 @@ export function ManagerPage() {
         </div>
 
         <div className="page-actions">
-          <Link className="action-button secondary" to="/operador/motoristas">
+          <Link className="action-button secondary" to="/gerente/motoristas">
             Motoristas
           </Link>
           <Link className="action-button secondary" to="/operador">

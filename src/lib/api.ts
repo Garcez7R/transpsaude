@@ -11,6 +11,7 @@ import type {
   StatusHistoryEntry,
   TravelRequest,
   TravelRequestDetails,
+  UpdateRequestScheduleInput,
   UpdateRequestStatusInput,
 } from '../types'
 
@@ -112,6 +113,16 @@ export async function assignDriver(input: AssignDriverInput) {
 
 export async function updateRequestStatus(input: UpdateRequestStatusInput) {
   const response = await fetch('/api/admin/request-status', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function updateRequestSchedule(input: UpdateRequestScheduleInput) {
+  const response = await fetch('/api/admin/request-schedule', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),

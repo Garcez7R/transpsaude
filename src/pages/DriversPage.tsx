@@ -105,8 +105,8 @@ export function DriversPage() {
           <h2>Sessao administrativa necessaria</h2>
           <p>Cadastros de motoristas ficam disponiveis somente para a equipe interna.</p>
           <div className="form-actions">
-            <Link className="action-button primary" to="/operador">
-              Ir para login do painel
+            <Link className="action-button primary" to="/gerente">
+              Ir para login da gerencia
             </Link>
           </div>
         </article>
@@ -159,9 +159,9 @@ export function DriversPage() {
           <Link className="action-button secondary" to="/gerente">
             Gerencia
           </Link>
-          <Link className="action-button secondary" to="/operador">
+          <Link className="action-button secondary" to="/gerente">
             <ArrowLeft size={16} />
-            Voltar ao painel
+            Voltar para gerencia
           </Link>
         </div>
       </header>

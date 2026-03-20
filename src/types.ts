@@ -137,6 +137,13 @@ export interface UpdateRequestStatusInput {
   note: string
 }
 
+export interface UpdateRequestScheduleInput {
+  requestId: number
+  travelDate: string
+  departureTime: string
+  note: string
+}
+
 export interface CreateTravelRequestInput {
   patientName: string
   cpf: string

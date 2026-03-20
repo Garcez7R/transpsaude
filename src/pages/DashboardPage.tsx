@@ -261,7 +261,7 @@ export function DashboardPage() {
             <Route size={16} />
             Gerencia
           </Link>
-          <Link className="action-button secondary" to="/operador/motoristas">
+          <Link className="action-button secondary" to="/gerente/motoristas">
             <BusFront size={16} />
             Motoristas
           </Link>

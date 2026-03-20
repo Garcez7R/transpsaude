@@ -1,8 +1,8 @@
 import { ArrowLeft, CheckCircle2, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { canAccessOperator } from '../lib/access'
-import { fetchRequestDetails, updateRequestStatus } from '../lib/api'
+import { canAccessManager, canAccessOperator } from '../lib/access'
+import { fetchRequestDetails, updateRequestSchedule, updateRequestStatus } from '../lib/api'
 import { getAdminSession } from '../lib/admin-session'
 import type { RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '../types'
 
@@ -24,8 +24,12 @@ export function RequestDetailsPage() {
   const [history, setHistory] = useState<StatusHistoryEntry[]>([])
   const [status, setStatus] = useState<RequestStatus>('recebida')
   const [note, setNote] = useState('')
+  const [scheduleDate, setScheduleDate] = useState('')
+  const [scheduleTime, setScheduleTime] = useState('')
+  const [scheduleNote, setScheduleNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingSchedule, setSavingSchedule] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
@@ -51,6 +55,8 @@ export function RequestDetailsPage() {
         setDetails(requestData)
         setHistory(historyData)
         setStatus(requestData.status)
+        setScheduleDate(requestData.travelDate)
+        setScheduleTime(requestData.departureTime ?? '')
       } catch {
         if (active) {
           setError('Nao foi possivel carregar os detalhes da solicitacao.')
@@ -97,6 +103,40 @@ export function RequestDetailsPage() {
       setError('Nao foi possivel atualizar o status dessa solicitacao.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleScheduleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!details) {
+      return
+    }
+
+    setSavingSchedule(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const result = await updateRequestSchedule({
+        requestId: details.id,
+        travelDate: scheduleDate,
+        departureTime: scheduleTime,
+        note: scheduleNote,
+      })
+
+      const refreshed = await fetchRequestDetails(details.id)
+      const { history: historyData, ...requestData } = refreshed
+      setDetails(requestData)
+      setHistory(historyData)
+      setScheduleDate(requestData.travelDate)
+      setScheduleTime(requestData.departureTime ?? '')
+      setScheduleNote('')
+      setMessage(result.message)
+    } catch {
+      setError('Nao foi possivel reagendar a viagem.')
+    } finally {
+      setSavingSchedule(false)
     }
   }
 
@@ -298,6 +338,52 @@ export function RequestDetailsPage() {
                 </div>
               </form>
             </article>
+
+            {canAccessManager(session) ? (
+              <article className="content-card">
+                <h2>Reagendar viagem</h2>
+                <form onSubmit={handleScheduleSubmit}>
+                  <div className="form-grid">
+                    <div className="field">
+                      <label htmlFor="schedule-date">Nova data da viagem</label>
+                      <input
+                        id="schedule-date"
+                        type="date"
+                        value={scheduleDate}
+                        onChange={(event) => setScheduleDate(event.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="schedule-time">Novo horario de saida</label>
+                      <input
+                        id="schedule-time"
+                        type="time"
+                        value={scheduleTime}
+                        onChange={(event) => setScheduleTime(event.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="field full">
+                      <label htmlFor="schedule-note">Motivo ou observacao</label>
+                      <textarea
+                        id="schedule-note"
+                        rows={3}
+                        value={scheduleNote}
+                        onChange={(event) => setScheduleNote(event.target.value)}
+                        placeholder="Mudanca de horario, ajuste por rota, indisponibilidade, nova orientacao."
+                      />
+                    </div>
+                  </div>
+                  <div className="form-actions">
+                    <button className="action-button primary" disabled={savingSchedule} type="submit">
+                      <Save size={16} />
+                      {savingSchedule ? 'Reagendando...' : 'Salvar nova data e horario'}
+                    </button>
+                  </div>
+                </form>
+              </article>
+            ) : null}
 
             <article className="content-card">
               <h2>Historico da solicitacao</h2>

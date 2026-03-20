@@ -158,6 +158,19 @@ export function PublicStatusPage() {
 
         {request ? (
           <>
+            <article className="public-card departure-highlight">
+              <div className="eyebrow">
+                <ShieldCheck size={16} />
+                Saida prevista
+              </div>
+              <h2>
+                {request.travelDate || 'Data a definir'} {request.departureTime ? `as ${request.departureTime}` : ''}
+              </h2>
+              <p>
+                Embarque em <strong>{request.boardingLocationLabel || request.addressLine || 'local a definir'}</strong>.
+              </p>
+            </article>
+
             <article className="request-card">
               <div className="status-pill-row">
                 <span className={`status-badge ${request.status}`}>{request.statusLabel}</span>
@@ -185,6 +198,10 @@ export function PublicStatusPage() {
                   <dd>{request.travelDate}</dd>
                 </div>
                 <div>
+                  <dt>Horario de saida</dt>
+                  <dd>{request.departureTime || 'A definir'}</dd>
+                </div>
+                <div>
                   <dt>Local de embarque</dt>
                   <dd>{request.boardingLocationLabel || request.addressLine || 'A definir'}</dd>
                 </div>
@@ -195,10 +212,6 @@ export function PublicStatusPage() {
                 <div>
                   <dt>Motorista designado</dt>
                   <dd>{request.assignedDriverName || 'A definir'}</dd>
-                </div>
-                <div>
-                  <dt>Horario de saida</dt>
-                  <dd>{request.departureTime || 'A definir'}</dd>
                 </div>
                 <div>
                   <dt>Orientacao</dt>

@@ -50,6 +50,20 @@ function toBoolean(value: unknown) {
   return value === true || value === 1 || value === '1'
 }
 
+async function getNextHistoryOrder(db: D1Database, requestId: number) {
+  const orderResult = await db.prepare(
+    `
+      select coalesce(max(sort_order), 0) as maxSortOrder
+      from request_status_history
+      where travel_request_id = ?1
+    `,
+  )
+    .bind(requestId)
+    .first<Record<string, unknown>>()
+
+  return Number(orderResult?.maxSortOrder ?? 0) + 1
+}
+
 export async function listRequests(env: Env, status?: string) {
   const db = requireDb(env)
 
@@ -532,17 +546,7 @@ export async function updateRequestStatus(
     .bind(status, requestId)
     .run()
 
-  const orderResult = await db.prepare(
-    `
-      select coalesce(max(sort_order), 0) as maxSortOrder
-      from request_status_history
-      where travel_request_id = ?1
-    `,
-  )
-    .bind(requestId)
-    .first<Record<string, unknown>>()
-
-  const nextOrder = Number(orderResult?.maxSortOrder ?? 0) + 1
+  const nextOrder = await getNextHistoryOrder(db, requestId)
   const label = statusLabels[status as keyof typeof statusLabels] ?? status
 
   await db.prepare(
@@ -565,5 +569,71 @@ export async function updateRequestStatus(
 
   return {
     message: `Status atualizado para ${label}.`,
+  }
+}
+
+export async function updateRequestSchedule(
+  env: Env,
+  requestId: number,
+  travelDate: string,
+  departureTime: string,
+  note: string,
+  operatorId = 1,
+) {
+  const db = requireDb(env)
+  const request = await db.prepare(
+    `
+      select
+        id,
+        protocol
+      from travel_requests
+      where id = ?1
+      limit 1
+    `,
+  )
+    .bind(requestId)
+    .first<Record<string, unknown>>()
+
+  if (!request) {
+    return null
+  }
+
+  await db.prepare(
+    `
+      update travel_requests
+      set travel_date = ?1,
+          departure_time = ?2,
+          updated_at = current_timestamp
+      where id = ?3
+    `,
+  )
+    .bind(travelDate, departureTime, requestId)
+    .run()
+
+  const nextOrder = await getNextHistoryOrder(db, requestId)
+  const noteText = note?.trim()
+    ? `Viagem reagendada para ${travelDate} as ${departureTime}. ${note.trim()}`
+    : `Viagem reagendada para ${travelDate} as ${departureTime}.`
+
+  await db.prepare(
+    `
+      insert into request_status_history (
+        travel_request_id,
+        protocol,
+        status,
+        label,
+        note,
+        updated_by_operator_id,
+        updated_at,
+        sort_order
+      )
+      values (?1, ?2, 'agendada', 'Agendada', ?3, ?4, datetime('now'), ?5)
+    `,
+  )
+    .bind(requestId, request.protocol, noteText, operatorId, nextOrder)
+    .run()
+
+  return {
+    message: `Viagem reagendada para ${travelDate} as ${departureTime}.`,
   }
 }
