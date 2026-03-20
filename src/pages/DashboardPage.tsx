@@ -1,18 +1,8 @@
-import {
-  BusFront,
-  Filter,
-  ListChecks,
-  LockKeyhole,
-  LogOut,
-  Plus,
-  RefreshCcw,
-  Route,
-  ShieldCheck,
-} from 'lucide-react'
+import { Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { loginAdmin, fetchDashboardSummary, fetchRequests } from '../lib/api'
-import { canAccessAdmin, canAccessManager, canAccessOperator, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
+import { canAccessOperator, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
 import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } from '../types'
 
@@ -277,24 +267,6 @@ export function DashboardPage() {
         </div>
 
         <div className="page-actions">
-          {canAccessManager(session) ? (
-            <Link className="action-button secondary" to="/gerente">
-              <Route size={16} />
-              Gerência
-            </Link>
-          ) : null}
-          {canAccessManager(session) ? (
-            <Link className="action-button secondary" to="/gerente/equipe">
-              <BusFront size={16} />
-              Equipe e veículos
-            </Link>
-          ) : null}
-          {canAccessAdmin(session) ? (
-            <Link className="action-button secondary" to="/admin">
-              <ShieldCheck size={16} />
-              Admin
-            </Link>
-          ) : null}
           <Link className="action-button secondary" to="/operador/cadastro">
             <Plus size={16} />
             Nova solicitação
@@ -446,6 +418,9 @@ export function DashboardPage() {
             <p className="table-note">
               Fluxo previsto no cadastro: operador informa o CPF, libera o primeiro acesso com
               senha temporária <strong>0000</strong> e o paciente cria depois um PIN de 4 dígitos.
+            </p>
+            <p className="table-note">
+              A área de gerência e a área administrativa possuem acesso próprio por URL.
             </p>
           </article>
 

@@ -1,9 +1,11 @@
 import { ArrowLeft, ShieldCheck, UserPlus2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { canAccessAdmin } from '../lib/access'
-import { createManager, createOperator } from '../lib/api'
-import { getAdminSession } from '../lib/admin-session'
+import { canAccessAdmin, isValidInternalRole } from '../lib/access'
+import { createManager, createOperator, loginAdmin } from '../lib/api'
+import { clearAdminSession, saveAdminSession } from '../lib/admin-session'
+import { clearManagerSession } from '../lib/manager-session'
+import { clearAdminAreaSession, getAdminAreaSession, saveAdminAreaSession } from '../lib/admin-area-session'
 import type { CreateManagerInput, CreateOperatorInput } from '../types'
 
 const initialForm: CreateManagerInput = {
@@ -22,7 +24,11 @@ function formatCpf(value: string) {
 }
 
 export function AdminManagersPage() {
-  const session = typeof window !== 'undefined' ? getAdminSession() : null
+  const session = typeof window !== 'undefined' ? getAdminAreaSession() : null
+  const [cpf, setCpf] = useState('')
+  const [password, setPassword] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
   const [form, setForm] = useState(initialForm)
   const [operatorForm, setOperatorForm] = useState<CreateOperatorInput>({
     name: '',
@@ -41,6 +47,31 @@ export function AdminManagersPage() {
 
   function updateOperatorField<K extends keyof CreateOperatorInput>(key: K, value: CreateOperatorInput[K]) {
     setOperatorForm((current) => ({ ...current, [key]: value }))
+  }
+
+  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setAuthLoading(true)
+    setAuthError('')
+
+    try {
+      const result = await loginAdmin(cpf, password)
+
+      if (!isValidInternalRole(result.session.role) || !canAccessAdmin(result.session)) {
+        setAuthError('Somente o administrador pode acessar esta área.')
+        return
+      }
+
+      saveAdminSession(result.session)
+      saveAdminAreaSession(result.session)
+      setCpf('')
+      setPassword('')
+      window.location.reload()
+    } catch {
+      setAuthError('Não foi possível autenticar esse acesso administrativo.')
+    } finally {
+      setAuthLoading(false)
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -85,15 +116,56 @@ export function AdminManagersPage() {
   if (!session || !canAccessAdmin(session)) {
     return (
       <div className="dashboard-shell">
-        <article className="content-card">
-          <h2>Acesso restrito ao admin</h2>
-          <p>Somente o administrador pode criar novos gerentes.</p>
-          <div className="form-actions">
-            <Link className="action-button primary" to="/operador">
-              Ir para operador
-            </Link>
+        <section className="institutional-bar institutional-bar-inner">
+          <div className="crest-mark" aria-hidden="true">
+            <span />
           </div>
-        </article>
+          <div className="institutional-copy">
+            <strong>Área administrativa do sistema</strong>
+            <span>Acesso exclusivo do administrador</span>
+          </div>
+        </section>
+
+        <section className="auth-shell">
+          <article className="content-card login-card">
+            <div className="eyebrow">
+              <ShieldCheck size={16} />
+              Painel do admin
+            </div>
+            <h1>Entrar no administrativo</h1>
+            <p>Somente o administrador pode criar gerentes e governar os acessos internos.</p>
+            <form onSubmit={handleLogin}>
+              <div className="login-grid">
+                <div className="field">
+                  <label htmlFor="admin-area-cpf">CPF do administrador</label>
+                  <input
+                    id="admin-area-cpf"
+                    value={cpf}
+                    onChange={(event) => setCpf(formatCpf(event.target.value))}
+                    inputMode="numeric"
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="admin-area-password">Senha</label>
+                  <input
+                    id="admin-area-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    type="password"
+                    placeholder="Sua senha"
+                  />
+                </div>
+              </div>
+              <div className="form-actions">
+                <button className="action-button primary" disabled={authLoading} type="submit">
+                  {authLoading ? 'Entrando...' : 'Entrar no admin'}
+                </button>
+              </div>
+            </form>
+            {authError ? <p className="table-note">{authError}</p> : null}
+          </article>
+        </section>
       </div>
     )
   }
@@ -258,6 +330,20 @@ export function AdminManagersPage() {
               <li>Somente administrador cria novos gerentes</li>
               <li>O painel do admin concentra a governança dos acessos internos</li>
             </ul>
+          </article>
+          <article className="content-card">
+            <button
+              className="action-button secondary"
+              type="button"
+              onClick={() => {
+                clearAdminSession()
+                clearAdminAreaSession()
+                clearManagerSession()
+                window.location.reload()
+              }}
+            >
+              Sair do admin
+            </button>
           </article>
         </aside>
       </section>

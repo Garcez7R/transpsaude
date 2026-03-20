@@ -1,9 +1,9 @@
 import { ArrowLeft, BusFront, CarFront, ShieldCheck, UserPlus2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { canAccessAdmin, canAccessManager, getInternalRoleLabel } from '../lib/access'
+import { canAccessManager, getInternalRoleLabel } from '../lib/access'
 import { createDriver, createOperator, createVehicle, fetchDriverTrips, fetchDrivers, fetchVehicles } from '../lib/api'
-import { getAdminSession } from '../lib/admin-session'
+import { getManagerSession } from '../lib/manager-session'
 import type {
   CreateDriverInput,
   CreateOperatorInput,
@@ -47,7 +47,7 @@ function formatPhone(value: string) {
 }
 
 export function DriversPage() {
-  const session = typeof window !== 'undefined' ? getAdminSession() : null
+  const session = typeof window !== 'undefined' ? getManagerSession() : null
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
   const [vehicles, setVehicles] = useState<VehicleRecord[]>([])
   const [driverTrips, setDriverTrips] = useState<TravelRequest[]>([])
@@ -267,11 +267,6 @@ export function DriversPage() {
           <Link className="action-button secondary" to="/motorista">
             Painel do motorista
           </Link>
-          {canAccessAdmin(session) ? (
-            <Link className="action-button secondary" to="/admin">
-              Admin
-            </Link>
-          ) : null}
           <Link className="action-button secondary" to="/gerente">
             <ArrowLeft size={16} />
             Voltar para gerência

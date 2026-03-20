@@ -1,10 +1,12 @@
 import { ArrowLeft, LockKeyhole, LogOut, Route, Save, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { canAccessAdmin, canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
+import { canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
 import { assignDriver, fetchDrivers, fetchRequests, loginAdmin } from '../lib/api'
-import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
+import { clearAdminSession, saveAdminSession } from '../lib/admin-session'
+import { clearAdminAreaSession } from '../lib/admin-area-session'
+import { clearManagerSession, getManagerSession, saveManagerSession } from '../lib/manager-session'
 import type { AdminSession, DriverRecord, TravelRequest } from '../types'
 
 type AssignmentState = Record<
@@ -50,7 +52,7 @@ export function ManagerPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    setSession(getAdminSession())
+    setSession(getManagerSession())
   }, [])
 
   useEffect(() => {
@@ -138,6 +140,7 @@ export function ManagerPage() {
       }
 
       saveAdminSession(result.session)
+      saveManagerSession(result.session)
       setSession(result.session)
     } catch {
       setAuthError('Não foi possível autenticar esse acesso de gerência.')
@@ -148,6 +151,8 @@ export function ManagerPage() {
 
   function handleLogout() {
     clearAdminSession()
+    clearManagerSession()
+    clearAdminAreaSession()
     setSession(null)
     setRequests([])
     setDrivers([])
@@ -299,11 +304,6 @@ export function ManagerPage() {
           <Link className="action-button secondary" to="/gerente/equipe">
             Equipe e veículos
           </Link>
-          {canAccessAdmin(session) ? (
-            <Link className="action-button secondary" to="/admin">
-              Admin
-            </Link>
-          ) : null}
           <Link className="action-button secondary" to="/operador">
             <ArrowLeft size={16} />
             Operador
