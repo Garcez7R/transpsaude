@@ -32,6 +32,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         password
       from operators
       where cpf = ?1
+        and active = 1
       limit 1
     `,
   )

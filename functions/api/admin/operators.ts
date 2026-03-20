@@ -13,7 +13,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   }
 
   if (!body.name || !body.cpf || !body.email || !body.password) {
-    return badRequest('Preencha nome, CPF, email e senha do gerente.')
+    return badRequest('Preencha nome, CPF, email e senha do operador.')
   }
 
   const cpf = normalizeCpf(body.cpf)
@@ -29,13 +29,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         active,
         updated_at
       )
-      values (?1, ?2, ?3, ?4, 'manager', 1, current_timestamp)
+      values (?1, ?2, ?3, ?4, 'operator', 1, current_timestamp)
     `,
   )
     .bind(body.name, cpf, body.email, body.password)
     .run()
 
   return ok({
-    message: `Gerente ${body.name} cadastrado com sucesso.`,
+    message: `Operador ${body.name} cadastrado com sucesso.`,
   })
 }

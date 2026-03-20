@@ -1,10 +1,17 @@
-import { ArrowLeft, BusFront, CarFront, UserPlus2 } from 'lucide-react'
+import { ArrowLeft, BusFront, CarFront, ShieldCheck, UserPlus2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessManager } from '../lib/access'
-import { createDriver, createVehicle, fetchDriverTrips, fetchDrivers, fetchVehicles } from '../lib/api'
+import { createDriver, createOperator, createVehicle, fetchDriverTrips, fetchDrivers, fetchVehicles } from '../lib/api'
 import { getAdminSession } from '../lib/admin-session'
-import type { CreateDriverInput, CreateVehicleInput, DriverRecord, TravelRequest, VehicleRecord } from '../types'
+import type {
+  CreateDriverInput,
+  CreateOperatorInput,
+  CreateVehicleInput,
+  DriverRecord,
+  TravelRequest,
+  VehicleRecord,
+} from '../types'
 
 const initialDriverForm: CreateDriverInput = {
   name: '',
@@ -46,10 +53,17 @@ export function DriversPage() {
   const [driverTrips, setDriverTrips] = useState<TravelRequest[]>([])
   const [selectedDriverId, setSelectedDriverId] = useState('')
   const [driverForm, setDriverForm] = useState(initialDriverForm)
+  const [operatorForm, setOperatorForm] = useState<CreateOperatorInput>({
+    name: '',
+    cpf: '',
+    email: '',
+    password: '',
+  })
   const [vehicleForm, setVehicleForm] = useState(initialVehicleForm)
   const [loading, setLoading] = useState(true)
   const [savingDriver, setSavingDriver] = useState(false)
   const [savingVehicle, setSavingVehicle] = useState(false)
+  const [savingOperator, setSavingOperator] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
@@ -131,6 +145,10 @@ export function DriversPage() {
     setVehicleForm((current) => ({ ...current, [key]: value }))
   }
 
+  function updateOperatorField<K extends keyof CreateOperatorInput>(key: K, value: CreateOperatorInput[K]) {
+    setOperatorForm((current) => ({ ...current, [key]: value }))
+  }
+
   async function handleDriverSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSavingDriver(true)
@@ -164,6 +182,28 @@ export function DriversPage() {
       setError('Nao foi possivel salvar o veiculo.')
     } finally {
       setSavingVehicle(false)
+    }
+  }
+
+  async function handleOperatorSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSavingOperator(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const result = await createOperator(operatorForm)
+      setOperatorForm({
+        name: '',
+        cpf: '',
+        email: '',
+        password: '',
+      })
+      setMessage(result.message)
+    } catch {
+      setError('Nao foi possivel salvar o operador.')
+    } finally {
+      setSavingOperator(false)
     }
   }
 
@@ -361,6 +401,75 @@ export function DriversPage() {
             </div>
           </form>
         </article>
+      </section>
+
+      <section className="dashboard-grid">
+        <article className="content-card">
+          <h2>Novo operador</h2>
+          <form onSubmit={handleOperatorSubmit}>
+            <div className="form-grid">
+              <div className="field">
+                <label htmlFor="operator-name">Nome do operador</label>
+                <input
+                  id="operator-name"
+                  value={operatorForm.name}
+                  onChange={(event) => updateOperatorField('name', event.target.value)}
+                  placeholder="Nome completo"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="operator-cpf">CPF</label>
+                <input
+                  id="operator-cpf"
+                  value={operatorForm.cpf}
+                  onChange={(event) => updateOperatorField('cpf', formatCpf(event.target.value))}
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="operator-email">Email institucional</label>
+                <input
+                  id="operator-email"
+                  value={operatorForm.email}
+                  onChange={(event) => updateOperatorField('email', event.target.value)}
+                  placeholder="operador@prefeitura.rs.gov.br"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="operator-password">Senha inicial</label>
+                <input
+                  id="operator-password"
+                  value={operatorForm.password}
+                  onChange={(event) => updateOperatorField('password', event.target.value)}
+                  placeholder="Senha inicial"
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-actions">
+              <button className="action-button primary" disabled={savingOperator} type="submit">
+                <ShieldCheck size={16} />
+                {savingOperator ? 'Salvando...' : 'Cadastrar operador'}
+              </button>
+            </div>
+          </form>
+        </article>
+
+        <aside className="dashboard-side">
+          <article className="content-card">
+            <h2>Permissoes nesta area</h2>
+            <ul className="check-list">
+              <li>Gerente e admin criam motoristas</li>
+              <li>Gerente e admin criam operadores</li>
+              <li>Somente admin cria gerentes</li>
+              <li>Veiculos ficam vinculados aos motoristas cadastrados</li>
+            </ul>
+          </article>
+        </aside>
       </section>
 
       <section className="dashboard-grid">

@@ -144,6 +144,13 @@ export interface CreateManagerInput {
   password: string
 }
 
+export interface CreateOperatorInput {
+  name: string
+  cpf: string
+  email: string
+  password: string
+}
+
 export interface AssignDriverInput {
   requestId: number
   driverId: number

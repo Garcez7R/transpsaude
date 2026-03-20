@@ -5,7 +5,11 @@ create table if not exists operators (
   email text not null unique,
   password text,
   role text not null default 'operator',
-  created_at text not null default current_timestamp
+  active integer not null default 1,
+  created_by_operator_id integer,
+  created_at text not null default current_timestamp,
+  updated_at text not null default current_timestamp,
+  foreign key (created_by_operator_id) references operators(id)
 );
 
 create table if not exists patients (

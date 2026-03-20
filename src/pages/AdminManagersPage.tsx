@@ -2,9 +2,9 @@ import { ArrowLeft, ShieldCheck, UserPlus2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessAdmin } from '../lib/access'
-import { createManager } from '../lib/api'
+import { createManager, createOperator } from '../lib/api'
 import { getAdminSession } from '../lib/admin-session'
-import type { CreateManagerInput } from '../types'
+import type { CreateManagerInput, CreateOperatorInput } from '../types'
 
 const initialForm: CreateManagerInput = {
   name: '',
@@ -24,12 +24,23 @@ function formatCpf(value: string) {
 export function AdminManagersPage() {
   const session = typeof window !== 'undefined' ? getAdminSession() : null
   const [form, setForm] = useState(initialForm)
+  const [operatorForm, setOperatorForm] = useState<CreateOperatorInput>({
+    name: '',
+    cpf: '',
+    email: '',
+    password: '',
+  })
   const [saving, setSaving] = useState(false)
+  const [savingOperator, setSavingOperator] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
   function updateField<K extends keyof CreateManagerInput>(key: K, value: CreateManagerInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
+  }
+
+  function updateOperatorField<K extends keyof CreateOperatorInput>(key: K, value: CreateOperatorInput[K]) {
+    setOperatorForm((current) => ({ ...current, [key]: value }))
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -46,6 +57,28 @@ export function AdminManagersPage() {
       setError('Nao foi possivel cadastrar esse gerente.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleOperatorSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSavingOperator(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const result = await createOperator(operatorForm)
+      setMessage(result.message)
+      setOperatorForm({
+        name: '',
+        cpf: '',
+        email: '',
+        password: '',
+      })
+    } catch {
+      setError('Nao foi possivel cadastrar esse operador.')
+    } finally {
+      setSavingOperator(false)
     }
   }
 
@@ -153,14 +186,69 @@ export function AdminManagersPage() {
           {message ? <p className="table-note">{message}</p> : null}
         </article>
 
+        <article className="content-card">
+          <h2>Novo operador</h2>
+          <form onSubmit={handleOperatorSubmit}>
+            <div className="form-grid">
+              <div className="field">
+                <label htmlFor="operator-name">Nome do operador</label>
+                <input
+                  id="operator-name"
+                  value={operatorForm.name}
+                  onChange={(event) => updateOperatorField('name', event.target.value)}
+                  placeholder="Nome completo"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="operator-cpf-register">CPF</label>
+                <input
+                  id="operator-cpf-register"
+                  value={operatorForm.cpf}
+                  onChange={(event) => updateOperatorField('cpf', formatCpf(event.target.value))}
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="operator-email">Email institucional</label>
+                <input
+                  id="operator-email"
+                  value={operatorForm.email}
+                  onChange={(event) => updateOperatorField('email', event.target.value)}
+                  placeholder="operador@prefeitura.rs.gov.br"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="operator-password-register">Senha inicial</label>
+                <input
+                  id="operator-password-register"
+                  value={operatorForm.password}
+                  onChange={(event) => updateOperatorField('password', event.target.value)}
+                  placeholder="Senha inicial"
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-actions">
+              <button className="action-button primary" disabled={savingOperator} type="submit">
+                <UserPlus2 size={16} />
+                {savingOperator ? 'Salvando...' : 'Cadastrar operador'}
+              </button>
+            </div>
+          </form>
+        </article>
+
         <aside className="dashboard-side">
           <article className="content-card">
-            <h2>Permissoes do gerente</h2>
+            <h2>Permissoes por perfil</h2>
             <ul className="check-list">
+              <li>Admin cria gerente e operador</li>
               <li>Acesso ao operador, gerencia e area funcional de motoristas</li>
-              <li>Atribuicao de motorista, embarque e reagendamento</li>
-              <li>Cadastro de veiculos e consulta de viagens por motorista</li>
-              <li>Sem permissão para criar outros gerentes</li>
+              <li>Gerente e admin criam motorista e operador</li>
+              <li>Somente admin cria novos gerentes</li>
             </ul>
           </article>
         </aside>
