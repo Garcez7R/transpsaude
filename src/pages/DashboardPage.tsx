@@ -142,6 +142,26 @@ export function DashboardPage() {
     return `${requests.length} solicitação(ões) encontradas`
   }, [loading, requests.length])
 
+  const roleHighlights = session
+    ? {
+        operator: {
+          title: 'Rotina do operador',
+          description:
+            'Cadastre solicitações, confira os dados do paciente e acompanhe o andamento inicial de cada pedido.',
+        },
+        manager: {
+          title: 'Apoio de gerência liberado',
+          description:
+            'Além do cadastro, você também pode distribuir viagens, acompanhar a equipe e apoiar a operação diária.',
+        },
+        admin: {
+          title: 'Visão administrativa total',
+          description:
+            'Este acesso administra o fluxo inteiro, incluindo equipe, gerência, operador e governança do sistema.',
+        },
+      }[session.role]
+    : null
+
   if (!session) {
     return (
       <div className="dashboard-shell">
@@ -166,7 +186,7 @@ export function DashboardPage() {
             <form onSubmit={handleLogin}>
               <div className="login-grid">
                 <div className="field">
-                  <label htmlFor="admin-cpf">CPF do administrador</label>
+                  <label htmlFor="admin-cpf">CPF do acesso interno</label>
                   <input
                     id="admin-cpf"
                     value={cpf}
@@ -189,7 +209,7 @@ export function DashboardPage() {
               <div className="form-actions">
                 <button className="action-button primary" disabled={authLoading} type="submit">
                   <ShieldCheck size={16} />
-                  {authLoading ? 'Entrando...' : 'Entrar como admin'}
+                  {authLoading ? 'Entrando...' : 'Entrar no ambiente interno'}
                 </button>
                 <Link className="action-button secondary" to="/acompanhar">
                   Ver fluxo do cidadão
@@ -389,7 +409,7 @@ export function DashboardPage() {
             <div className="status-grid">
               <div className="status-card">
                 <h3>Recebida</h3>
-                <p>Atendimento feito no balcao e protocolo emitido.</p>
+                <p>Atendimento feito no balcão e protocolo emitido.</p>
               </div>
               <div className="status-card">
                 <h3>Em análise</h3>
@@ -401,7 +421,7 @@ export function DashboardPage() {
               </div>
               <div className="status-card">
                 <h3>Agendada</h3>
-                <p>Viagem confirmada com data, rota e orientacoes para o paciente.</p>
+                <p>Viagem confirmada com data, rota e orientações para o paciente.</p>
               </div>
             </div>
           </article>
@@ -421,11 +441,8 @@ export function DashboardPage() {
               <ShieldCheck size={16} />
               Acesso ativo
             </div>
-            <h2>Administrador liberado</h2>
-            <p>
-              Este acesso tem visão total do MVP e pode abrir solicitações, distribuir viagens e
-              organizar a base de motoristas.
-            </p>
+            <h2>{roleHighlights?.title ?? 'Acesso interno liberado'}</h2>
+            <p>{roleHighlights?.description ?? 'Este perfil pode atuar no fluxo interno do sistema.'}</p>
             <p className="table-note">
               Fluxo previsto no cadastro: operador informa o CPF, libera o primeiro acesso com
               senha temporária <strong>0000</strong> e o paciente cria depois um PIN de 4 dígitos.
@@ -437,7 +454,7 @@ export function DashboardPage() {
             <ul className="check-list">
               <li>Operador cadastra e organiza os dados do paciente</li>
               <li>Gerência analisa a fila e atribui motorista e horário</li>
-              <li>Motorista acessa um portal proprio para ver suas viagens</li>
+              <li>Motorista acessa um portal próprio para ver suas viagens</li>
             </ul>
           </article>
         </aside>

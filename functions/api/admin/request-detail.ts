@@ -1,6 +1,12 @@
-import { badRequest, getRequestDetails, notFound, ok, type Env } from '../_utils'
+import { badRequest, forbidden, getRequestDetails, notFound, ok, requireInternalRole, type Env } from '../_utils'
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
+  const session = requireInternalRole(request, ['operator', 'manager', 'admin'])
+
+  if (!session) {
+    return forbidden('Acesso interno obrigatório para consultar a solicitação.')
+  }
+
   const url = new URL(request.url)
   const requestId = Number(url.searchParams.get('id') ?? '')
 

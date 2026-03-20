@@ -4,6 +4,8 @@ export interface Env {
   DB?: D1Database
 }
 
+type InternalRole = 'operator' | 'manager' | 'admin'
+
 function requireDb(env: Env) {
   if (!env.DB) {
     throw new Error('Binding do banco D1 não configurado.')
@@ -30,6 +32,10 @@ export function badRequest(message: string) {
   return json({ message }, 400)
 }
 
+export function forbidden(message: string) {
+  return json({ message }, 403)
+}
+
 export function ok(data: unknown) {
   return json(data)
 }
@@ -48,6 +54,57 @@ function maskCpf(value: string) {
 
 function toBoolean(value: unknown) {
   return value === true || value === 1 || value === '1'
+}
+
+function isInternalRole(value: string): value is InternalRole {
+  return value === 'operator' || value === 'manager' || value === 'admin'
+}
+
+export function readInternalSession(request: Request) {
+  const role = request.headers.get('x-operator-role')?.trim() ?? ''
+  const operatorId = Number(request.headers.get('x-operator-id') ?? '')
+  const name = request.headers.get('x-operator-name')?.trim() ?? ''
+
+  if (!isInternalRole(role) || !Number.isFinite(operatorId) || operatorId <= 0) {
+    return null
+  }
+
+  return {
+    operatorId,
+    role,
+    name,
+  }
+}
+
+export function requireInternalRole(
+  request: Request,
+  allowedRoles: InternalRole[],
+) {
+  const session = readInternalSession(request)
+
+  if (!session) {
+    return null
+  }
+
+  if (!allowedRoles.includes(session.role)) {
+    return null
+  }
+
+  return session
+}
+
+export function readDriverSession(request: Request) {
+  const driverId = Number(request.headers.get('x-driver-id') ?? '')
+  const name = request.headers.get('x-driver-name')?.trim() ?? ''
+
+  if (!Number.isFinite(driverId) || driverId <= 0) {
+    return null
+  }
+
+  return {
+    driverId,
+    name,
+  }
 }
 
 async function getNextHistoryOrder(db: D1Database, requestId: number) {

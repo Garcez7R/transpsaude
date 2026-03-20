@@ -126,6 +126,9 @@ export function AdminManagersPage() {
           <Link className="action-button secondary" to="/gerente">
             Gerência
           </Link>
+          <Link className="action-button secondary" to="/gerente/equipe">
+            Equipe e veículos
+          </Link>
           <Link className="action-button secondary" to="/operador">
             <ArrowLeft size={16} />
             Voltar ao painel
@@ -250,10 +253,10 @@ export function AdminManagersPage() {
           <article className="content-card">
             <h2>Permissões por perfil</h2>
             <ul className="check-list">
-              <li>Admin cria gerente e operador</li>
-              <li>Acesso ao operador, gerência e área funcional de motoristas</li>
-              <li>Gerente e admin criam motorista e operador</li>
-              <li>Somente admin cria novos gerentes</li>
+              <li>Administrador cria gerente e operador</li>
+              <li>Gerente e administrador criam motorista e operador</li>
+              <li>Somente administrador cria novos gerentes</li>
+              <li>O painel do admin concentra a governança dos acessos internos</li>
             </ul>
           </article>
         </aside>

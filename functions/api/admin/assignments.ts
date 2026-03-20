@@ -1,6 +1,12 @@
-import { badRequest, notFound, ok, type Env } from '../_utils'
+import { badRequest, forbidden, notFound, ok, requireInternalRole, type Env } from '../_utils'
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
+  const session = requireInternalRole(request, ['manager', 'admin'])
+
+  if (!session) {
+    return forbidden('Somente gerente ou administrador podem atribuir motoristas.')
+  }
+
   const body = (await request.json()) as {
     requestId?: number
     driverId?: number
@@ -91,13 +97,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         updated_at,
         sort_order
       )
-      values (?1, ?2, 'agendada', 'Agendada', ?3, 2, datetime('now'), 99)
+      values (?1, ?2, 'agendada', 'Agendada', ?3, ?4, datetime('now'), 99)
     `,
   )
     .bind(
       travelRequest.id,
       travelRequest.protocol,
       `Viagem direcionada para ${String(driver.name)} com saída prevista às ${body.departureTime}. ${body.managerNotes ?? ''}`.trim(),
+      session.operatorId,
     )
     .run()
 

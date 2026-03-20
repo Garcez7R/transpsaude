@@ -1,6 +1,12 @@
-import { badRequest, notFound, ok, updateRequestSchedule, type Env } from '../_utils'
+import { badRequest, forbidden, notFound, ok, requireInternalRole, updateRequestSchedule, type Env } from '../_utils'
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
+  const session = requireInternalRole(request, ['manager', 'admin'])
+
+  if (!session) {
+    return forbidden('Somente gerente ou administrador podem reagendar viagens.')
+  }
+
   const body = (await request.json()) as {
     requestId?: number
     travelDate?: string
@@ -18,7 +24,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     body.travelDate,
     body.departureTime,
     body.note ?? '',
-    1,
+    session.operatorId,
   )
 
   if (!result) {

@@ -1,4 +1,4 @@
-import { badRequest, listDrivers, ok, type Env } from '../_utils'
+import { badRequest, forbidden, listDrivers, ok, requireInternalRole, type Env } from '../_utils'
 
 function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
@@ -12,12 +12,24 @@ function maskCpf(value: string) {
     .replace(/\.(\d{3})(\d)/, '.$1-$2')
 }
 
-export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
+export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
+  const session = requireInternalRole(request, ['manager', 'admin'])
+
+  if (!session) {
+    return forbidden('Somente gerente ou administrador podem consultar motoristas.')
+  }
+
   const drivers = await listDrivers(env)
   return ok(drivers)
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
+  const session = requireInternalRole(request, ['manager', 'admin'])
+
+  if (!session) {
+    return forbidden('Somente gerente ou administrador podem cadastrar motoristas.')
+  }
+
   const body = (await request.json()) as {
     name?: string
     cpf?: string

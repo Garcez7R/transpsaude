@@ -1,4 +1,4 @@
-import { badRequest, listDriverTrips, ok, type Env } from '../_utils'
+import { badRequest, forbidden, listDriverTrips, ok, readDriverSession, requireInternalRole, type Env } from '../_utils'
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
   const url = new URL(request.url)
@@ -6,6 +6,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
 
   if (!Number.isFinite(driverId) || driverId <= 0) {
     return badRequest('Informe um motorista válido.')
+  }
+
+  const internalSession = requireInternalRole(request, ['manager', 'admin'])
+  const driverSession = readDriverSession(request)
+
+  if (!internalSession && (!driverSession || driverSession.driverId !== driverId)) {
+    return forbidden('Acesso não autorizado às viagens do motorista.')
   }
 
   const trips = await listDriverTrips(env, driverId)

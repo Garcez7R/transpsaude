@@ -40,7 +40,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     .first<Record<string, unknown>>()
 
   if (!operator || String(operator.password ?? '') !== password) {
-    return notFound('Administrador não encontrado.')
+    return notFound('Acesso administrativo não encontrado.')
   }
 
   return ok({

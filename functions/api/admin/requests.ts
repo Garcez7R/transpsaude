@@ -1,4 +1,4 @@
-import { badRequest, ok, type Env } from '../_utils'
+import { badRequest, forbidden, ok, requireInternalRole, type Env } from '../_utils'
 
 function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
@@ -30,6 +30,12 @@ function buildProtocol() {
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
+  const session = requireInternalRole(request, ['operator', 'manager', 'admin'])
+
+  if (!session) {
+    return forbidden('Acesso interno obrigatório para cadastrar solicitações.')
+  }
+
   const body = (await request.json()) as {
     patientName?: string
     cpf?: string
@@ -233,7 +239,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         'recebida',
         ?16,
         ?17,
-        2
+        ?18
       )
     `,
   )
@@ -255,6 +261,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       body.travelDate,
       body.companionRequired ? 1 : 0,
       body.notes ?? '',
+      session.operatorId,
     )
     .run()
 
@@ -282,10 +289,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
           updated_at,
           sort_order
         )
-        values (?1, ?2, 'recebida', 'Recebida', 'Solicitação cadastrada pelo painel interno.', 2, datetime('now'), 1)
+        values (?1, ?2, 'recebida', 'Recebida', 'Solicitação cadastrada pelo painel interno.', ?3, datetime('now'), 1)
       `,
     )
-      .bind(createdRequest.id, protocol)
+      .bind(createdRequest.id, protocol, session.operatorId)
       .run()
   }
 

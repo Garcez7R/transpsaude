@@ -210,11 +210,11 @@ export function ManagerPage() {
               Acesso da gerência
             </div>
             <h1>Entrar na gerência</h1>
-            <p>Somente perfis com role `manager` ou `admin` podem acessar esta área.</p>
+            <p>Somente gerente ou administrador podem acessar esta área.</p>
             <form onSubmit={handleLogin}>
               <div className="login-grid">
                 <div className="field">
-                  <label htmlFor="manager-cpf">CPF do gerente</label>
+                  <label htmlFor="manager-cpf">CPF do acesso interno</label>
                   <input
                     id="manager-cpf"
                     value={cpf}
@@ -450,10 +450,10 @@ export function ManagerPage() {
           <article className="content-card">
             <h2>Regras de acesso</h2>
             <ul className="check-list">
-              <li>Operator entra apenas na área de operador</li>
-              <li>Manager entra em operador, gerência e motorista</li>
-              <li>Admin também tem acesso total</li>
-              <li>Driver fica restrito ao portal do motorista</li>
+              <li>Operador entra apenas na área do operador</li>
+              <li>Gerente entra em operador, gerência, equipe e portal do motorista</li>
+              <li>Administrador também tem acesso total</li>
+              <li>Motorista fica restrito ao portal funcional dele</li>
             </ul>
           </article>
         </aside>

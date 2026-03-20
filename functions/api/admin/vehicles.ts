@@ -1,11 +1,23 @@
-import { badRequest, listVehicles, ok, type Env } from '../_utils'
+import { badRequest, forbidden, listVehicles, ok, requireInternalRole, type Env } from '../_utils'
 
-export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
+export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
+  const session = requireInternalRole(request, ['manager', 'admin'])
+
+  if (!session) {
+    return forbidden('Somente gerente ou administrador podem consultar veículos.')
+  }
+
   const vehicles = await listVehicles(env)
   return ok(vehicles)
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
+  const session = requireInternalRole(request, ['manager', 'admin'])
+
+  if (!session) {
+    return forbidden('Somente gerente ou administrador podem cadastrar veículos.')
+  }
+
   const body = (await request.json()) as {
     name?: string
     plate?: string

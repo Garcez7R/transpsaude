@@ -1,6 +1,12 @@
-import { badRequest, notFound, ok, updateRequestStatus, type Env } from '../_utils'
+import { badRequest, forbidden, notFound, ok, requireInternalRole, updateRequestStatus, type Env } from '../_utils'
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
+  const session = requireInternalRole(request, ['operator', 'manager', 'admin'])
+
+  if (!session) {
+    return forbidden('Acesso interno obrigatório para atualizar o status.')
+  }
+
   const body = (await request.json()) as {
     requestId?: number
     status?: string
@@ -11,7 +17,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     return badRequest('Informe a solicitação e o novo status.')
   }
 
-  const result = await updateRequestStatus(env, body.requestId, body.status, body.note ?? '', 1)
+  const result = await updateRequestStatus(env, body.requestId, body.status, body.note ?? '', session.operatorId)
 
   if (!result) {
     return notFound('Solicitação não encontrada.')

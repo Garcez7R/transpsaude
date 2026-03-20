@@ -1,10 +1,16 @@
-import { badRequest, ok, type Env } from '../_utils'
+import { badRequest, forbidden, ok, requireInternalRole, type Env } from '../_utils'
 
 function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
+  const session = requireInternalRole(request, ['admin'])
+
+  if (!session) {
+    return forbidden('Somente o administrador pode cadastrar gerentes.')
+  }
+
   const body = (await request.json()) as {
     name?: string
     cpf?: string
@@ -27,12 +33,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         password,
         role,
         active,
+        created_by_operator_id,
         updated_at
       )
-      values (?1, ?2, ?3, ?4, 'manager', 1, current_timestamp)
+      values (?1, ?2, ?3, ?4, 'manager', 1, ?5, current_timestamp)
     `,
   )
-    .bind(body.name, cpf, body.email, body.password)
+    .bind(body.name, cpf, body.email, body.password, session.operatorId)
     .run()
 
   return ok({
