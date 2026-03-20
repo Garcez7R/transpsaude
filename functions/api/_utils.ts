@@ -1,7 +1,15 @@
-import { historyByProtocol, mockRequests, statusLabels } from './_data'
+import { statusLabels } from './_data'
 
 export interface Env {
   DB?: D1Database
+}
+
+function requireDb(env: Env) {
+  if (!env.DB) {
+    throw new Error('DB binding nao configurado.')
+  }
+
+  return env.DB
 }
 
 function json(data: unknown, status = 200) {
@@ -35,9 +43,7 @@ function toBoolean(value: unknown) {
 }
 
 export async function listRequests(env: Env, status?: string) {
-  if (!env.DB) {
-    return mockRequests.filter((item) => (status ? item.status === status : true))
-  }
+  const db = requireDb(env)
 
   let query = `
     select
@@ -66,7 +72,7 @@ export async function listRequests(env: Env, status?: string) {
 
   query += ' order by created_at desc'
 
-  const prepared = env.DB.prepare(query)
+  const prepared = db.prepare(query)
   const statement = params.length > 0 ? prepared.bind(...params) : prepared
   const result = await statement.all()
 
@@ -92,36 +98,9 @@ export async function getSummary(env: Env) {
 
 export async function loginCitizen(env: Env, cpf: string, password: string) {
   const normalizedCpf = normalizeCpf(cpf)
+  const db = requireDb(env)
 
-  if (!env.DB) {
-    const request = mockRequests.find((item) => item.accessCpf === normalizedCpf)
-
-    if (!request) {
-      return null
-    }
-
-    const passwordMatches =
-      (request.mustChangePin && password === request.temporaryPassword) || password === request.citizenPin
-
-    if (!passwordMatches) {
-      return null
-    }
-
-    return {
-      mustChangePin: request.mustChangePin && password === request.temporaryPassword,
-      patientName: request.patientName,
-      cpfMasked: request.cpfMasked,
-      temporaryPasswordLabel: request.temporaryPassword,
-      request: {
-        ...request,
-        statusLabel: statusLabels[request.status],
-        loginHint: request.notes ?? 'Guarde seu CPF e seu PIN para futuras consultas.',
-        history: historyByProtocol[request.protocol] ?? [],
-      },
-    }
-  }
-
-  const patientAccess = await env.DB.prepare(
+  const patientAccess = await db.prepare(
     `
       select
         id,
@@ -151,7 +130,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
     return null
   }
 
-  const requestResult = await env.DB.prepare(
+  const requestResult = await db.prepare(
     `
       select
         id,
@@ -186,7 +165,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
     }
   }
 
-  const historyResult = await env.DB.prepare(
+  const historyResult = await db.prepare(
     `
       select
         status,
@@ -203,7 +182,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
 
   const status = String(requestResult.status)
 
-  await env.DB.prepare(
+  await db.prepare(
     `
       update patients
       set last_login_at = current_timestamp,
@@ -238,29 +217,9 @@ export async function activateCitizenPin(env: Env, cpf: string, newPin: string) 
   }
 
   const normalizedCpf = normalizeCpf(cpf)
+  const db = requireDb(env)
 
-  if (!env.DB) {
-    const request = mockRequests.find((item) => item.accessCpf === normalizedCpf)
-
-    if (!request) {
-      return null
-    }
-
-    return {
-      mustChangePin: false,
-      patientName: request.patientName,
-      cpfMasked: request.cpfMasked,
-      temporaryPasswordLabel: request.temporaryPassword,
-      request: {
-        ...request,
-        statusLabel: statusLabels[request.status],
-        loginHint: request.notes ?? 'Guarde seu CPF e seu PIN para futuras consultas.',
-        history: historyByProtocol[request.protocol] ?? [],
-      },
-    }
-  }
-
-  const patient = await env.DB.prepare(
+  const patient = await db.prepare(
     `
       select id
       from patients
@@ -275,7 +234,7 @@ export async function activateCitizenPin(env: Env, cpf: string, newPin: string) 
     return null
   }
 
-  await env.DB.prepare(
+  await db.prepare(
     `
       update patients
       set citizen_pin = ?1,

@@ -15,21 +15,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
 
   const normalizedCpf = normalizeCpf(cpf)
 
-  if (!env.DB) {
-    if (normalizedCpf === '96820373015' && password === '1978') {
-      return ok({
-        session: {
-          operatorId: 1,
-          name: 'Administrador Geral',
-          role: 'admin',
-          cpf: '968.203.730-15',
-        },
-      })
-    }
-
-    return notFound('Administrador não encontrado.')
-  }
-
   const operator = await env.DB.prepare(
     `
       select

@@ -61,12 +61,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   const companionCpfMasked = companionCpf ? maskCpf(companionCpf) : ''
 
   if (!env.DB) {
-    return ok({
-      protocol,
-      temporaryPassword: '0000',
-      status: 'recebida',
-      message: `Solicitacao simulada para ${body.patientName}. O acesso inicial fica no CPF ${accessCpfMasked} com senha 0000.`,
-    })
+    throw new Error('DB binding nao configurado.')
   }
 
   const patient = await env.DB.prepare(
