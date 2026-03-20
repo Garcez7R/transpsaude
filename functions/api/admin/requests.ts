@@ -99,6 +99,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       select id
       from patients
       where cpf = ?1
+        and active = 1
       limit 1
     `,
   )
@@ -170,8 +171,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
             use_responsible_cpf_for_access = ?12,
             temporary_password = '0000',
             citizen_pin = null,
-            must_change_pin = 1,
-            updated_at = current_timestamp
+          must_change_pin = 1,
+          active = 1,
+          updated_at = current_timestamp
         where id = ?13
       `,
     )

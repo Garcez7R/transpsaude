@@ -103,6 +103,34 @@ export interface DriverRecord {
   active: boolean
 }
 
+export interface OperatorRecord {
+  id: number
+  name: string
+  cpf: string
+  cpfMasked: string
+  email: string
+  role: Extract<InternalRole, 'operator'>
+  active: boolean
+}
+
+export interface PatientRecord {
+  id: number
+  fullName: string
+  cpf: string
+  cpfMasked: string
+  accessCpf: string
+  accessCpfMasked: string
+  phone: string
+  isWhatsapp: boolean
+  addressLine: string
+  cns?: string
+  responsibleName?: string
+  responsibleCpf?: string
+  responsibleCpfMasked?: string
+  useResponsibleCpfForAccess: boolean
+  active: boolean
+}
+
 export interface DriverSession {
   driverId: number
   name: string
@@ -149,6 +177,45 @@ export interface CreateOperatorInput {
   cpf: string
   email: string
   password: string
+}
+
+export interface UpdateOperatorInput {
+  id: number
+  name: string
+  cpf: string
+  email: string
+  password?: string
+}
+
+export interface UpdateDriverInput {
+  id: number
+  name: string
+  cpf: string
+  phone: string
+  isWhatsapp: boolean
+  vehicleId: number | null
+  password?: string
+}
+
+export interface UpdateVehicleInput {
+  id: number
+  name: string
+  plate: string
+  category: string
+}
+
+export interface UpdatePatientInput {
+  id: number
+  fullName: string
+  cpf: string
+  accessCpf: string
+  phone: string
+  isWhatsapp: boolean
+  addressLine: string
+  cns: string
+  responsibleName: string
+  responsibleCpf: string
+  useResponsibleCpfForAccess: boolean
 }
 
 export interface AssignDriverInput {

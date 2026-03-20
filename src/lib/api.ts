@@ -11,11 +11,17 @@ import type {
   DashboardSummary,
   DriverLoginResponse,
   DriverRecord,
+  OperatorRecord,
+  PatientRecord,
   StatusHistoryEntry,
   TravelRequest,
   TravelRequestDetails,
+  UpdateDriverInput,
+  UpdateOperatorInput,
+  UpdatePatientInput,
   UpdateRequestScheduleInput,
   UpdateRequestStatusInput,
+  UpdateVehicleInput,
   VehicleRecord,
 } from '../types'
 import { getAdminSession } from './admin-session'
@@ -173,6 +179,29 @@ export async function createOperator(input: CreateOperatorInput) {
   return parseJson<{ message: string }>(response)
 }
 
+export async function fetchOperators() {
+  const response = await fetch('/api/admin/operators', withAdminHeaders())
+  return parseJson<OperatorRecord[]>(response)
+}
+
+export async function updateOperator(input: UpdateOperatorInput) {
+  const response = await fetch('/api/admin/operators', withAdminHeaders({
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function deleteOperator(id: number) {
+  const response = await fetch(`/api/admin/operators?id=${id}`, withAdminHeaders({
+    method: 'DELETE',
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
 export async function assignDriver(input: AssignDriverInput) {
   const response = await fetch('/api/admin/assignments', withAdminHeaders({
     method: 'POST',
@@ -217,4 +246,63 @@ export async function fetchDriverTrips(driverId: number) {
   const search = new URLSearchParams({ driverId: String(driverId) })
   const response = await fetch(`/api/driver/trips?${search.toString()}`, withDriverHeaders(withAdminHeaders()))
   return parseJson<TravelRequest[]>(response)
+}
+
+export async function updateDriver(input: UpdateDriverInput) {
+  const response = await fetch('/api/admin/drivers', withAdminHeaders({
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function deleteDriver(id: number) {
+  const response = await fetch(`/api/admin/drivers?id=${id}`, withAdminHeaders({
+    method: 'DELETE',
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function updateVehicle(input: UpdateVehicleInput) {
+  const response = await fetch('/api/admin/vehicles', withAdminHeaders({
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function deleteVehicle(id: number) {
+  const response = await fetch(`/api/admin/vehicles?id=${id}`, withAdminHeaders({
+    method: 'DELETE',
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function fetchPatients() {
+  const response = await fetch('/api/admin/patients', withAdminHeaders())
+  return parseJson<PatientRecord[]>(response)
+}
+
+export async function updatePatient(input: UpdatePatientInput) {
+  const response = await fetch('/api/admin/patients', withAdminHeaders({
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function deletePatient(id: number) {
+  const response = await fetch(`/api/admin/patients?id=${id}`, withAdminHeaders({
+    method: 'DELETE',
+  }))
+
+  return parseJson<{ message: string }>(response)
 }

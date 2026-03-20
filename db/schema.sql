@@ -35,6 +35,7 @@ create table if not exists patients (
   must_change_pin integer not null default 1,
   access_activated_at text,
   last_login_at text,
+  active integer not null default 1,
   created_at text not null default current_timestamp,
   updated_at text not null default current_timestamp
 );

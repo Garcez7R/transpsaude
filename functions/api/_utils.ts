@@ -216,6 +216,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
         must_change_pin as mustChangePin
       from patients
       where access_cpf = ?1
+        and active = 1
       limit 1
     `,
   )
@@ -343,6 +344,7 @@ export async function activateCitizenPin(env: Env, cpf: string, newPin: string) 
       select id
       from patients
       where access_cpf = ?1
+        and active = 1
       limit 1
     `,
   )
@@ -395,6 +397,65 @@ export async function listDrivers(env: Env) {
     cpfMasked: typeof driver.cpf === 'string' ? maskCpf(driver.cpf) : '',
     isWhatsapp: toBoolean(driver.isWhatsapp),
     active: toBoolean(driver.active),
+  }))
+}
+
+export async function listOperators(env: Env) {
+  const db = requireDb(env)
+  const result = await db.prepare(
+    `
+      select
+        id,
+        name,
+        cpf,
+        email,
+        role,
+        active
+      from operators
+      where role = 'operator'
+        and active = 1
+      order by name asc
+    `,
+  ).all()
+
+  return (result.results ?? []).map((operator) => ({
+    ...operator,
+    cpfMasked: typeof operator.cpf === 'string' ? maskCpf(operator.cpf) : '',
+    active: toBoolean(operator.active),
+  }))
+}
+
+export async function listPatients(env: Env) {
+  const db = requireDb(env)
+  const result = await db.prepare(
+    `
+      select
+        id,
+        full_name as fullName,
+        cpf,
+        cpf_masked as cpfMasked,
+        access_cpf as accessCpf,
+        access_cpf_masked as accessCpfMasked,
+        phone,
+        is_whatsapp as isWhatsapp,
+        address_line as addressLine,
+        cns,
+        responsible_name as responsibleName,
+        responsible_cpf as responsibleCpf,
+        responsible_cpf_masked as responsibleCpfMasked,
+        use_responsible_cpf_for_access as useResponsibleCpfForAccess,
+        active
+      from patients
+      where active = 1
+      order by full_name asc
+    `,
+  ).all()
+
+  return (result.results ?? []).map((patient) => ({
+    ...patient,
+    isWhatsapp: toBoolean(patient.isWhatsapp),
+    useResponsibleCpfForAccess: toBoolean(patient.useResponsibleCpfForAccess),
+    active: toBoolean(patient.active),
   }))
 }
 
