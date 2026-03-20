@@ -7,6 +7,7 @@ import {
   Smartphone,
 } from 'lucide-react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
+import { InstallAppBar } from './components/InstallAppBar'
 import { DashboardPage } from './pages/DashboardPage'
 import { PublicStatusPage } from './pages/PublicStatusPage'
 import { RegisterRequestPage } from './pages/RegisterRequestPage'
@@ -156,12 +157,15 @@ function HomePage() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/operador" element={<DashboardPage />} />
-      <Route path="/operador/cadastro" element={<RegisterRequestPage />} />
-      <Route path="/acompanhar" element={<PublicStatusPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/operador" element={<DashboardPage />} />
+        <Route path="/operador/cadastro" element={<RegisterRequestPage />} />
+        <Route path="/acompanhar" element={<PublicStatusPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <InstallAppBar />
+    </>
   )
 }
