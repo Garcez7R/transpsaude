@@ -13,7 +13,7 @@ function maskCpf(value: string) {
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
-  const session = requireInternalRole(request, ['manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['manager', 'admin'])
 
   if (!session) {
     return forbidden('Somente gerente ou administrador podem consultar pacientes.')
@@ -23,7 +23,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
 }
 
 export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
-  const session = requireInternalRole(request, ['manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['manager', 'admin'])
 
   if (!session) {
     return forbidden('Somente gerente ou administrador podem editar pacientes.')
@@ -110,7 +110,7 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
 }
 
 export const onRequestDelete: PagesFunction<Env> = async ({ env, request }) => {
-  const session = requireInternalRole(request, ['manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['manager', 'admin'])
 
   if (!session) {
     return forbidden('Somente gerente ou administrador podem excluir pacientes.')

@@ -81,6 +81,7 @@ export interface CitizenAccessResponse {
 }
 
 export interface AdminSession {
+  token: string
   operatorId: number
   name: string
   role: InternalRole
@@ -132,6 +133,7 @@ export interface PatientRecord {
 }
 
 export interface DriverSession {
+  token: string
   driverId: number
   name: string
   cpf: string

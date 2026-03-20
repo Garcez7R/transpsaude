@@ -1,7 +1,7 @@
 import { badRequest, forbidden, notFound, ok, requireInternalRole, type Env } from '../_utils'
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
-  const session = requireInternalRole(request, ['manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['manager', 'admin'])
 
   if (!session) {
     return forbidden('Somente gerente ou administrador podem atribuir motoristas.')

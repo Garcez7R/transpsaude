@@ -60,50 +60,110 @@ function isInternalRole(value: string): value is InternalRole {
   return value === 'operator' || value === 'manager' || value === 'admin'
 }
 
-export function readInternalSession(request: Request) {
-  const role = request.headers.get('x-operator-role')?.trim() ?? ''
-  const operatorId = Number(request.headers.get('x-operator-id') ?? '')
-  const name = request.headers.get('x-operator-name')?.trim() ?? ''
-
-  if (!isInternalRole(role) || !Number.isFinite(operatorId) || operatorId <= 0) {
-    return null
-  }
-
-  return {
-    operatorId,
-    role,
-    name,
-  }
-}
-
-export function requireInternalRole(
+export async function requireInternalRole(
+  env: Env,
   request: Request,
   allowedRoles: InternalRole[],
 ) {
-  const session = readInternalSession(request)
+  const token = request.headers.get('x-session-token')?.trim() ?? ''
 
-  if (!session) {
+  if (!token) {
     return null
   }
 
-  if (!allowedRoles.includes(session.role)) {
+  const db = requireDb(env)
+  const session = await db.prepare(
+    `
+      select
+        token,
+        operator_id as operatorId,
+        role,
+        name
+      from auth_sessions
+      where token = ?1
+        and session_type = 'internal'
+        and active = 1
+        and (expires_at is null or expires_at > current_timestamp)
+      limit 1
+    `,
+  )
+    .bind(token)
+    .first<Record<string, unknown>>()
+
+  if (!session || !isInternalRole(String(session.role ?? ''))) {
     return null
   }
 
-  return session
-}
+  const role = String(session.role) as InternalRole
+  const operatorId = Number(session.operatorId ?? '')
 
-export function readDriverSession(request: Request) {
-  const driverId = Number(request.headers.get('x-driver-id') ?? '')
-  const name = request.headers.get('x-driver-name')?.trim() ?? ''
-
-  if (!Number.isFinite(driverId) || driverId <= 0) {
+  if (!allowedRoles.includes(role) || !Number.isFinite(operatorId) || operatorId <= 0) {
     return null
   }
+
+  await db.prepare(
+    `
+      update auth_sessions
+      set last_used_at = current_timestamp
+      where token = ?1
+    `,
+  )
+    .bind(token)
+    .run()
 
   return {
+    token,
+    operatorId,
+    role,
+    name: String(session.name ?? ''),
+  }
+}
+
+export async function readDriverSession(env: Env, request: Request) {
+  const token = request.headers.get('x-session-token')?.trim() ?? ''
+
+  if (!token) {
+    return null
+  }
+
+  const db = requireDb(env)
+  const session = await db.prepare(
+    `
+      select
+        token,
+        driver_id as driverId,
+        name
+      from auth_sessions
+      where token = ?1
+        and session_type = 'driver'
+        and active = 1
+        and (expires_at is null or expires_at > current_timestamp)
+      limit 1
+    `,
+  )
+    .bind(token)
+    .first<Record<string, unknown>>()
+
+  const driverId = Number(session?.driverId ?? '')
+
+  if (!session || !Number.isFinite(driverId) || driverId <= 0) {
+    return null
+  }
+
+  await db.prepare(
+    `
+      update auth_sessions
+      set last_used_at = current_timestamp
+      where token = ?1
+    `,
+  )
+    .bind(token)
+    .run()
+
+  return {
+    token,
     driverId,
-    name,
+    name: String(session.name ?? ''),
   }
 }
 

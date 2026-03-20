@@ -43,8 +43,29 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     return notFound('Acesso administrativo não encontrado.')
   }
 
+  const token = crypto.randomUUID()
+
+  await env.DB.prepare(
+    `
+      insert into auth_sessions (
+        token,
+        session_type,
+        operator_id,
+        role,
+        name,
+        active,
+        expires_at,
+        last_used_at
+      )
+      values (?1, 'internal', ?2, ?3, ?4, 1, datetime('now', '+7 days'), current_timestamp)
+    `,
+  )
+    .bind(token, operator.id, operator.role, operator.name)
+    .run()
+
   return ok({
     session: {
+      token,
       operatorId: operator.id,
       name: operator.name,
       role: operator.role,

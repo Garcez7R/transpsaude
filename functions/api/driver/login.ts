@@ -15,7 +15,29 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     return notFound('Motorista não encontrado.')
   }
 
+  const token = crypto.randomUUID()
+
+  await env.DB.prepare(
+    `
+      insert into auth_sessions (
+        token,
+        session_type,
+        driver_id,
+        name,
+        active,
+        expires_at,
+        last_used_at
+      )
+      values (?1, 'driver', ?2, ?3, 1, datetime('now', '+7 days'), current_timestamp)
+    `,
+  )
+    .bind(token, record.driverId, record.name)
+    .run()
+
   return ok({
-    session: record,
+    session: {
+      ...record,
+      token,
+    },
   })
 }

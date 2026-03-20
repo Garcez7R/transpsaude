@@ -1,7 +1,7 @@
 import { badRequest, forbidden, notFound, ok, requireInternalRole, updateRequestStatus, type Env } from '../_utils'
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
-  const session = requireInternalRole(request, ['operator', 'manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['operator', 'manager', 'admin'])
 
   if (!session) {
     return forbidden('Acesso interno obrigatório para atualizar o status.')

@@ -5,7 +5,7 @@ function normalizeCpf(value: string) {
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
-  const session = requireInternalRole(request, ['admin'])
+  const session = await requireInternalRole(env, request, ['admin'])
 
   if (!session) {
     return forbidden('Somente o administrador pode cadastrar gerentes.')

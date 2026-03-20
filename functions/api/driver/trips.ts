@@ -8,8 +8,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
     return badRequest('Informe um motorista válido.')
   }
 
-  const internalSession = requireInternalRole(request, ['manager', 'admin'])
-  const driverSession = readDriverSession(request)
+  const internalSession = await requireInternalRole(env, request, ['manager', 'admin'])
+  const driverSession = await readDriverSession(env, request)
 
   if (!internalSession && (!driverSession || driverSession.driverId !== driverId)) {
     return forbidden('Acesso não autorizado às viagens do motorista.')

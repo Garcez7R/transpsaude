@@ -1,11 +1,8 @@
 import { BusFront, LogOut, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { canAccessManager, getInternalRoleLabel } from '../lib/access'
-import { getAdminSession } from '../lib/admin-session'
 import { fetchDriverTrips, loginDriver } from '../lib/api'
 import { clearDriverSession, getDriverSession, saveDriverSession } from '../lib/driver-session'
-import type { AdminSession, DriverSession, TravelRequest } from '../types'
+import type { DriverSession, TravelRequest } from '../types'
 
 function formatCpf(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -17,7 +14,6 @@ function formatCpf(value: string) {
 
 export function DriverPortalPage() {
   const [session, setSession] = useState<DriverSession | null>(null)
-  const [internalSession, setInternalSession] = useState<AdminSession | null>(null)
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
   const [trips, setTrips] = useState<TravelRequest[]>([])
@@ -26,7 +22,6 @@ export function DriverPortalPage() {
 
   useEffect(() => {
     setSession(getDriverSession())
-    setInternalSession(getAdminSession())
   }, [])
 
   useEffect(() => {
@@ -107,12 +102,6 @@ export function DriverPortalPage() {
           </div>
           <h1>Entrar para ver minhas viagens</h1>
           <p>Use seu CPF e PIN para consultar as viagens atribuídas ao seu nome.</p>
-          {internalSession && canAccessManager(internalSession) ? (
-            <p className="table-note">
-              Sessão interna ativa para <strong>{internalSession.name}</strong> com perfil{' '}
-              <strong>{getInternalRoleLabel(internalSession.role)}</strong>.
-            </p>
-          ) : null}
           <form onSubmit={handleLogin}>
             <div className="form-grid">
               <div className="field">
@@ -142,11 +131,6 @@ export function DriverPortalPage() {
                 <Search size={16} />
                 {loading ? 'Entrando...' : 'Entrar'}
               </button>
-              {internalSession && canAccessManager(internalSession) ? (
-                <Link className="action-button secondary" to="/gerente/equipe">
-                  Equipe e veículos
-                </Link>
-              ) : null}
             </div>
           </form>
           {error ? <p className="table-note">{error}</p> : null}

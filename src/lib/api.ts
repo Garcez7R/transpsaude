@@ -40,9 +40,7 @@ function withAdminHeaders(init?: RequestInit): RequestInit {
   const headers = new Headers(init?.headers)
 
   if (session) {
-    headers.set('x-operator-id', String(session.operatorId))
-    headers.set('x-operator-role', session.role)
-    headers.set('x-operator-name', session.name)
+    headers.set('x-session-token', session.token)
   }
 
   return {
@@ -56,8 +54,7 @@ function withDriverHeaders(init?: RequestInit): RequestInit {
   const headers = new Headers(init?.headers)
 
   if (session) {
-    headers.set('x-driver-id', String(session.driverId))
-    headers.set('x-driver-name', session.name)
+    headers.set('x-session-token', session.token)
   }
 
   return {

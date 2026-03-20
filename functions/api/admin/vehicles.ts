@@ -1,7 +1,7 @@
 import { badRequest, forbidden, listVehicles, notFound, ok, requireInternalRole, type Env } from '../_utils'
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
-  const session = requireInternalRole(request, ['manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['manager', 'admin'])
 
   if (!session) {
     return forbidden('Somente gerente ou administrador podem consultar veículos.')
@@ -12,7 +12,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
-  const session = requireInternalRole(request, ['manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['manager', 'admin'])
 
   if (!session) {
     return forbidden('Somente gerente ou administrador podem cadastrar veículos.')
@@ -65,7 +65,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
 }
 
 export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
-  const session = requireInternalRole(request, ['manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['manager', 'admin'])
 
   if (!session) {
     return forbidden('Somente gerente ou administrador podem editar veículos.')
@@ -126,7 +126,7 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
 }
 
 export const onRequestDelete: PagesFunction<Env> = async ({ env, request }) => {
-  const session = requireInternalRole(request, ['manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['manager', 'admin'])
 
   if (!session) {
     return forbidden('Somente gerente ou administrador podem excluir veículos.')
