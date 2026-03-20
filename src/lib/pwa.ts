@@ -17,9 +17,12 @@ export function registerServiceWorker() {
   }
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((error) => {
-      console.error('Falha ao registrar service worker', error)
-    })
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => registration.update())
+      .catch((error) => {
+        console.error('Falha ao registrar service worker', error)
+      })
   })
 }
 

@@ -1,15 +1,19 @@
-const CACHE_NAME = 'transpsaude-v1'
-const APP_ASSETS = ['/', '/manifest.webmanifest', '/favicon.svg', '/pwa-192.svg', '/pwa-512.svg']
+const CACHE_NAME = 'transpsaude-v2'
+const STATIC_ASSETS = ['/manifest.webmanifest', '/favicon.svg', '/pwa-192.svg', '/pwa-512.svg']
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_ASSETS)))
+  self.skipWaiting()
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)))
 })
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
-    ),
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((keys) =>
+        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
+      ),
+    ]),
   )
 })
 
@@ -18,27 +22,55 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse
-      }
+  const url = new URL(event.request.url)
+  const isSameOrigin = url.origin === self.location.origin
+  const isNavigation = event.request.mode === 'navigate'
+  const isStaticAsset = isSameOrigin && STATIC_ASSETS.includes(url.pathname)
 
-      return fetch(event.request)
+  if (isNavigation) {
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response
-          }
-
           const responseClone = response.clone()
 
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone)
+            cache.put('/', responseClone)
           })
 
           return response
         })
-        .catch(() => caches.match('/'))
-    }),
-  )
+        .catch(async () => {
+          const cachedResponse = await caches.match('/')
+          return cachedResponse || Response.error()
+        }),
+    )
+    return
+  }
+
+  if (isStaticAsset) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse
+        }
+
+        return fetch(event.request).then((response) => {
+          const responseClone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone)
+          })
+          return response
+        })
+      }),
+    )
+    return
+  }
+
+  if (isSameOrigin) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => response)
+        .catch(() => caches.match(event.request)),
+    )
+  }
 })
