@@ -1,12 +1,23 @@
-import { Search, ShieldCheck } from 'lucide-react'
+import { KeyRound, Search, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchPublicRequest } from '../lib/api'
-import type { PublicRequestDetails } from '../types'
+import { activateCitizenPin, loginCitizen } from '../lib/api'
+import type { CitizenAccessResponse, PublicRequestDetails } from '../types'
+
+function formatCpf(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+
+  return digits
+    .replace(/^(\d{3})(\d)/, '$1.$2')
+    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1-$2')
+}
 
 export function PublicStatusPage() {
-  const [protocol, setProtocol] = useState('TS-2026-000124')
-  const [pin, setPin] = useState('4821')
+  const [cpf, setCpf] = useState('248.903.120-31')
+  const [password, setPassword] = useState('0000')
+  const [newPin, setNewPin] = useState('')
+  const [access, setAccess] = useState<CitizenAccessResponse | null>(null)
   const [request, setRequest] = useState<PublicRequestDetails | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -17,11 +28,31 @@ export function PublicStatusPage() {
     setError('')
 
     try {
-      const data = await fetchPublicRequest(protocol, pin)
-      setRequest(data)
+      const data = await loginCitizen(cpf, password)
+      setAccess(data)
+      setRequest(data.request)
     } catch {
+      setAccess(null)
       setRequest(null)
-      setError('Nao encontramos uma solicitacao com esse protocolo e PIN.')
+      setError('Nao encontramos acesso para esse CPF e senha/PIN.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleActivatePin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      const data = await activateCitizenPin(cpf, newPin)
+      setAccess(data)
+      setRequest(data.request)
+      setPassword(newPin)
+      setNewPin('')
+    } catch {
+      setError('Nao foi possivel ativar o novo PIN. Confira se ele tem 4 digitos.')
     } finally {
       setLoading(false)
     }
@@ -46,33 +77,34 @@ export function PublicStatusPage() {
         </div>
         <h1>Acompanhe sua solicitacao de viagem</h1>
         <p>
-          Informe o protocolo entregue no atendimento e o PIN de consulta. Esse fluxo pode virar o
-          PWA oficial da Prefeitura de Capão do Leão no celular.
+          Informe seu CPF e a senha atual. No primeiro acesso, o cidadão entra com a senha
+          temporária <strong>0000</strong> e já define um PIN numérico de 4 dígitos.
         </p>
       </header>
 
       <div className="public-layout">
         <article className="public-card">
-          <h2>Consultar status</h2>
+          <h2>Acessar acompanhamento</h2>
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
               <div className="field">
-                <label htmlFor="protocol">Protocolo</label>
+                <label htmlFor="cpf">CPF</label>
                 <input
-                  id="protocol"
-                  value={protocol}
-                  onChange={(event) => setProtocol(event.target.value)}
-                  placeholder="TS-2026-000124"
+                  id="cpf"
+                  value={cpf}
+                  onChange={(event) => setCpf(formatCpf(event.target.value))}
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
                 />
               </div>
               <div className="field">
-                <label htmlFor="pin">PIN</label>
+                <label htmlFor="password">Senha atual ou PIN</label>
                 <input
-                  id="pin"
-                  value={pin}
-                  onChange={(event) => setPin(event.target.value)}
+                  id="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value.replace(/\D/g, '').slice(0, 4))}
                   inputMode="numeric"
-                  placeholder="4821"
+                  placeholder="0000"
                 />
               </div>
             </div>
@@ -80,15 +112,51 @@ export function PublicStatusPage() {
             <div className="form-actions">
               <button className="action-button primary" disabled={loading} type="submit">
                 <Search size={16} />
-                {loading ? 'Consultando...' : 'Consultar solicitacao'}
+                {loading ? 'Entrando...' : 'Entrar e acompanhar'}
               </button>
               <Link className="action-button secondary" to="/operador">
                 Ir para painel interno
               </Link>
             </div>
           </form>
+          <p className="table-note">
+            Primeiro acesso: use o CPF cadastrado pelo operador e a senha temporária <strong>0000</strong>.
+          </p>
           {error ? <p className="table-note">{error}</p> : null}
         </article>
+
+        {access?.mustChangePin ? (
+          <article className="public-card">
+            <div className="eyebrow">
+              <KeyRound size={16} />
+              Primeiro acesso
+            </div>
+            <h2>Cadastre seu novo PIN numérico</h2>
+            <p>
+              {access.patientName}, para proteger seu acompanhamento, troque agora a senha
+              temporária {access.temporaryPasswordLabel} por um PIN de 4 dígitos.
+            </p>
+            <form onSubmit={handleActivatePin}>
+              <div className="form-grid">
+                <div className="field">
+                  <label htmlFor="new-pin">Novo PIN de 4 dígitos</label>
+                  <input
+                    id="new-pin"
+                    value={newPin}
+                    onChange={(event) => setNewPin(event.target.value.replace(/\D/g, '').slice(0, 4))}
+                    inputMode="numeric"
+                    placeholder="1234"
+                  />
+                </div>
+              </div>
+              <div className="form-actions">
+                <button className="action-button primary" disabled={loading || newPin.length !== 4} type="submit">
+                  {loading ? 'Ativando...' : 'Salvar novo PIN'}
+                </button>
+              </div>
+            </form>
+          </article>
+        ) : null}
 
         {request ? (
           <>
@@ -96,6 +164,7 @@ export function PublicStatusPage() {
               <div className="status-pill-row">
                 <span className={`status-badge ${request.status}`}>{request.statusLabel}</span>
                 <span className="status-pill">Protocolo {request.protocol}</span>
+                {access ? <span className="status-pill">CPF {access.cpfMasked}</span> : null}
               </div>
               <h2>{request.patientName}</h2>
               <dl className="request-summary">
@@ -123,7 +192,7 @@ export function PublicStatusPage() {
                 </div>
                 <div>
                   <dt>Orientacao</dt>
-                  <dd>{request.protocolPinHint}</dd>
+                  <dd>{request.loginHint}</dd>
                 </div>
               </dl>
             </article>
@@ -143,10 +212,10 @@ export function PublicStatusPage() {
         ) : (
           <article className="empty-state">
             <Search size={28} />
-            <h2>Consulta pronta para uso</h2>
+            <h2>Acesso cidadão pronto para uso</h2>
             <p>
-              O layout ja esta preparado para virar PWA. No MVP, o acesso pode ser so por protocolo
-              e PIN, sem exigir conta do cidadao.
+              O layout já está preparado para o cidadão acessar com CPF e senha temporária 0000 no
+              primeiro login, trocando em seguida para um PIN de 4 dígitos.
             </p>
           </article>
         )}

@@ -3,7 +3,7 @@
 Base inicial para um sistema municipal de transporte em saude com:
 
 - painel interno do operador;
-- consulta publica por protocolo e PIN;
+- consulta publica por CPF e PIN;
 - PWA para uso no celular;
 - API pronta para Cloudflare Pages Functions;
 - estrutura inicial para banco `D1`.
@@ -52,9 +52,10 @@ O MVP foi desenhado para este fluxo:
 
 1. operador atende o paciente no balcao;
 2. cadastra a solicitacao de viagem;
-3. sistema gera protocolo e PIN;
-4. equipe interna atualiza o status;
-5. cidadao acompanha pelo PWA.
+3. sistema libera o primeiro acesso do cidadao com CPF e senha temporaria `0000`;
+4. no primeiro login, o cidadao cria um PIN numerico de 4 digitos;
+5. equipe interna atualiza o status;
+6. cidadao acompanha pelo PWA.
 
 Status iniciais:
 
@@ -75,6 +76,16 @@ O arquivo [db/schema.sql](/home/rgarcez/Documentos/transp-saude/db/schema.sql) t
 - `travel_requests`
 - `request_status_history`
 - `audit_logs`
+
+Campos iniciais de acesso do cidadao:
+
+- `cpf`
+- `cpf_masked`
+- `temporary_password`
+- `citizen_pin`
+- `must_change_pin`
+- `access_activated_at`
+- `last_login_at`
 
 ## Cloudflare
 

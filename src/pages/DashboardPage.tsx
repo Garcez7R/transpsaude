@@ -1,8 +1,17 @@
-import { Filter, ListChecks, LockKeyhole, Plus, RefreshCcw, ShieldCheck } from 'lucide-react'
+import {
+  Filter,
+  ListChecks,
+  LockKeyhole,
+  LogOut,
+  Plus,
+  RefreshCcw,
+  ShieldCheck,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchDashboardSummary, fetchRequests } from '../lib/api'
-import type { DashboardSummary, RequestStatus, TravelRequest } from '../types'
+import { loginAdmin, fetchDashboardSummary, fetchRequests } from '../lib/api'
+import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
+import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } from '../types'
 
 const statusOptions: Array<{ value: RequestStatus | 'todos'; label: string }> = [
   { value: 'todos', label: 'Todos os status' },
@@ -25,7 +34,21 @@ const labelByStatus: Record<RequestStatus, string> = {
   concluida: 'Concluida',
 }
 
+function formatCpf(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  return digits
+    .replace(/^(\d{3})(\d)/, '$1.$2')
+    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1-$2')
+}
+
 export function DashboardPage() {
+  const [session, setSession] = useState<AdminSession | null>(null)
+  const [cpf, setCpf] = useState('968.203.730-15')
+  const [password, setPassword] = useState('1978')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
+
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [requests, setRequests] = useState<TravelRequest[]>([])
   const [selectedStatus, setSelectedStatus] = useState<RequestStatus | 'todos'>('todos')
@@ -33,6 +56,14 @@ export function DashboardPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    setSession(getAdminSession())
+  }, [])
+
+  useEffect(() => {
+    if (!session) {
+      return
+    }
+
     let active = true
 
     async function loadData() {
@@ -69,7 +100,30 @@ export function DashboardPage() {
     return () => {
       active = false
     }
-  }, [selectedStatus])
+  }, [selectedStatus, session])
+
+  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setAuthLoading(true)
+    setAuthError('')
+
+    try {
+      const result = await loginAdmin(cpf, password)
+      saveAdminSession(result.session)
+      setSession(result.session)
+    } catch {
+      setAuthError('Nao foi possivel autenticar esse acesso administrativo.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  function handleLogout() {
+    clearAdminSession()
+    setSession(null)
+    setSummary(null)
+    setRequests([])
+  }
 
   const visibleCountLabel = useMemo(() => {
     if (loading) {
@@ -78,6 +132,79 @@ export function DashboardPage() {
 
     return `${requests.length} solicitacao(oes) encontradas`
   }, [loading, requests.length])
+
+  if (!session) {
+    return (
+      <div className="dashboard-shell">
+        <section className="institutional-bar institutional-bar-inner">
+          <div className="crest-mark" aria-hidden="true">
+            <span />
+          </div>
+          <div className="institutional-copy">
+            <strong>Ambiente interno da Prefeitura de Capão do Leão</strong>
+            <span>Acesso destinado a operador, regulacao e apoio administrativo</span>
+          </div>
+        </section>
+
+        <section className="auth-shell">
+          <article className="content-card login-card">
+            <div className="eyebrow">
+              <LockKeyhole size={16} />
+              Acesso administrativo
+            </div>
+            <h1>Entrar no painel</h1>
+            <p>
+              Acesso inicial liberado para administrador geral com CPF <strong>968.203.730-15</strong> e
+              senha <strong>1978</strong>.
+            </p>
+            <form onSubmit={handleLogin}>
+              <div className="login-grid">
+                <div className="field">
+                  <label htmlFor="admin-cpf">CPF do administrador</label>
+                  <input
+                    id="admin-cpf"
+                    value={cpf}
+                    onChange={(event) => setCpf(formatCpf(event.target.value))}
+                    inputMode="numeric"
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="admin-password">Senha</label>
+                  <input
+                    id="admin-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    inputMode="numeric"
+                    placeholder="1978"
+                  />
+                </div>
+              </div>
+              <div className="form-actions">
+                <button className="action-button primary" disabled={authLoading} type="submit">
+                  <ShieldCheck size={16} />
+                  {authLoading ? 'Entrando...' : 'Entrar como admin'}
+                </button>
+                <Link className="action-button secondary" to="/acompanhar">
+                  Ver fluxo do cidadao
+                </Link>
+              </div>
+            </form>
+            {authError ? <p className="table-note">{authError}</p> : null}
+          </article>
+
+          <article className="content-card">
+            <h2>Escopo liberado para esse acesso</h2>
+            <ul className="check-list">
+              <li>Visao geral das solicitacoes</li>
+              <li>Abertura de nova solicitacao</li>
+              <li>Base para evoluir autenticação real e perfis</li>
+            </ul>
+          </article>
+        </section>
+      </div>
+    )
+  }
 
   return (
     <div className="dashboard-shell">
@@ -99,19 +226,19 @@ export function DashboardPage() {
           </div>
           <h1>Solicitacoes de transporte em saude</h1>
           <p>
-            Base inicial para o atendimento presencial da Prefeitura de Capão do Leão, com
-            acompanhamento de status e consulta do cidadão.
+            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>{session.role}</strong>.
           </p>
         </div>
 
         <div className="page-actions">
-          <button className="action-button secondary" type="button">
+          <Link className="action-button secondary" to="/operador/cadastro">
             <Plus size={16} />
             Nova solicitacao
-          </button>
-          <Link className="action-button primary" to="/acompanhar">
-            Ver fluxo publico
           </Link>
+          <button className="action-button primary" type="button" onClick={handleLogout}>
+            <LogOut size={16} />
+            Sair
+          </button>
         </div>
       </header>
 
@@ -237,36 +364,24 @@ export function DashboardPage() {
               <li>Paciente, CPF, CNS e contato</li>
               <li>Destino, unidade, especialidade e data</li>
               <li>Acompanhante e justificativa clinica</li>
-              <li>Observacoes internas e historico</li>
+              <li>Observacoes internas, historico e acesso inicial do cidadao</li>
             </ul>
           </article>
 
           <article className="content-card login-card">
             <div className="eyebrow">
-              <LockKeyhole size={16} />
-              Acesso do operador
+              <ShieldCheck size={16} />
+              Acesso ativo
             </div>
-            <h2>Entrada institucional</h2>
+            <h2>Administrador liberado</h2>
             <p>
-              Nesta fase, a tela representa o ponto de login do operador. No proximo passo podemos
-              ligar com autenticacao real.
+              CPF autenticado: <strong>{session.cpf}</strong>. Este acesso tem visao total do MVP e
+              pode abrir novas solicitacoes.
             </p>
-            <div className="login-grid">
-              <div className="field">
-                <label htmlFor="operator-login">Matricula ou e-mail</label>
-                <input id="operator-login" placeholder="operador@prefeitura.local" />
-              </div>
-              <div className="field">
-                <label htmlFor="operator-password">Senha</label>
-                <input id="operator-password" placeholder="••••••••" type="password" />
-              </div>
-            </div>
-            <div className="form-actions">
-              <button className="action-button primary" type="button">
-                <ShieldCheck size={16} />
-                Entrar no painel
-              </button>
-            </div>
+            <p className="table-note">
+              Fluxo previsto no cadastro: operador informa o CPF, libera o primeiro acesso com
+              senha temporária <strong>0000</strong> e o paciente cria depois um PIN de 4 dígitos.
+            </p>
           </article>
         </aside>
       </section>

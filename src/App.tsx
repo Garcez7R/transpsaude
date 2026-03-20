@@ -9,6 +9,7 @@ import {
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { DashboardPage } from './pages/DashboardPage'
 import { PublicStatusPage } from './pages/PublicStatusPage'
+import { RegisterRequestPage } from './pages/RegisterRequestPage'
 
 const highlights = [
   {
@@ -81,7 +82,7 @@ function HomePage() {
             <li>Cadastro de pacientes e solicitacoes</li>
             <li>Status operacionais e historico</li>
             <li>Painel interno com filtros</li>
-            <li>PWA publico por protocolo</li>
+            <li>PWA publico com CPF e PIN</li>
           </ul>
           <div className="mini-metrics">
             <div>
@@ -123,15 +124,15 @@ function HomePage() {
         <div className="timeline">
           <div className="timeline-item">
             <strong>1. Atendimento</strong>
-            <p>Operador registra paciente, destino, especialidade e necessidade de acompanhante.</p>
+            <p>Operador registra paciente, destino, especialidade, necessidade de acompanhante e CPF de acesso.</p>
           </div>
           <div className="timeline-item">
             <strong>2. Analise interna</strong>
-            <p>Solicitacao recebe protocolo, passa por validacao e segue para aprovacao ou pendencias.</p>
+            <p>Solicitacao recebe protocolo, passa por validacao e o cidadao entra inicialmente com a senha 0000.</p>
           </div>
           <div className="timeline-item">
             <strong>3. Consulta publica</strong>
-            <p>O cidadao acompanha status, data da viagem, orientacoes e documentos pendentes no PWA.</p>
+            <p>O cidadao cria um PIN numerico de 4 digitos no primeiro acesso e acompanha status, data e orientacoes no PWA.</p>
           </div>
         </div>
       </section>
@@ -158,6 +159,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/operador" element={<DashboardPage />} />
+      <Route path="/operador/cadastro" element={<RegisterRequestPage />} />
       <Route path="/acompanhar" element={<PublicStatusPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

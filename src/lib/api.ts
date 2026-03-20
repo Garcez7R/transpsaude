@@ -1,11 +1,19 @@
-import type { DashboardSummary, PublicRequestDetails, TravelRequest } from '../types'
+import type {
+  AdminLoginResponse,
+  CitizenAccessResponse,
+  CreateTravelRequestInput,
+  CreateTravelRequestResponse,
+  DashboardSummary,
+  PublicRequestDetails,
+  TravelRequest,
+} from '../types'
 
 const mockRequests: TravelRequest[] = [
   {
     id: 1,
     protocol: 'TS-2026-000124',
     patientName: 'Maria das Dores Silva',
-    cpfMasked: '***.248.***-31',
+    cpfMasked: '248.903.120-31',
     destinationCity: 'Barretos',
     destinationState: 'SP',
     treatmentUnit: 'Hospital de Amor',
@@ -20,7 +28,7 @@ const mockRequests: TravelRequest[] = [
     id: 2,
     protocol: 'TS-2026-000125',
     patientName: 'Joao Pedro Almeida',
-    cpfMasked: '***.937.***-08',
+    cpfMasked: '937.554.880-08',
     destinationCity: 'Ribeirao Preto',
     destinationState: 'SP',
     treatmentUnit: 'HC Ribeirao',
@@ -35,7 +43,7 @@ const mockRequests: TravelRequest[] = [
     id: 3,
     protocol: 'TS-2026-000126',
     patientName: 'Ana Luiza Santos',
-    cpfMasked: '***.111.***-54',
+    cpfMasked: '111.222.333-54',
     destinationCity: 'Sao Paulo',
     destinationState: 'SP',
     treatmentUnit: 'Hospital das Clinicas',
@@ -57,7 +65,7 @@ const mockSummary: DashboardSummary = {
 const mockPublicRequest: PublicRequestDetails = {
   ...mockRequests[0],
   statusLabel: 'Agendada',
-  protocolPinHint: 'Saida prevista as 04:30 no terminal municipal.',
+  loginHint: 'Saida prevista as 04:30 no terminal municipal.',
   history: [
     { status: 'recebida', label: 'Recebida', updatedAt: '18/03/2026 09:12' },
     { status: 'aprovada', label: 'Aprovada', updatedAt: '18/03/2026 15:30' },
@@ -70,12 +78,41 @@ const mockPublicRequest: PublicRequestDetails = {
   ],
 }
 
+const mockCitizenAccess: CitizenAccessResponse = {
+  mustChangePin: true,
+  patientName: mockPublicRequest.patientName,
+  cpfMasked: mockPublicRequest.cpfMasked,
+  temporaryPasswordLabel: '0000',
+  request: mockPublicRequest,
+}
+
+const mockAdminLogin: AdminLoginResponse = {
+  session: {
+    operatorId: 1,
+    name: 'Administrador Geral',
+    role: 'admin',
+    cpf: '968.203.730-15',
+  },
+}
+
 async function parseJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
     throw new Error(`Falha na requisicao: ${response.status}`)
   }
 
   return (await response.json()) as T
+}
+
+function normalizeCpf(value: string) {
+  return value.replace(/\D/g, '')
+}
+
+function formatCpf(value: string) {
+  const digits = normalizeCpf(value)
+  return digits
+    .replace(/^(\d{3})(\d)/, '$1.$2')
+    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1-$2')
 }
 
 export async function fetchDashboardSummary() {
@@ -103,16 +140,83 @@ export async function fetchRequests(status?: string) {
   }
 }
 
-export async function fetchPublicRequest(protocol: string, pin: string) {
+export async function loginCitizen(cpf: string, password: string) {
   try {
-    const search = new URLSearchParams({ protocol, pin })
-    const response = await fetch(`/api/public/status?${search.toString()}`)
-    return await parseJson<PublicRequestDetails>(response)
+    const response = await fetch('/api/public/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ cpf, password }),
+    })
+
+    return await parseJson<CitizenAccessResponse>(response)
   } catch {
-    if (protocol === mockPublicRequest.protocol && pin === '4821') {
-      return mockPublicRequest
+    if (normalizeCpf(cpf) === '24890312031' && (password === '0000' || password === '4821')) {
+      return {
+        ...mockCitizenAccess,
+        mustChangePin: password === '0000',
+      }
     }
 
-    throw new Error('Solicitacao nao encontrada')
+    throw new Error('Acesso nao encontrado')
+  }
+}
+
+export async function activateCitizenPin(cpf: string, newPin: string) {
+  try {
+    const response = await fetch('/api/public/activate-pin', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ cpf, newPin }),
+    })
+
+    return await parseJson<CitizenAccessResponse>(response)
+  } catch {
+    if (normalizeCpf(cpf) === '24890312031' && /^\d{4}$/.test(newPin)) {
+      return {
+        ...mockCitizenAccess,
+        mustChangePin: false,
+      }
+    }
+
+    throw new Error('Nao foi possivel ativar o PIN')
+  }
+}
+
+export async function loginAdmin(cpf: string, password: string) {
+  try {
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ cpf, password }),
+    })
+
+    return await parseJson<AdminLoginResponse>(response)
+  } catch {
+    if (normalizeCpf(cpf) === '96820373015' && password === '1978') {
+      return mockAdminLogin
+    }
+
+    throw new Error('Acesso admin nao encontrado')
+  }
+}
+
+export async function createTravelRequest(input: CreateTravelRequestInput) {
+  try {
+    const response = await fetch('/api/admin/requests', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+
+    return await parseJson<CreateTravelRequestResponse>(response)
+  } catch {
+    const protocol = `TS-2026-${String(mockRequests.length + 124).padStart(6, '0')}`
+
+    return {
+      protocol,
+      temporaryPassword: '0000',
+      status: 'recebida',
+      message: `Solicitacao simulada para ${input.patientName}. No primeiro acesso, o cidadao entra com CPF ${formatCpf(input.cpf)} e senha 0000.`,
+    }
   }
 }

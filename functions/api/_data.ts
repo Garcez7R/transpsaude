@@ -9,8 +9,11 @@ export type RequestStatus =
 
 export interface RequestRecord {
   id: number
+  patientCpf: string
   protocol: string
-  protocolPin: string
+  temporaryPassword: string
+  citizenPin: string
+  mustChangePin: boolean
   patientName: string
   cpfMasked: string
   destinationCity: string
@@ -27,10 +30,13 @@ export interface RequestRecord {
 export const mockRequests: RequestRecord[] = [
   {
     id: 1,
+    patientCpf: '24890312031',
     protocol: 'TS-2026-000124',
-    protocolPin: '4821',
+    temporaryPassword: '0000',
+    citizenPin: '4821',
+    mustChangePin: true,
     patientName: 'Maria das Dores Silva',
-    cpfMasked: '***.248.***-31',
+    cpfMasked: '248.903.120-31',
     destinationCity: 'Barretos',
     destinationState: 'SP',
     treatmentUnit: 'Hospital de Amor',
@@ -43,10 +49,13 @@ export const mockRequests: RequestRecord[] = [
   },
   {
     id: 2,
+    patientCpf: '93755488008',
     protocol: 'TS-2026-000125',
-    protocolPin: '7710',
+    temporaryPassword: '0000',
+    citizenPin: '7710',
+    mustChangePin: false,
     patientName: 'Joao Pedro Almeida',
-    cpfMasked: '***.937.***-08',
+    cpfMasked: '937.554.880-08',
     destinationCity: 'Ribeirao Preto',
     destinationState: 'SP',
     treatmentUnit: 'HC Ribeirao',
@@ -59,10 +68,13 @@ export const mockRequests: RequestRecord[] = [
   },
   {
     id: 3,
+    patientCpf: '11122233354',
     protocol: 'TS-2026-000126',
-    protocolPin: '3314',
+    temporaryPassword: '0000',
+    citizenPin: '3314',
+    mustChangePin: false,
     patientName: 'Ana Luiza Santos',
-    cpfMasked: '***.111.***-54',
+    cpfMasked: '111.222.333-54',
     destinationCity: 'Sao Paulo',
     destinationState: 'SP',
     treatmentUnit: 'Hospital das Clinicas',

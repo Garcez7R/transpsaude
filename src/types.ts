@@ -39,6 +39,46 @@ export interface StatusHistoryEntry {
 
 export interface PublicRequestDetails extends TravelRequest {
   statusLabel: string
-  protocolPinHint: string
+  loginHint: string
   history: StatusHistoryEntry[]
+}
+
+export interface CitizenAccessResponse {
+  mustChangePin: boolean
+  patientName: string
+  cpfMasked: string
+  temporaryPasswordLabel: string
+  request: PublicRequestDetails | null
+}
+
+export interface AdminSession {
+  operatorId: number
+  name: string
+  role: string
+  cpf: string
+}
+
+export interface AdminLoginResponse {
+  session: AdminSession
+}
+
+export interface CreateTravelRequestInput {
+  patientName: string
+  cpf: string
+  cns: string
+  phone: string
+  destinationCity: string
+  destinationState: string
+  treatmentUnit: string
+  specialty: string
+  travelDate: string
+  companionRequired: boolean
+  notes: string
+}
+
+export interface CreateTravelRequestResponse {
+  protocol: string
+  temporaryPassword: string
+  status: RequestStatus
+  message: string
 }

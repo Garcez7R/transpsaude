@@ -1,7 +1,9 @@
 create table if not exists operators (
   id integer primary key autoincrement,
   name text not null,
+  cpf text unique,
   email text not null unique,
+  password text,
   role text not null default 'operator',
   created_at text not null default current_timestamp
 );
@@ -9,12 +11,18 @@ create table if not exists operators (
 create table if not exists patients (
   id integer primary key autoincrement,
   full_name text not null,
-  cpf text,
+  cpf text not null unique,
+  cpf_masked text not null,
   cns text,
   birth_date text,
   phone text,
   city text,
   state text,
+  temporary_password text not null default '0000',
+  citizen_pin text,
+  must_change_pin integer not null default 1,
+  access_activated_at text,
+  last_login_at text,
   created_at text not null default current_timestamp,
   updated_at text not null default current_timestamp
 );
@@ -67,6 +75,37 @@ create table if not exists audit_logs (
   foreign key (operator_id) references operators(id)
 );
 
-insert into operators (name, email, role)
-select 'Operador Demo', 'operador@prefeitura.local', 'operator'
+insert into operators (name, cpf, email, password, role)
+select 'Operador Demo', '11111111111', 'operador@prefeitura.local', '1234', 'operator'
 where not exists (select 1 from operators where email = 'operador@prefeitura.local');
+
+insert into operators (name, cpf, email, password, role)
+select 'Administrador Geral', '96820373015', 'admin@capaodoleao.rs.gov.br', '1978', 'admin'
+where not exists (select 1 from operators where cpf = '96820373015');
+
+insert into patients (
+  full_name,
+  cpf,
+  cpf_masked,
+  cns,
+  birth_date,
+  phone,
+  city,
+  state,
+  temporary_password,
+  citizen_pin,
+  must_change_pin
+)
+select
+  'Maria das Dores Silva',
+  '24890312031',
+  '248.903.120-31',
+  '123456789000001',
+  '1978-04-12',
+  '(53) 99999-0101',
+  'Capao do Leao',
+  'RS',
+  '0000',
+  '4821',
+  1
+where not exists (select 1 from patients where cpf = '24890312031');

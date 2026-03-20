@@ -26,6 +26,14 @@ export function ok(data: unknown) {
   return json(data)
 }
 
+function normalizeCpf(value: string) {
+  return value.replace(/\D/g, '')
+}
+
+function toBoolean(value: unknown) {
+  return value === true || value === 1 || value === '1'
+}
+
 export async function listRequests(env: Env, status?: string) {
   if (!env.DB) {
     return mockRequests.filter((item) => (status ? item.status === status : true))
@@ -82,20 +90,65 @@ export async function getSummary(env: Env) {
   }
 }
 
-export async function findPublicRequest(env: Env, protocol: string, pin: string) {
+export async function loginCitizen(env: Env, cpf: string, password: string) {
+  const normalizedCpf = normalizeCpf(cpf)
+
   if (!env.DB) {
-    const request = mockRequests.find((item) => item.protocol === protocol && item.protocolPin === pin)
+    const request = mockRequests.find((item) => item.patientCpf === normalizedCpf)
 
     if (!request) {
       return null
     }
 
-    return {
-      ...request,
-      statusLabel: statusLabels[request.status],
-      protocolPinHint: request.notes ?? 'Guarde o protocolo para futuras consultas.',
-      history: historyByProtocol[protocol] ?? [],
+    const passwordMatches =
+      (request.mustChangePin && password === request.temporaryPassword) || password === request.citizenPin
+
+    if (!passwordMatches) {
+      return null
     }
+
+    return {
+      mustChangePin: request.mustChangePin && password === request.temporaryPassword,
+      patientName: request.patientName,
+      cpfMasked: request.cpfMasked,
+      temporaryPasswordLabel: request.temporaryPassword,
+      request: {
+        ...request,
+        statusLabel: statusLabels[request.status],
+        loginHint: request.notes ?? 'Guarde seu CPF e seu PIN para futuras consultas.',
+        history: historyByProtocol[request.protocol] ?? [],
+      },
+    }
+  }
+
+  const patientAccess = await env.DB.prepare(
+    `
+      select
+        id,
+        full_name as patientName,
+        cpf_masked as cpfMasked,
+        temporary_password as temporaryPassword,
+        citizen_pin as citizenPin,
+        must_change_pin as mustChangePin
+      from patients
+      where cpf = ?1
+      limit 1
+    `,
+  )
+    .bind(normalizedCpf)
+    .first<Record<string, unknown>>()
+
+  if (!patientAccess) {
+    return null
+  }
+
+  const mustChangePin = toBoolean(patientAccess.mustChangePin)
+  const temporaryPassword = String(patientAccess.temporaryPassword ?? '')
+  const citizenPin = String(patientAccess.citizenPin ?? '')
+  const passwordMatches = (mustChangePin && password === temporaryPassword) || password === citizenPin
+
+  if (!passwordMatches) {
+    return null
   }
 
   const requestResult = await env.DB.prepare(
@@ -115,15 +168,22 @@ export async function findPublicRequest(env: Env, protocol: string, pin: string)
         companion_required as companionRequired,
         notes
       from travel_requests
-      where protocol = ?1 and protocol_pin = ?2
+      where patient_id = ?1
+      order by created_at desc
       limit 1
     `,
   )
-    .bind(protocol, pin)
+    .bind(patientAccess.id)
     .first<Record<string, unknown>>()
 
   if (!requestResult) {
-    return null
+    return {
+      mustChangePin: mustChangePin && password === temporaryPassword,
+      patientName: String(patientAccess.patientName ?? ''),
+      cpfMasked: String(patientAccess.cpfMasked ?? ''),
+      temporaryPasswordLabel: temporaryPassword,
+      request: null,
+    }
   }
 
   const historyResult = await env.DB.prepare(
@@ -138,18 +198,96 @@ export async function findPublicRequest(env: Env, protocol: string, pin: string)
       order by sort_order asc, updated_at asc
     `,
   )
-    .bind(protocol)
+    .bind(requestResult.protocol)
     .all()
 
   const status = String(requestResult.status)
 
+  await env.DB.prepare(
+    `
+      update patients
+      set last_login_at = current_timestamp,
+          updated_at = current_timestamp
+      where id = ?1
+    `,
+  )
+    .bind(patientAccess.id)
+    .run()
+
   return {
-    ...requestResult,
-    statusLabel: statusLabels[status as keyof typeof statusLabels] ?? status,
-    protocolPinHint:
-      typeof requestResult.notes === 'string'
-        ? requestResult.notes
-        : 'Guarde o protocolo para futuras consultas.',
-    history: historyResult.results ?? [],
+    mustChangePin: mustChangePin && password === temporaryPassword,
+    patientName: String(patientAccess.patientName ?? ''),
+    cpfMasked: String(patientAccess.cpfMasked ?? ''),
+    temporaryPasswordLabel: temporaryPassword,
+    request: {
+      ...requestResult,
+      companionRequired: toBoolean(requestResult.companionRequired),
+      statusLabel: statusLabels[status as keyof typeof statusLabels] ?? status,
+      loginHint:
+        typeof requestResult.notes === 'string'
+          ? requestResult.notes
+          : 'Guarde seu CPF e seu PIN para futuras consultas.',
+      history: historyResult.results ?? [],
+    },
   }
+}
+
+export async function activateCitizenPin(env: Env, cpf: string, newPin: string) {
+  if (!/^\d{4}$/.test(newPin)) {
+    return null
+  }
+
+  const normalizedCpf = normalizeCpf(cpf)
+
+  if (!env.DB) {
+    const request = mockRequests.find((item) => item.patientCpf === normalizedCpf)
+
+    if (!request) {
+      return null
+    }
+
+    return {
+      mustChangePin: false,
+      patientName: request.patientName,
+      cpfMasked: request.cpfMasked,
+      temporaryPasswordLabel: request.temporaryPassword,
+      request: {
+        ...request,
+        statusLabel: statusLabels[request.status],
+        loginHint: request.notes ?? 'Guarde seu CPF e seu PIN para futuras consultas.',
+        history: historyByProtocol[request.protocol] ?? [],
+      },
+    }
+  }
+
+  const patient = await env.DB.prepare(
+    `
+      select id
+      from patients
+      where cpf = ?1
+      limit 1
+    `,
+  )
+    .bind(normalizedCpf)
+    .first<Record<string, unknown>>()
+
+  if (!patient) {
+    return null
+  }
+
+  await env.DB.prepare(
+    `
+      update patients
+      set citizen_pin = ?1,
+          must_change_pin = 0,
+          access_activated_at = coalesce(access_activated_at, current_timestamp),
+          last_login_at = current_timestamp,
+          updated_at = current_timestamp
+      where id = ?2
+    `,
+  )
+    .bind(newPin, patient.id)
+    .run()
+
+  return loginCitizen(env, cpf, newPin)
 }
