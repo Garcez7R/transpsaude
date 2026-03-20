@@ -185,8 +185,20 @@ export function PublicStatusPage() {
                   <dd>{request.travelDate}</dd>
                 </div>
                 <div>
+                  <dt>Local de embarque</dt>
+                  <dd>{request.boardingLocationLabel || request.addressLine || 'A definir'}</dd>
+                </div>
+                <div>
                   <dt>Acompanhante</dt>
                   <dd>{request.companionRequired ? 'Necessario' : 'Nao necessario'}</dd>
+                </div>
+                <div>
+                  <dt>Motorista designado</dt>
+                  <dd>{request.assignedDriverName || 'A definir'}</dd>
+                </div>
+                <div>
+                  <dt>Horario de saida</dt>
+                  <dd>{request.departureTime || 'A definir'}</dd>
                 </div>
                 <div>
                   <dt>Orientacao</dt>

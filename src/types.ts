@@ -21,6 +21,11 @@ export interface TravelRequest {
   protocol: string
   patientName: string
   cpfMasked: string
+  phone?: string
+  addressLine?: string
+  useCustomBoardingLocation?: boolean
+  boardingLocationName?: string
+  boardingLocationLabel?: string
   accessCpfMasked?: string
   destinationCity: string
   destinationState: string
@@ -122,6 +127,8 @@ export interface AssignDriverInput {
   driverId: number
   departureTime: string
   managerNotes: string
+  useCustomBoardingLocation: boolean
+  boardingLocationName: string
 }
 
 export interface UpdateRequestStatusInput {

@@ -2,16 +2,28 @@ import { ArrowLeft, LockKeyhole, LogOut, Route, Save, ShieldCheck } from 'lucide
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessManager, isValidInternalRole } from '../lib/access'
+import { boardingLocations } from '../lib/boarding-locations'
 import { assignDriver, fetchDrivers, fetchRequests, loginAdmin } from '../lib/api'
 import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
 import type { AdminSession, DriverRecord, TravelRequest } from '../types'
 
-type AssignmentState = Record<number, { driverId: string; departureTime: string; managerNotes: string }>
+type AssignmentState = Record<
+  number,
+  {
+    driverId: string
+    departureTime: string
+    managerNotes: string
+    useCustomBoardingLocation: boolean
+    boardingLocationName: string
+  }
+>
 
 const emptyAssignment = {
   driverId: '',
   departureTime: '',
   managerNotes: '',
+  useCustomBoardingLocation: false,
+  boardingLocationName: '',
 }
 
 function formatCpf(value: string) {
@@ -69,6 +81,8 @@ export function ManagerPage() {
                 driverId: request.assignedDriverId ? String(request.assignedDriverId) : '',
                 departureTime: request.departureTime ?? '',
                 managerNotes: request.managerNotes ?? '',
+                useCustomBoardingLocation: request.useCustomBoardingLocation ?? false,
+                boardingLocationName: request.boardingLocationName ?? '',
               },
             ]),
           ),
@@ -93,8 +107,13 @@ export function ManagerPage() {
 
   function updateAssignment(
     requestId: number,
-    key: 'driverId' | 'departureTime' | 'managerNotes',
-    value: string,
+    key:
+      | 'driverId'
+      | 'departureTime'
+      | 'managerNotes'
+      | 'boardingLocationName'
+      | 'useCustomBoardingLocation',
+    value: string | boolean,
   ) {
     setAssignment((current) => ({
       ...current,
@@ -142,6 +161,11 @@ export function ManagerPage() {
       return
     }
 
+    if (data.useCustomBoardingLocation && !data.boardingLocationName) {
+      setError('Selecione um ponto oficial de embarque quando essa opcao estiver ativada.')
+      return
+    }
+
     setSavingId(requestId)
     setError('')
     setMessage('')
@@ -152,6 +176,8 @@ export function ManagerPage() {
         driverId: Number(data.driverId),
         departureTime: data.departureTime,
         managerNotes: data.managerNotes,
+        useCustomBoardingLocation: data.useCustomBoardingLocation,
+        boardingLocationName: data.boardingLocationName,
       })
 
       setMessage(result.message)
@@ -310,17 +336,15 @@ export function ManagerPage() {
                     <div className="assignment-meta">
                       <span>CPF de acesso: {request.accessCpfMasked ?? request.cpfMasked}</span>
                       <span>Unidade: {request.treatmentUnit}</span>
+                      <span>Motorista designado: {request.assignedDriverName || 'Nao atribuido'}</span>
+                      <span>Horario de saida: {request.departureTime || 'Nao definido'}</span>
+                      <span>Embarque: {request.boardingLocationLabel || request.addressLine || 'Nao informado'}</span>
                       <span>Acompanhante: {request.companionRequired ? 'Sim' : 'Nao'}</span>
                       {request.companionRequired && request.companionName ? (
                         <span>
                           Acompanhante: {request.companionName} {request.companionCpfMasked ? `• ${request.companionCpfMasked}` : ''}
                         </span>
                       ) : null}
-                      {request.assignedDriverName ? (
-                        <span>Motorista atual: {request.assignedDriverName}</span>
-                      ) : (
-                        <span>Sem motorista atribuido</span>
-                      )}
                     </div>
 
                     <div className="form-grid">
@@ -358,6 +382,43 @@ export function ManagerPage() {
                           placeholder="Ponto de saida, observacoes de rota, documentos ou orientacoes para o motorista."
                         />
                       </div>
+                      <div className="field full checkbox-field">
+                        <label className="checkbox-row" htmlFor={`boarding-flag-${request.id}`}>
+                          <input
+                            id={`boarding-flag-${request.id}`}
+                            type="checkbox"
+                            checked={data.useCustomBoardingLocation}
+                            onChange={(event) =>
+                              updateAssignment(request.id, 'useCustomBoardingLocation', event.target.checked)
+                            }
+                          />
+                          <span>Usar ponto oficial de embarque em vez do endereco do paciente</span>
+                        </label>
+                      </div>
+                      {data.useCustomBoardingLocation ? (
+                        <div className="field full">
+                          <label htmlFor={`boarding-location-${request.id}`}>Ponto oficial de embarque</label>
+                          <select
+                            id={`boarding-location-${request.id}`}
+                            value={data.boardingLocationName}
+                            onChange={(event) =>
+                              updateAssignment(request.id, 'boardingLocationName', event.target.value)
+                            }
+                          >
+                            <option value="">Selecione um ponto</option>
+                            {boardingLocations.map((location) => (
+                              <option key={location} value={location}>
+                                {location}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ) : (
+                        <div className="field full">
+                          <label>Endereco padrao de embarque</label>
+                          <input value={request.addressLine || 'Nao informado'} readOnly />
+                        </div>
+                      )}
                     </div>
 
                     <div className="form-actions">

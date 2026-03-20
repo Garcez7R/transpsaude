@@ -259,6 +259,10 @@ export function DriverPortalPage() {
               <h2>{trip.patientName}</h2>
               <dl className="request-summary">
                 <div>
+                  <dt>Paciente</dt>
+                  <dd>{trip.patientName}</dd>
+                </div>
+                <div>
                   <dt>Destino</dt>
                   <dd>
                     {trip.destinationCity}/{trip.destinationState}
@@ -281,18 +285,37 @@ export function DriverPortalPage() {
                   <dd>{trip.cpfMasked}</dd>
                 </div>
                 <div>
+                  <dt>Telefone</dt>
+                  <dd>{trip.phone || 'Nao informado'}</dd>
+                </div>
+                <div>
                   <dt>CPF de acesso</dt>
                   <dd>{trip.accessCpfMasked ?? trip.cpfMasked}</dd>
+                </div>
+                <div>
+                  <dt>Endereco de embarque</dt>
+                  <dd>{trip.addressLine || 'Nao informado'}</dd>
                 </div>
                 <div>
                   <dt>Acompanhante</dt>
                   <dd>{trip.companionRequired ? trip.companionName || 'Sim' : 'Nao'}</dd>
                 </div>
                 <div>
+                  <dt>Motorista designado</dt>
+                  <dd>{trip.assignedDriverName || 'Nao definido'}</dd>
+                </div>
+                <div>
                   <dt>Observacoes da gerencia</dt>
                   <dd>{trip.managerNotes || trip.notes || 'Sem observacoes adicionais.'}</dd>
                 </div>
               </dl>
+              {trip.companionRequired ? (
+                <div className="detail-note">
+                  <strong>Acompanhante:</strong> {trip.companionName || 'Nao informado'}
+                  {trip.companionCpfMasked ? ` • ${trip.companionCpfMasked}` : ''}
+                  {trip.companionAddressLine ? ` • embarque: ${trip.companionAddressLine}` : ''}
+                </div>
+              ) : null}
             </article>
           ))
         ) : (

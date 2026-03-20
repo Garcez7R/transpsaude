@@ -55,41 +55,51 @@ export async function listRequests(env: Env, status?: string) {
 
   let query = `
     select
-      id,
-      protocol,
-      patient_name as patientName,
-      cpf_masked as cpfMasked,
-      access_cpf_masked as accessCpfMasked,
-      destination_city as destinationCity,
-      destination_state as destinationState,
-      treatment_unit as treatmentUnit,
-      specialty,
-      travel_date as travelDate,
-      requested_at as requestedAt,
-      status,
-      companion_required as companionRequired,
-      companion_name as companionName,
-      companion_cpf_masked as companionCpfMasked,
-      companion_phone as companionPhone,
-      companion_is_whatsapp as companionIsWhatsapp,
-      companion_address_line as companionAddressLine,
-      assigned_driver_id as assignedDriverId,
-      assigned_driver_name as assignedDriverName,
-      departure_time as departureTime,
-      manager_notes as managerNotes,
-      scheduled_at as scheduledAt,
-      notes
-    from travel_requests
+      tr.id,
+      tr.protocol,
+      tr.patient_name as patientName,
+      tr.cpf_masked as cpfMasked,
+      p.phone,
+      p.address_line as addressLine,
+      tr.use_custom_boarding_location as useCustomBoardingLocation,
+      tr.boarding_location_name as boardingLocationName,
+      case
+        when tr.use_custom_boarding_location = 1 and tr.boarding_location_name is not null and tr.boarding_location_name != ''
+          then tr.boarding_location_name
+        else p.address_line
+      end as boardingLocationLabel,
+      tr.access_cpf_masked as accessCpfMasked,
+      tr.destination_city as destinationCity,
+      tr.destination_state as destinationState,
+      tr.treatment_unit as treatmentUnit,
+      tr.specialty,
+      tr.travel_date as travelDate,
+      tr.requested_at as requestedAt,
+      tr.status,
+      tr.companion_required as companionRequired,
+      tr.companion_name as companionName,
+      tr.companion_cpf_masked as companionCpfMasked,
+      tr.companion_phone as companionPhone,
+      tr.companion_is_whatsapp as companionIsWhatsapp,
+      tr.companion_address_line as companionAddressLine,
+      tr.assigned_driver_id as assignedDriverId,
+      tr.assigned_driver_name as assignedDriverName,
+      tr.departure_time as departureTime,
+      tr.manager_notes as managerNotes,
+      tr.scheduled_at as scheduledAt,
+      tr.notes
+    from travel_requests tr
+    inner join patients p on p.id = tr.patient_id
   `
 
   const params: string[] = []
 
   if (status) {
-    query += ' where status = ?1'
+    query += ' where tr.status = ?1'
     params.push(status)
   }
 
-  query += ' order by created_at desc'
+  query += ' order by tr.created_at desc'
 
   const prepared = db.prepare(query)
   const statement = params.length > 0 ? prepared.bind(...params) : prepared
@@ -99,6 +109,7 @@ export async function listRequests(env: Env, status?: string) {
     ...item,
     companionRequired: toBoolean(item.companionRequired),
     companionIsWhatsapp: toBoolean(item.companionIsWhatsapp),
+    useCustomBoardingLocation: toBoolean(item.useCustomBoardingLocation),
   })) as Array<Record<string, unknown>>
 }
 
@@ -156,21 +167,34 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
   const requestResult = await db.prepare(
     `
       select
-        id,
-        protocol,
-        patient_name as patientName,
-        cpf_masked as cpfMasked,
-        destination_city as destinationCity,
-        destination_state as destinationState,
-        treatment_unit as treatmentUnit,
-        specialty,
-        travel_date as travelDate,
-        requested_at as requestedAt,
-        status,
-        companion_required as companionRequired,
-        notes
-      from travel_requests
-      where patient_id = ?1
+        tr.id,
+        tr.protocol,
+        tr.patient_name as patientName,
+        tr.cpf_masked as cpfMasked,
+        tr.access_cpf_masked as accessCpfMasked,
+        p.address_line as addressLine,
+        tr.use_custom_boarding_location as useCustomBoardingLocation,
+        tr.boarding_location_name as boardingLocationName,
+        case
+          when tr.use_custom_boarding_location = 1 and tr.boarding_location_name is not null and tr.boarding_location_name != ''
+            then tr.boarding_location_name
+          else p.address_line
+        end as boardingLocationLabel,
+        tr.destination_city as destinationCity,
+        tr.destination_state as destinationState,
+        tr.treatment_unit as treatmentUnit,
+        tr.specialty,
+        tr.travel_date as travelDate,
+        tr.requested_at as requestedAt,
+        tr.status,
+        tr.companion_required as companionRequired,
+        tr.companion_name as companionName,
+        tr.assigned_driver_name as assignedDriverName,
+        tr.departure_time as departureTime,
+        tr.notes
+      from travel_requests tr
+      inner join patients p on p.id = tr.patient_id
+      where tr.patient_id = ?1
       order by created_at desc
       limit 1
     `,
@@ -224,6 +248,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
     request: {
       ...requestResult,
       companionRequired: toBoolean(requestResult.companionRequired),
+      useCustomBoardingLocation: toBoolean(requestResult.useCustomBoardingLocation),
       statusLabel: statusLabels[status as keyof typeof statusLabels] ?? status,
       loginHint:
         typeof requestResult.notes === 'string'
@@ -338,32 +363,42 @@ export async function listDriverTrips(env: Env, driverId: number) {
   const result = await db.prepare(
     `
       select
-        id,
-        protocol,
-        patient_name as patientName,
-        cpf_masked as cpfMasked,
-        access_cpf_masked as accessCpfMasked,
-        destination_city as destinationCity,
-        destination_state as destinationState,
-        treatment_unit as treatmentUnit,
-        specialty,
-        travel_date as travelDate,
-        requested_at as requestedAt,
-        status,
-        companion_required as companionRequired,
-        companion_name as companionName,
-        companion_cpf_masked as companionCpfMasked,
-        companion_phone as companionPhone,
-        companion_is_whatsapp as companionIsWhatsapp,
-        companion_address_line as companionAddressLine,
-        assigned_driver_id as assignedDriverId,
-        assigned_driver_name as assignedDriverName,
-        departure_time as departureTime,
-        manager_notes as managerNotes,
-        scheduled_at as scheduledAt,
-        notes
-      from travel_requests
-      where assigned_driver_id = ?1
+        tr.id,
+        tr.protocol,
+        tr.patient_name as patientName,
+        tr.cpf_masked as cpfMasked,
+        p.phone,
+        p.address_line as addressLine,
+        tr.use_custom_boarding_location as useCustomBoardingLocation,
+        tr.boarding_location_name as boardingLocationName,
+        case
+          when tr.use_custom_boarding_location = 1 and tr.boarding_location_name is not null and tr.boarding_location_name != ''
+            then tr.boarding_location_name
+          else p.address_line
+        end as boardingLocationLabel,
+        tr.access_cpf_masked as accessCpfMasked,
+        tr.destination_city as destinationCity,
+        tr.destination_state as destinationState,
+        tr.treatment_unit as treatmentUnit,
+        tr.specialty,
+        tr.travel_date as travelDate,
+        tr.requested_at as requestedAt,
+        tr.status,
+        tr.companion_required as companionRequired,
+        tr.companion_name as companionName,
+        tr.companion_cpf_masked as companionCpfMasked,
+        tr.companion_phone as companionPhone,
+        tr.companion_is_whatsapp as companionIsWhatsapp,
+        tr.companion_address_line as companionAddressLine,
+        tr.assigned_driver_id as assignedDriverId,
+        tr.assigned_driver_name as assignedDriverName,
+        tr.departure_time as departureTime,
+        tr.manager_notes as managerNotes,
+        tr.scheduled_at as scheduledAt,
+        tr.notes
+      from travel_requests tr
+      inner join patients p on p.id = tr.patient_id
+      where tr.assigned_driver_id = ?1
       order by travel_date asc, departure_time asc, created_at desc
     `,
   )
@@ -374,6 +409,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
     ...item,
     companionRequired: toBoolean(item.companionRequired),
     companionIsWhatsapp: toBoolean(item.companionIsWhatsapp),
+    useCustomBoardingLocation: toBoolean(item.useCustomBoardingLocation),
   }))
 }
 
@@ -391,6 +427,13 @@ export async function getRequestDetails(env: Env, requestId: number) {
         p.phone,
         p.is_whatsapp as isWhatsapp,
         p.address_line as addressLine,
+        tr.use_custom_boarding_location as useCustomBoardingLocation,
+        tr.boarding_location_name as boardingLocationName,
+        case
+          when tr.use_custom_boarding_location = 1 and tr.boarding_location_name is not null and tr.boarding_location_name != ''
+            then tr.boarding_location_name
+          else p.address_line
+        end as boardingLocationLabel,
         p.cns,
         p.responsible_name as responsibleName,
         p.responsible_cpf_masked as responsibleCpfMasked,
@@ -448,6 +491,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
     useResponsibleCpfForAccess: toBoolean(request.useResponsibleCpfForAccess),
     companionRequired: toBoolean(request.companionRequired),
     companionIsWhatsapp: toBoolean(request.companionIsWhatsapp),
+    useCustomBoardingLocation: toBoolean(request.useCustomBoardingLocation),
     history: historyResult.results ?? [],
   }
 }

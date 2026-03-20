@@ -196,8 +196,12 @@ export function RequestDetailsPage() {
                 <dd>{details.phone}{details.isWhatsapp ? ' • WhatsApp' : ''}</dd>
               </div>
               <div>
-                <dt>Endereco</dt>
-                <dd>{details.addressLine || 'Nao informado'}</dd>
+                <dt>Endereco de embarque</dt>
+                <dd>{details.boardingLocationLabel || details.addressLine || 'Nao informado'}</dd>
+              </div>
+              <div>
+                <dt>Origem do embarque</dt>
+                <dd>{details.useCustomBoardingLocation ? 'Ponto oficial definido pela gerencia' : 'Endereco do paciente'}</dd>
               </div>
               <div>
                 <dt>CNS</dt>
@@ -240,6 +244,10 @@ export function RequestDetailsPage() {
               <div>
                 <dt>Acompanhante</dt>
                 <dd>{details.companionRequired ? details.companionName || 'Necessario' : 'Nao necessario'}</dd>
+              </div>
+              <div>
+                <dt>Endereco do acompanhante</dt>
+                <dd>{details.companionAddressLine || 'Nao informado'}</dd>
               </div>
               <div>
                 <dt>Obs. gerencia</dt>

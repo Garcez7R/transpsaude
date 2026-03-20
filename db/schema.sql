@@ -60,6 +60,8 @@ create table if not exists travel_requests (
   assigned_driver_name text,
   departure_time text,
   manager_notes text,
+  use_custom_boarding_location integer not null default 0,
+  boarding_location_name text,
   scheduled_at text,
   notes text,
   created_by_operator_id integer,

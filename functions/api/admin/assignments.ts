@@ -6,10 +6,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     driverId?: number
     departureTime?: string
     managerNotes?: string
+    useCustomBoardingLocation?: boolean
+    boardingLocationName?: string
   }
 
   if (!body.requestId || !body.driverId || !body.departureTime) {
     return badRequest('Informe a solicitacao, o motorista e o horario de saida.')
+  }
+
+  if (body.useCustomBoardingLocation && !body.boardingLocationName) {
+    return badRequest('Selecione um ponto oficial de embarque.')
   }
 
   const driver = await env.DB.prepare(
@@ -54,13 +60,23 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
           assigned_driver_name = ?2,
           departure_time = ?3,
           manager_notes = ?4,
+          use_custom_boarding_location = ?5,
+          boarding_location_name = ?6,
           scheduled_at = current_timestamp,
           status = 'agendada',
           updated_at = current_timestamp
-      where id = ?5
+      where id = ?7
     `,
   )
-    .bind(body.driverId, driver.name, body.departureTime, body.managerNotes ?? '', body.requestId)
+    .bind(
+      body.driverId,
+      driver.name,
+      body.departureTime,
+      body.managerNotes ?? '',
+      body.useCustomBoardingLocation ? 1 : 0,
+      body.useCustomBoardingLocation ? body.boardingLocationName ?? '' : '',
+      body.requestId,
+    )
     .run()
 
   await env.DB.prepare(
