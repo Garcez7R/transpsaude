@@ -18,6 +18,8 @@ create table if not exists patients (
   cns text,
   birth_date text,
   phone text,
+  is_whatsapp integer not null default 0,
+  address_line text,
   city text,
   state text,
   responsible_name text,
@@ -43,6 +45,9 @@ create table if not exists travel_requests (
   access_cpf_masked text,
   companion_name text,
   companion_cpf_masked text,
+  companion_phone text,
+  companion_is_whatsapp integer not null default 0,
+  companion_address_line text,
   destination_city text not null,
   destination_state text not null,
   treatment_unit text not null,
@@ -51,12 +56,31 @@ create table if not exists travel_requests (
   travel_date text not null,
   status text not null,
   companion_required integer not null default 0,
+  assigned_driver_id integer,
+  assigned_driver_name text,
+  departure_time text,
+  manager_notes text,
+  scheduled_at text,
   notes text,
   created_by_operator_id integer,
   created_at text not null default current_timestamp,
   updated_at text not null default current_timestamp,
   foreign key (patient_id) references patients(id),
+  foreign key (assigned_driver_id) references drivers(id),
   foreign key (created_by_operator_id) references operators(id)
+);
+
+create table if not exists drivers (
+  id integer primary key autoincrement,
+  name text not null,
+  cpf text not null unique,
+  phone text not null,
+  is_whatsapp integer not null default 0,
+  vehicle_name text not null,
+  password text not null,
+  active integer not null default 1,
+  created_at text not null default current_timestamp,
+  updated_at text not null default current_timestamp
 );
 
 create table if not exists request_status_history (
@@ -92,6 +116,10 @@ insert into operators (name, cpf, email, password, role)
 select 'Administrador Geral', '96820373015', 'admin@capaodoleao.rs.gov.br', '1978', 'admin'
 where not exists (select 1 from operators where cpf = '96820373015');
 
+insert into drivers (name, cpf, phone, is_whatsapp, vehicle_name, password, active)
+select 'Motorista Demo', '33322211100', '(53) 99999-0202', 1, 'Van 01', '0000', 1
+where not exists (select 1 from drivers where cpf = '33322211100');
+
 insert into patients (
   full_name,
   cpf,
@@ -101,6 +129,8 @@ insert into patients (
   cns,
   birth_date,
   phone,
+  is_whatsapp,
+  address_line,
   city,
   state,
   responsible_name,
@@ -120,6 +150,8 @@ select
   '123456789000001',
   '1978-04-12',
   '(53) 99999-0101',
+  1,
+  'Rua da Prefeitura, 120 - Capao do Leao',
   'Capao do Leao',
   'RS',
   '',

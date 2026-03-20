@@ -10,12 +10,18 @@ const initialForm: CreateTravelRequestInput = {
   cpf: '',
   cns: '',
   phone: '',
+  isWhatsapp: false,
+  addressLine: '',
   accessCpf: '',
   useResponsibleCpfForAccess: false,
   responsibleName: '',
   responsibleCpf: '',
   companionName: '',
   companionCpf: '',
+  companionPhone: '',
+  companionIsWhatsapp: false,
+  usePatientAddressForCompanion: true,
+  companionAddressLine: '',
   destinationCity: '',
   destinationState: 'RS',
   treatmentUnit: '',
@@ -37,14 +43,10 @@ function formatPhone(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11)
 
   if (digits.length <= 10) {
-    return digits
-      .replace(/^(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{4})(\d)/, '$1-$2')
+    return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2')
   }
 
-  return digits
-    .replace(/^(\d{2})(\d)/, '($1) $2')
-    .replace(/(\d{5})(\d)/, '$1-$2')
+  return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2')
 }
 
 export function RegisterRequestPage() {
@@ -62,8 +64,9 @@ export function RegisterRequestPage() {
     setForm((current) => ({
       ...current,
       accessCpf: current.useResponsibleCpfForAccess ? current.responsibleCpf : current.cpf,
+      companionAddressLine: current.usePatientAddressForCompanion ? current.addressLine : current.companionAddressLine,
     }))
-  }, [form.cpf, form.responsibleCpf, form.useResponsibleCpfForAccess])
+  }, [form.cpf, form.responsibleCpf, form.useResponsibleCpfForAccess, form.addressLine, form.usePatientAddressForCompanion])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -148,93 +151,51 @@ export function RegisterRequestPage() {
             <div className="form-grid">
               <div className="field">
                 <label htmlFor="patient-name">Nome do paciente</label>
-                <input
-                  id="patient-name"
-                  value={form.patientName}
-                  onChange={(event) => updateField('patientName', event.target.value)}
-                  placeholder="Nome completo"
-                  required
-                />
+                <input id="patient-name" value={form.patientName} onChange={(event) => updateField('patientName', event.target.value)} placeholder="Nome completo" required />
               </div>
               <div className="field">
                 <label htmlFor="cpf-register">CPF do paciente</label>
-                <input
-                  id="cpf-register"
-                  value={form.cpf}
-                  onChange={(event) => updateField('cpf', formatCpf(event.target.value))}
-                  inputMode="numeric"
-                  placeholder="000.000.000-00"
-                  required
-                />
+                <input id="cpf-register" value={form.cpf} onChange={(event) => updateField('cpf', formatCpf(event.target.value))} inputMode="numeric" placeholder="000.000.000-00" required />
               </div>
               <div className="field">
                 <label htmlFor="cns-register">CNS</label>
-                <input
-                  id="cns-register"
-                  value={form.cns}
-                  onChange={(event) => updateField('cns', event.target.value)}
-                  placeholder="Numero do cartao SUS"
-                />
+                <input id="cns-register" value={form.cns} onChange={(event) => updateField('cns', event.target.value)} placeholder="Numero do cartao SUS" />
               </div>
               <div className="field">
                 <label htmlFor="phone-register">Telefone</label>
-                <input
-                  id="phone-register"
-                  value={form.phone}
-                  onChange={(event) => updateField('phone', formatPhone(event.target.value))}
-                  inputMode="tel"
-                  placeholder="(53) 99999-9999"
-                />
+                <input id="phone-register" value={form.phone} onChange={(event) => updateField('phone', formatPhone(event.target.value))} inputMode="tel" placeholder="(53) 99999-9999" required />
+              </div>
+              <div className="field full checkbox-field">
+                <label className="checkbox-row" htmlFor="patient-whatsapp">
+                  <input id="patient-whatsapp" type="checkbox" checked={form.isWhatsapp} onChange={(event) => updateField('isWhatsapp', event.target.checked)} />
+                  <span>Esse telefone do paciente é WhatsApp</span>
+                </label>
+              </div>
+              <div className="field full">
+                <label htmlFor="address-line">Endereco do paciente</label>
+                <input id="address-line" value={form.addressLine} onChange={(event) => updateField('addressLine', event.target.value)} placeholder="Rua, numero, bairro e referencia" required />
               </div>
               <div className="field full checkbox-field">
                 <label className="checkbox-row" htmlFor="use-responsible-access">
-                  <input
-                    id="use-responsible-access"
-                    type="checkbox"
-                    checked={form.useResponsibleCpfForAccess}
-                    onChange={(event) => updateField('useResponsibleCpfForAccess', event.target.checked)}
-                  />
+                  <input id="use-responsible-access" type="checkbox" checked={form.useResponsibleCpfForAccess} onChange={(event) => updateField('useResponsibleCpfForAccess', event.target.checked)} />
                   <span>Usar CPF do responsável como acesso ao acompanhamento</span>
                 </label>
               </div>
               <div className="field">
                 <label htmlFor="responsible-name">Nome do responsável</label>
-                <input
-                  id="responsible-name"
-                  value={form.responsibleName}
-                  onChange={(event) => updateField('responsibleName', event.target.value)}
-                  placeholder="Preencher quando houver responsável"
-                />
+                <input id="responsible-name" value={form.responsibleName} onChange={(event) => updateField('responsibleName', event.target.value)} placeholder="Preencher quando houver responsável" required={form.useResponsibleCpfForAccess} />
               </div>
               <div className="field">
                 <label htmlFor="responsible-cpf">CPF do responsável</label>
-                <input
-                  id="responsible-cpf"
-                  value={form.responsibleCpf}
-                  onChange={(event) => updateField('responsibleCpf', formatCpf(event.target.value))}
-                  inputMode="numeric"
-                  placeholder="000.000.000-00"
-                />
+                <input id="responsible-cpf" value={form.responsibleCpf} onChange={(event) => updateField('responsibleCpf', formatCpf(event.target.value))} inputMode="numeric" placeholder="000.000.000-00" required={form.useResponsibleCpfForAccess} />
               </div>
               <div className="field">
                 <label htmlFor="access-cpf">CPF de acesso ao agendamento</label>
-                <input
-                  id="access-cpf"
-                  value={form.accessCpf}
-                  onChange={(event) => updateField('accessCpf', formatCpf(event.target.value))}
-                  inputMode="numeric"
-                  placeholder="000.000.000-00"
-                  required
-                  readOnly={form.useResponsibleCpfForAccess}
-                />
+                <input id="access-cpf" value={form.accessCpf} onChange={(event) => updateField('accessCpf', formatCpf(event.target.value))} inputMode="numeric" placeholder="000.000.000-00" required readOnly={form.useResponsibleCpfForAccess} />
               </div>
               <div className="field">
                 <label htmlFor="companion-required">Acompanhante</label>
-                <select
-                  id="companion-required"
-                  value={form.companionRequired ? 'sim' : 'nao'}
-                  onChange={(event) => updateField('companionRequired', event.target.value === 'sim')}
-                >
+                <select id="companion-required" value={form.companionRequired ? 'sim' : 'nao'} onChange={(event) => updateField('companionRequired', event.target.value === 'sim')}>
                   <option value="nao">Nao necessario</option>
                   <option value="sim">Necessario</option>
                 </select>
@@ -243,84 +204,64 @@ export function RegisterRequestPage() {
                 <>
                   <div className="field">
                     <label htmlFor="companion-name">Nome do acompanhante</label>
-                    <input
-                      id="companion-name"
-                      value={form.companionName}
-                      onChange={(event) => updateField('companionName', event.target.value)}
-                      placeholder="Nome completo do acompanhante"
-                    />
+                    <input id="companion-name" value={form.companionName} onChange={(event) => updateField('companionName', event.target.value)} placeholder="Nome completo do acompanhante" required />
                   </div>
                   <div className="field">
                     <label htmlFor="companion-cpf">CPF do acompanhante</label>
+                    <input id="companion-cpf" value={form.companionCpf} onChange={(event) => updateField('companionCpf', formatCpf(event.target.value))} inputMode="numeric" placeholder="000.000.000-00" required />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="companion-phone">Telefone do acompanhante</label>
+                    <input id="companion-phone" value={form.companionPhone} onChange={(event) => updateField('companionPhone', formatPhone(event.target.value))} inputMode="tel" placeholder="(53) 99999-9999" required />
+                  </div>
+                  <div className="field full checkbox-field">
+                    <label className="checkbox-row" htmlFor="companion-whatsapp">
+                      <input id="companion-whatsapp" type="checkbox" checked={form.companionIsWhatsapp} onChange={(event) => updateField('companionIsWhatsapp', event.target.checked)} />
+                      <span>Esse telefone do acompanhante é WhatsApp</span>
+                    </label>
+                  </div>
+                  <div className="field full checkbox-field">
+                    <label className="checkbox-row" htmlFor="use-patient-address">
+                      <input id="use-patient-address" type="checkbox" checked={form.usePatientAddressForCompanion} onChange={(event) => updateField('usePatientAddressForCompanion', event.target.checked)} />
+                      <span>Usar o mesmo endereco do paciente para o acompanhante</span>
+                    </label>
+                  </div>
+                  <div className="field full">
+                    <label htmlFor="companion-address">Endereco do acompanhante</label>
                     <input
-                      id="companion-cpf"
-                      value={form.companionCpf}
-                      onChange={(event) => updateField('companionCpf', formatCpf(event.target.value))}
-                      inputMode="numeric"
-                      placeholder="000.000.000-00"
+                      id="companion-address"
+                      value={form.usePatientAddressForCompanion ? form.addressLine : form.companionAddressLine}
+                      onChange={(event) => updateField('companionAddressLine', event.target.value)}
+                      placeholder="Rua, numero, bairro e referencia"
+                      required
+                      readOnly={form.usePatientAddressForCompanion}
                     />
                   </div>
                 </>
               ) : null}
               <div className="field">
                 <label htmlFor="destination-city">Cidade de destino</label>
-                <input
-                  id="destination-city"
-                  value={form.destinationCity}
-                  onChange={(event) => updateField('destinationCity', event.target.value)}
-                  placeholder="Pelotas, Porto Alegre..."
-                  required
-                />
+                <input id="destination-city" value={form.destinationCity} onChange={(event) => updateField('destinationCity', event.target.value)} placeholder="Pelotas, Porto Alegre..." required />
               </div>
               <div className="field">
                 <label htmlFor="destination-state">UF</label>
-                <input
-                  id="destination-state"
-                  value={form.destinationState}
-                  onChange={(event) => updateField('destinationState', event.target.value.toUpperCase().slice(0, 2))}
-                  placeholder="RS"
-                  required
-                />
+                <input id="destination-state" value={form.destinationState} onChange={(event) => updateField('destinationState', event.target.value.toUpperCase().slice(0, 2))} placeholder="RS" required />
               </div>
               <div className="field">
                 <label htmlFor="treatment-unit">Unidade de tratamento</label>
-                <input
-                  id="treatment-unit"
-                  value={form.treatmentUnit}
-                  onChange={(event) => updateField('treatmentUnit', event.target.value)}
-                  placeholder="Hospital, clinica ou centro"
-                  required
-                />
+                <input id="treatment-unit" value={form.treatmentUnit} onChange={(event) => updateField('treatmentUnit', event.target.value)} placeholder="Hospital, clinica ou centro" required />
               </div>
               <div className="field">
                 <label htmlFor="specialty">Especialidade</label>
-                <input
-                  id="specialty"
-                  value={form.specialty}
-                  onChange={(event) => updateField('specialty', event.target.value)}
-                  placeholder="Oncologia, nefrologia..."
-                  required
-                />
+                <input id="specialty" value={form.specialty} onChange={(event) => updateField('specialty', event.target.value)} placeholder="Oncologia, nefrologia..." required />
               </div>
               <div className="field">
                 <label htmlFor="travel-date">Data da viagem</label>
-                <input
-                  id="travel-date"
-                  type="date"
-                  value={form.travelDate}
-                  onChange={(event) => updateField('travelDate', event.target.value)}
-                  required
-                />
+                <input id="travel-date" type="date" value={form.travelDate} onChange={(event) => updateField('travelDate', event.target.value)} required />
               </div>
               <div className="field full">
                 <label htmlFor="notes-register">Observacoes</label>
-                <textarea
-                  id="notes-register"
-                  value={form.notes}
-                  onChange={(event) => updateField('notes', event.target.value)}
-                  placeholder="Documentos apresentados, orientacoes ou observacoes internas"
-                  rows={5}
-                />
+                <textarea id="notes-register" value={form.notes} onChange={(event) => updateField('notes', event.target.value)} placeholder="Documentos apresentados, orientacoes ou observacoes internas" rows={5} />
               </div>
             </div>
 
@@ -337,10 +278,10 @@ export function RegisterRequestPage() {
           <article className="content-card">
             <h2>Acesso do cidadão</h2>
             <ul className="check-list">
-              <li>Login inicial com CPF de acesso definido no cadastro</li>
-              <li>Senha temporária padrão: <strong>0000</strong></li>
-              <li>Troca obrigatória para PIN numérico de 4 dígitos</li>
-              <li>Para menores, o acesso pode usar o CPF do responsável</li>
+              <li>CPF, telefone e endereco do paciente agora sao obrigatorios</li>
+              <li>O telefone pode ser marcado como WhatsApp</li>
+              <li>Quando houver acompanhante, nome, CPF, telefone e endereco ficam obrigatorios</li>
+              <li>O endereco do acompanhante pode reaproveitar o do paciente ou usar outro</li>
             </ul>
           </article>
 

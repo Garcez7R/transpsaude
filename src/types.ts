@@ -19,6 +19,7 @@ export interface TravelRequest {
   protocol: string
   patientName: string
   cpfMasked: string
+  accessCpfMasked?: string
   destinationCity: string
   destinationState: string
   treatmentUnit: string
@@ -27,6 +28,16 @@ export interface TravelRequest {
   requestedAt: string
   status: RequestStatus
   companionRequired: boolean
+  companionName?: string
+  companionCpfMasked?: string
+  companionPhone?: string
+  companionIsWhatsapp?: boolean
+  companionAddressLine?: string
+  assignedDriverId?: number | null
+  assignedDriverName?: string
+  departureTime?: string
+  managerNotes?: string
+  scheduledAt?: string
   notes?: string
 }
 
@@ -62,17 +73,61 @@ export interface AdminLoginResponse {
   session: AdminSession
 }
 
+export interface DriverRecord {
+  id: number
+  name: string
+  cpf: string
+  cpfMasked: string
+  phone: string
+  isWhatsapp: boolean
+  vehicleName: string
+  active: boolean
+}
+
+export interface DriverSession {
+  driverId: number
+  name: string
+  cpf: string
+  vehicleName: string
+}
+
+export interface DriverLoginResponse {
+  session: DriverSession
+}
+
+export interface CreateDriverInput {
+  name: string
+  cpf: string
+  phone: string
+  isWhatsapp: boolean
+  vehicleName: string
+  password: string
+}
+
+export interface AssignDriverInput {
+  requestId: number
+  driverId: number
+  departureTime: string
+  managerNotes: string
+}
+
 export interface CreateTravelRequestInput {
   patientName: string
   cpf: string
   cns: string
   phone: string
+  isWhatsapp: boolean
+  addressLine: string
   accessCpf: string
   useResponsibleCpfForAccess: boolean
   responsibleName: string
   responsibleCpf: string
   companionName: string
   companionCpf: string
+  companionPhone: string
+  companionIsWhatsapp: boolean
+  usePatientAddressForCompanion: boolean
+  companionAddressLine: string
   destinationCity: string
   destinationState: string
   treatmentUnit: string

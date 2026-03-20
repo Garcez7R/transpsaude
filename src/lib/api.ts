@@ -1,9 +1,13 @@
 import type {
   AdminLoginResponse,
+  AssignDriverInput,
   CitizenAccessResponse,
+  CreateDriverInput,
   CreateTravelRequestInput,
   CreateTravelRequestResponse,
   DashboardSummary,
+  DriverLoginResponse,
+  DriverRecord,
   TravelRequest,
 } from '../types'
 
@@ -70,4 +74,45 @@ export async function createTravelRequest(input: CreateTravelRequestInput) {
   })
 
   return parseJson<CreateTravelRequestResponse>(response)
+}
+
+export async function fetchDrivers() {
+  const response = await fetch('/api/admin/drivers')
+  return parseJson<DriverRecord[]>(response)
+}
+
+export async function createDriver(input: CreateDriverInput) {
+  const response = await fetch('/api/admin/drivers', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  return parseJson<DriverRecord>(response)
+}
+
+export async function assignDriver(input: AssignDriverInput) {
+  const response = await fetch('/api/admin/assignments', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function loginDriver(cpf: string, password: string) {
+  const response = await fetch('/api/driver/login', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ cpf, password }),
+  })
+
+  return parseJson<DriverLoginResponse>(response)
+}
+
+export async function fetchDriverTrips(driverId: number) {
+  const search = new URLSearchParams({ driverId: String(driverId) })
+  const response = await fetch(`/api/driver/trips?${search.toString()}`)
+  return parseJson<TravelRequest[]>(response)
 }

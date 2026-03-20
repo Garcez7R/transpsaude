@@ -4,6 +4,13 @@ function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
 }
 
+function maskCpf(value: string) {
+  return normalizeCpf(value)
+    .replace(/^(\d{3})(\d)/, '$1.$2')
+    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1-$2')
+}
+
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   const body = (await request.json()) as { cpf?: string; password?: string }
   const cpf = body.cpf?.trim()
@@ -40,7 +47,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       operatorId: operator.id,
       name: operator.name,
       role: operator.role,
-      cpf: '968.203.730-15',
+      cpf: maskCpf(String(operator.cpf ?? '')),
     },
   })
 }

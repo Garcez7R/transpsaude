@@ -38,6 +38,14 @@ function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
 }
 
+function maskCpf(value: string) {
+  const digits = normalizeCpf(value)
+  return digits
+    .replace(/^(\d{3})(\d)/, '$1.$2')
+    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1-$2')
+}
+
 function toBoolean(value: unknown) {
   return value === true || value === 1 || value === '1'
 }
@@ -51,6 +59,7 @@ export async function listRequests(env: Env, status?: string) {
       protocol,
       patient_name as patientName,
       cpf_masked as cpfMasked,
+      access_cpf_masked as accessCpfMasked,
       destination_city as destinationCity,
       destination_state as destinationState,
       treatment_unit as treatmentUnit,
@@ -59,6 +68,16 @@ export async function listRequests(env: Env, status?: string) {
       requested_at as requestedAt,
       status,
       companion_required as companionRequired,
+      companion_name as companionName,
+      companion_cpf_masked as companionCpfMasked,
+      companion_phone as companionPhone,
+      companion_is_whatsapp as companionIsWhatsapp,
+      companion_address_line as companionAddressLine,
+      assigned_driver_id as assignedDriverId,
+      assigned_driver_name as assignedDriverName,
+      departure_time as departureTime,
+      manager_notes as managerNotes,
+      scheduled_at as scheduledAt,
       notes
     from travel_requests
   `
@@ -76,7 +95,11 @@ export async function listRequests(env: Env, status?: string) {
   const statement = params.length > 0 ? prepared.bind(...params) : prepared
   const result = await statement.all()
 
-  return (result.results ?? []) as Array<Record<string, unknown>>
+  return (result.results ?? []).map((item) => ({
+    ...item,
+    companionRequired: toBoolean(item.companionRequired),
+    companionIsWhatsapp: toBoolean(item.companionIsWhatsapp),
+  })) as Array<Record<string, unknown>>
 }
 
 export async function getSummary(env: Env) {
@@ -249,4 +272,107 @@ export async function activateCitizenPin(env: Env, cpf: string, newPin: string) 
     .run()
 
   return loginCitizen(env, cpf, newPin)
+}
+
+export async function listDrivers(env: Env) {
+  const db = requireDb(env)
+  const result = await db.prepare(
+    `
+      select
+        id,
+        name,
+        cpf,
+        phone,
+        is_whatsapp as isWhatsapp,
+        vehicle_name as vehicleName,
+        active
+      from drivers
+      where active = 1
+      order by name asc
+    `,
+  ).all()
+
+  return (result.results ?? []).map((driver) => ({
+    ...driver,
+    cpfMasked: typeof driver.cpf === 'string' ? maskCpf(driver.cpf) : '',
+    isWhatsapp: toBoolean(driver.isWhatsapp),
+    active: toBoolean(driver.active),
+  }))
+}
+
+export async function loginDriver(env: Env, cpf: string, password: string) {
+  const normalizedCpf = normalizeCpf(cpf)
+  const db = requireDb(env)
+
+  const driver = await db.prepare(
+    `
+      select
+        id,
+        name,
+        cpf,
+        password,
+        vehicle_name as vehicleName
+      from drivers
+      where cpf = ?1
+        and active = 1
+      limit 1
+    `,
+  )
+    .bind(normalizedCpf)
+    .first<Record<string, unknown>>()
+
+  if (!driver || String(driver.password ?? '') !== password) {
+    return null
+  }
+
+  return {
+    driverId: driver.id,
+    name: String(driver.name ?? ''),
+    cpf: maskCpf(String(driver.cpf ?? '')),
+    vehicleName: String(driver.vehicleName ?? ''),
+  }
+}
+
+export async function listDriverTrips(env: Env, driverId: number) {
+  const db = requireDb(env)
+  const result = await db.prepare(
+    `
+      select
+        id,
+        protocol,
+        patient_name as patientName,
+        cpf_masked as cpfMasked,
+        access_cpf_masked as accessCpfMasked,
+        destination_city as destinationCity,
+        destination_state as destinationState,
+        treatment_unit as treatmentUnit,
+        specialty,
+        travel_date as travelDate,
+        requested_at as requestedAt,
+        status,
+        companion_required as companionRequired,
+        companion_name as companionName,
+        companion_cpf_masked as companionCpfMasked,
+        companion_phone as companionPhone,
+        companion_is_whatsapp as companionIsWhatsapp,
+        companion_address_line as companionAddressLine,
+        assigned_driver_id as assignedDriverId,
+        assigned_driver_name as assignedDriverName,
+        departure_time as departureTime,
+        manager_notes as managerNotes,
+        scheduled_at as scheduledAt,
+        notes
+      from travel_requests
+      where assigned_driver_id = ?1
+      order by travel_date asc, departure_time asc, created_at desc
+    `,
+  )
+    .bind(driverId)
+    .all()
+
+  return (result.results ?? []).map((item) => ({
+    ...item,
+    companionRequired: toBoolean(item.companionRequired),
+    companionIsWhatsapp: toBoolean(item.companionIsWhatsapp),
+  }))
 }

@@ -13,8 +13,8 @@ function formatCpf(value: string) {
 }
 
 export function PublicStatusPage() {
-  const [cpf, setCpf] = useState('248.903.120-31')
-  const [password, setPassword] = useState('0000')
+  const [cpf, setCpf] = useState('')
+  const [password, setPassword] = useState('')
   const [newPin, setNewPin] = useState('')
   const [access, setAccess] = useState<CitizenAccessResponse | null>(null)
   const [request, setRequest] = useState<PublicRequestDetails | null>(null)
@@ -94,6 +94,7 @@ export function PublicStatusPage() {
                   onChange={(event) => setCpf(formatCpf(event.target.value))}
                   inputMode="numeric"
                   placeholder="000.000.000-00"
+                  autoFocus
                 />
               </div>
               <div className="field">
@@ -138,11 +139,12 @@ export function PublicStatusPage() {
                   <label htmlFor="new-pin">Novo PIN de 4 dígitos</label>
                   <input
                     id="new-pin"
-                    value={newPin}
-                    onChange={(event) => setNewPin(event.target.value.replace(/\D/g, '').slice(0, 4))}
-                    inputMode="numeric"
-                    placeholder="1234"
-                  />
+                  value={newPin}
+                  onChange={(event) => setNewPin(event.target.value.replace(/\D/g, '').slice(0, 4))}
+                  inputMode="numeric"
+                  placeholder="1234"
+                  autoFocus
+                />
                 </div>
               </div>
               <div className="form-actions">

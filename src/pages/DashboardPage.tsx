@@ -1,10 +1,12 @@
 import {
+  BusFront,
   Filter,
   ListChecks,
   LockKeyhole,
   LogOut,
   Plus,
   RefreshCcw,
+  Route,
   ShieldCheck,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -228,6 +230,14 @@ export function DashboardPage() {
         </div>
 
         <div className="page-actions">
+          <Link className="action-button secondary" to="/operador/gerencia">
+            <Route size={16} />
+            Gerencia
+          </Link>
+          <Link className="action-button secondary" to="/operador/motoristas">
+            <BusFront size={16} />
+            Motoristas
+          </Link>
           <Link className="action-button secondary" to="/operador/cadastro">
             <Plus size={16} />
             Nova solicitacao
@@ -358,9 +368,9 @@ export function DashboardPage() {
           <article className="content-card">
             <h2>Campos do cadastro inicial</h2>
             <ul className="check-list">
-              <li>Paciente, CPF, CNS e contato</li>
-              <li>Destino, unidade, especialidade e data</li>
-              <li>Acompanhante e justificativa clinica</li>
+              <li>Paciente, CPF, telefone, endereco e sinalizacao de WhatsApp</li>
+              <li>Responsavel com CPF de acesso quando necessario</li>
+              <li>Acompanhante com telefone e endereco proprios ou herdados do paciente</li>
               <li>Observacoes internas, historico e acesso inicial do cidadao</li>
             </ul>
           </article>
@@ -372,13 +382,22 @@ export function DashboardPage() {
             </div>
             <h2>Administrador liberado</h2>
             <p>
-              CPF autenticado: <strong>{session.cpf}</strong>. Este acesso tem visao total do MVP e
-              pode abrir novas solicitacoes.
+              Este acesso tem visao total do MVP e pode abrir solicitacoes, distribuir viagens e
+              organizar a base de motoristas.
             </p>
             <p className="table-note">
               Fluxo previsto no cadastro: operador informa o CPF, libera o primeiro acesso com
               senha temporária <strong>0000</strong> e o paciente cria depois um PIN de 4 dígitos.
             </p>
+          </article>
+
+          <article className="content-card">
+            <h2>Fluxo operacional novo</h2>
+            <ul className="check-list">
+              <li>Operador cadastra e organiza os dados do paciente</li>
+              <li>Gerencia analisa a fila e atribui motorista e horario</li>
+              <li>Motorista acessa um portal proprio para ver suas viagens</li>
+            </ul>
           </article>
         </aside>
       </section>

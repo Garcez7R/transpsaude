@@ -13,8 +13,20 @@ function maskCpf(value: string) {
 }
 
 function buildProtocol() {
-  const timestamp = Date.now().toString().slice(-6)
-  return `TS-2026-${timestamp}`
+  const now = new Date()
+  const date = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0'),
+  ].join('')
+  const time = [
+    String(now.getHours()).padStart(2, '0'),
+    String(now.getMinutes()).padStart(2, '0'),
+    String(now.getSeconds()).padStart(2, '0'),
+  ].join('')
+  const suffix = String(Math.floor(Math.random() * 100)).padStart(2, '0')
+
+  return `TS-${date}-${time}-${suffix}`
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
@@ -23,12 +35,18 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     cpf?: string
     cns?: string
     phone?: string
+    isWhatsapp?: boolean
+    addressLine?: string
     accessCpf?: string
     useResponsibleCpfForAccess?: boolean
     responsibleName?: string
     responsibleCpf?: string
     companionName?: string
     companionCpf?: string
+    companionPhone?: string
+    companionIsWhatsapp?: boolean
+    usePatientAddressForCompanion?: boolean
+    companionAddressLine?: string
     destinationCity?: string
     destinationState?: string
     treatmentUnit?: string
@@ -38,7 +56,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     notes?: string
   }
 
-  if (!body.patientName || !body.cpf || !body.accessCpf || !body.destinationCity || !body.destinationState || !body.treatmentUnit || !body.specialty || !body.travelDate) {
+  if (!body.patientName || !body.cpf || !body.phone || !body.addressLine || !body.accessCpf || !body.destinationCity || !body.destinationState || !body.treatmentUnit || !body.specialty || !body.travelDate) {
     return badRequest('Preencha os campos obrigatorios da solicitacao.')
   }
 
@@ -46,8 +64,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     return badRequest('Informe nome e CPF do responsavel quando esse CPF for usado para acesso.')
   }
 
-  if (body.companionRequired && (!body.companionName || !body.companionCpf)) {
-    return badRequest('Informe nome e CPF do acompanhante quando houver acompanhante.')
+  if (
+    body.companionRequired &&
+    (!body.companionName ||
+      !body.companionCpf ||
+      !body.companionPhone ||
+      (!body.usePatientAddressForCompanion && !body.companionAddressLine))
+  ) {
+    return badRequest('Informe nome, CPF, telefone e endereco do acompanhante quando houver acompanhante.')
   }
 
   const protocol = buildProtocol()
@@ -88,6 +112,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
           access_cpf_masked,
           cns,
           phone,
+          is_whatsapp,
+          address_line,
           city,
           state,
           responsible_name,
@@ -95,9 +121,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
           responsible_cpf_masked,
           use_responsible_cpf_for_access,
           temporary_password,
+          citizen_pin,
           must_change_pin
         )
-        values (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'Capao do Leao', 'RS', ?8, ?9, ?10, ?11, '0000', 1)
+        values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'Capao do Leao', 'RS', ?10, ?11, ?12, ?13, '0000', null, 1)
         returning id
       `,
     )
@@ -108,7 +135,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         accessCpf,
         accessCpfMasked,
         body.cns ?? '',
-        body.phone ?? '',
+        body.phone,
+        body.isWhatsapp ? 1 : 0,
+        body.addressLine,
         body.responsibleName ?? '',
         responsibleCpf,
         responsibleCpfMasked,
@@ -127,12 +156,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
             access_cpf_masked = ?4,
             cns = ?5,
             phone = ?6,
-            responsible_name = ?7,
-            responsible_cpf = ?8,
-            responsible_cpf_masked = ?9,
-            use_responsible_cpf_for_access = ?10,
+            is_whatsapp = ?7,
+            address_line = ?8,
+            responsible_name = ?9,
+            responsible_cpf = ?10,
+            responsible_cpf_masked = ?11,
+            use_responsible_cpf_for_access = ?12,
+            temporary_password = '0000',
+            citizen_pin = null,
+            must_change_pin = 1,
             updated_at = current_timestamp
-        where id = ?11
+        where id = ?13
       `,
     )
       .bind(
@@ -141,7 +175,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         accessCpf,
         accessCpfMasked,
         body.cns ?? '',
-        body.phone ?? '',
+        body.phone,
+        body.isWhatsapp ? 1 : 0,
+        body.addressLine,
         body.responsibleName ?? '',
         responsibleCpf,
         responsibleCpfMasked,
@@ -162,6 +198,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         access_cpf_masked,
         companion_name,
         companion_cpf_masked,
+        companion_phone,
+        companion_is_whatsapp,
+        companion_address_line,
         destination_city,
         destination_state,
         treatment_unit,
@@ -173,7 +212,29 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         notes,
         created_by_operator_id
       )
-      values (?1, '0000', ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, date('now'), ?12, 'recebida', ?13, ?14, 2)
+      values (
+        ?1,
+        '0000',
+        ?2,
+        ?3,
+        ?4,
+        ?5,
+        ?6,
+        ?7,
+        ?8,
+        ?9,
+        ?10,
+        ?11,
+        ?12,
+        ?13,
+        ?14,
+        date('now'),
+        ?15,
+        'recebida',
+        ?16,
+        ?17,
+        2
+      )
     `,
   )
     .bind(
@@ -184,6 +245,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       accessCpfMasked,
       body.companionName ?? '',
       companionCpfMasked,
+      body.companionPhone ?? '',
+      body.companionIsWhatsapp ? 1 : 0,
+      body.usePatientAddressForCompanion ? body.addressLine : body.companionAddressLine ?? '',
       body.destinationCity,
       body.destinationState,
       body.treatmentUnit,
