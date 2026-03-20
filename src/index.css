@@ -541,6 +541,23 @@ button {
   color: var(--text);
 }
 
+.checkbox-field {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+}
+
+.checkbox-row input {
+  width: 18px;
+  height: 18px;
+}
+
 .field input,
 .field textarea,
 .select-field select {

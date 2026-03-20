@@ -44,8 +44,8 @@ function formatCpf(value: string) {
 
 export function DashboardPage() {
   const [session, setSession] = useState<AdminSession | null>(null)
-  const [cpf, setCpf] = useState('968.203.730-15')
-  const [password, setPassword] = useState('1978')
+  const [cpf, setCpf] = useState('')
+  const [password, setPassword] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
 
@@ -153,10 +153,7 @@ export function DashboardPage() {
               Acesso administrativo
             </div>
             <h1>Entrar no painel</h1>
-            <p>
-              Acesso inicial liberado para administrador geral com CPF <strong>968.203.730-15</strong> e
-              senha <strong>1978</strong>.
-            </p>
+            <p>Ambiente restrito para operadores e administradores autorizados.</p>
             <form onSubmit={handleLogin}>
               <div className="login-grid">
                 <div className="field">
@@ -175,8 +172,8 @@ export function DashboardPage() {
                     id="admin-password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    inputMode="numeric"
-                    placeholder="1978"
+                    placeholder="Sua senha"
+                    type="password"
                   />
                 </div>
               </div>

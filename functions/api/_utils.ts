@@ -94,7 +94,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
   const normalizedCpf = normalizeCpf(cpf)
 
   if (!env.DB) {
-    const request = mockRequests.find((item) => item.patientCpf === normalizedCpf)
+    const request = mockRequests.find((item) => item.accessCpf === normalizedCpf)
 
     if (!request) {
       return null
@@ -126,12 +126,12 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       select
         id,
         full_name as patientName,
-        cpf_masked as cpfMasked,
+        access_cpf_masked as cpfMasked,
         temporary_password as temporaryPassword,
         citizen_pin as citizenPin,
         must_change_pin as mustChangePin
       from patients
-      where cpf = ?1
+      where access_cpf = ?1
       limit 1
     `,
   )
@@ -240,7 +240,7 @@ export async function activateCitizenPin(env: Env, cpf: string, newPin: string) 
   const normalizedCpf = normalizeCpf(cpf)
 
   if (!env.DB) {
-    const request = mockRequests.find((item) => item.patientCpf === normalizedCpf)
+    const request = mockRequests.find((item) => item.accessCpf === normalizedCpf)
 
     if (!request) {
       return null
@@ -264,7 +264,7 @@ export async function activateCitizenPin(env: Env, cpf: string, newPin: string) 
     `
       select id
       from patients
-      where cpf = ?1
+      where access_cpf = ?1
       limit 1
     `,
   )

@@ -67,6 +67,12 @@ export interface CreateTravelRequestInput {
   cpf: string
   cns: string
   phone: string
+  accessCpf: string
+  useResponsibleCpfForAccess: boolean
+  responsibleName: string
+  responsibleCpf: string
+  companionName: string
+  companionCpf: string
   destinationCity: string
   destinationState: string
   treatmentUnit: string

@@ -216,7 +216,7 @@ export async function createTravelRequest(input: CreateTravelRequestInput) {
       protocol,
       temporaryPassword: '0000',
       status: 'recebida',
-      message: `Solicitacao simulada para ${input.patientName}. No primeiro acesso, o cidadao entra com CPF ${formatCpf(input.cpf)} e senha 0000.`,
+      message: `Solicitacao simulada para ${input.patientName}. No primeiro acesso, o acesso fica no CPF ${formatCpf(input.accessCpf)} com senha 0000.`,
     }
   }
 }

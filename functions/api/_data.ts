@@ -9,7 +9,7 @@ export type RequestStatus =
 
 export interface RequestRecord {
   id: number
-  patientCpf: string
+  accessCpf: string
   protocol: string
   temporaryPassword: string
   citizenPin: string
@@ -30,7 +30,7 @@ export interface RequestRecord {
 export const mockRequests: RequestRecord[] = [
   {
     id: 1,
-    patientCpf: '24890312031',
+    accessCpf: '24890312031',
     protocol: 'TS-2026-000124',
     temporaryPassword: '0000',
     citizenPin: '4821',
@@ -49,7 +49,7 @@ export const mockRequests: RequestRecord[] = [
   },
   {
     id: 2,
-    patientCpf: '93755488008',
+    accessCpf: '93755488008',
     protocol: 'TS-2026-000125',
     temporaryPassword: '0000',
     citizenPin: '7710',
@@ -68,7 +68,7 @@ export const mockRequests: RequestRecord[] = [
   },
   {
     id: 3,
-    patientCpf: '11122233354',
+    accessCpf: '11122233354',
     protocol: 'TS-2026-000126',
     temporaryPassword: '0000',
     citizenPin: '3314',

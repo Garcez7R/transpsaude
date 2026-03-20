@@ -1,5 +1,5 @@
 import { ArrowLeft, CheckCircle2, FilePlus2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { createTravelRequest } from '../lib/api'
 import { getAdminSession } from '../lib/admin-session'
@@ -10,6 +10,12 @@ const initialForm: CreateTravelRequestInput = {
   cpf: '',
   cns: '',
   phone: '',
+  accessCpf: '',
+  useResponsibleCpfForAccess: false,
+  responsibleName: '',
+  responsibleCpf: '',
+  companionName: '',
+  companionCpf: '',
   destinationCity: '',
   destinationState: 'RS',
   treatmentUnit: '',
@@ -51,6 +57,13 @@ export function RegisterRequestPage() {
   function updateField<K extends keyof CreateTravelRequestInput>(key: K, value: CreateTravelRequestInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
   }
+
+  useEffect(() => {
+    setForm((current) => ({
+      ...current,
+      accessCpf: current.useResponsibleCpfForAccess ? current.responsibleCpf : current.cpf,
+    }))
+  }, [form.cpf, form.responsibleCpf, form.useResponsibleCpfForAccess])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -115,8 +128,8 @@ export function RegisterRequestPage() {
           </div>
           <h1>Cadastrar viagem de paciente</h1>
           <p>
-            O operador registra os dados do atendimento e o sistema libera o primeiro acesso do
-            cidadão com CPF e senha temporária <strong>0000</strong>.
+            O operador registra os dados do atendimento e define qual CPF será usado pelo cidadão
+            ou responsável para acessar o acompanhamento.
           </p>
         </div>
 
@@ -144,7 +157,7 @@ export function RegisterRequestPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="cpf-register">CPF</label>
+                <label htmlFor="cpf-register">CPF do paciente</label>
                 <input
                   id="cpf-register"
                   value={form.cpf}
@@ -173,6 +186,82 @@ export function RegisterRequestPage() {
                   placeholder="(53) 99999-9999"
                 />
               </div>
+              <div className="field full checkbox-field">
+                <label className="checkbox-row" htmlFor="use-responsible-access">
+                  <input
+                    id="use-responsible-access"
+                    type="checkbox"
+                    checked={form.useResponsibleCpfForAccess}
+                    onChange={(event) => updateField('useResponsibleCpfForAccess', event.target.checked)}
+                  />
+                  <span>Usar CPF do responsável como acesso ao acompanhamento</span>
+                </label>
+              </div>
+              <div className="field">
+                <label htmlFor="responsible-name">Nome do responsável</label>
+                <input
+                  id="responsible-name"
+                  value={form.responsibleName}
+                  onChange={(event) => updateField('responsibleName', event.target.value)}
+                  placeholder="Preencher quando houver responsável"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="responsible-cpf">CPF do responsável</label>
+                <input
+                  id="responsible-cpf"
+                  value={form.responsibleCpf}
+                  onChange={(event) => updateField('responsibleCpf', formatCpf(event.target.value))}
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="access-cpf">CPF de acesso ao agendamento</label>
+                <input
+                  id="access-cpf"
+                  value={form.accessCpf}
+                  onChange={(event) => updateField('accessCpf', formatCpf(event.target.value))}
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
+                  required
+                  readOnly={form.useResponsibleCpfForAccess}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="companion-required">Acompanhante</label>
+                <select
+                  id="companion-required"
+                  value={form.companionRequired ? 'sim' : 'nao'}
+                  onChange={(event) => updateField('companionRequired', event.target.value === 'sim')}
+                >
+                  <option value="nao">Nao necessario</option>
+                  <option value="sim">Necessario</option>
+                </select>
+              </div>
+              {form.companionRequired ? (
+                <>
+                  <div className="field">
+                    <label htmlFor="companion-name">Nome do acompanhante</label>
+                    <input
+                      id="companion-name"
+                      value={form.companionName}
+                      onChange={(event) => updateField('companionName', event.target.value)}
+                      placeholder="Nome completo do acompanhante"
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="companion-cpf">CPF do acompanhante</label>
+                    <input
+                      id="companion-cpf"
+                      value={form.companionCpf}
+                      onChange={(event) => updateField('companionCpf', formatCpf(event.target.value))}
+                      inputMode="numeric"
+                      placeholder="000.000.000-00"
+                    />
+                  </div>
+                </>
+              ) : null}
               <div className="field">
                 <label htmlFor="destination-city">Cidade de destino</label>
                 <input
@@ -223,17 +312,6 @@ export function RegisterRequestPage() {
                   required
                 />
               </div>
-              <div className="field">
-                <label htmlFor="companion-required">Acompanhante</label>
-                <select
-                  id="companion-required"
-                  value={form.companionRequired ? 'sim' : 'nao'}
-                  onChange={(event) => updateField('companionRequired', event.target.value === 'sim')}
-                >
-                  <option value="nao">Nao necessario</option>
-                  <option value="sim">Necessario</option>
-                </select>
-              </div>
               <div className="field full">
                 <label htmlFor="notes-register">Observacoes</label>
                 <textarea
@@ -259,10 +337,10 @@ export function RegisterRequestPage() {
           <article className="content-card">
             <h2>Acesso do cidadão</h2>
             <ul className="check-list">
-              <li>Login inicial com CPF cadastrado</li>
+              <li>Login inicial com CPF de acesso definido no cadastro</li>
               <li>Senha temporária padrão: <strong>0000</strong></li>
               <li>Troca obrigatória para PIN numérico de 4 dígitos</li>
-              <li>Reset futuro somente pela prefeitura</li>
+              <li>Para menores, o acesso pode usar o CPF do responsável</li>
             </ul>
           </article>
 
@@ -282,7 +360,7 @@ export function RegisterRequestPage() {
               <ul className="check-list">
                 <li>Solicitação nasce com status `recebida`</li>
                 <li>Painel interno pode evoluir para analise e agendamento</li>
-                <li>Cidadão consulta andamento no PWA com CPF e PIN</li>
+                <li>Cidadão ou responsável consulta andamento no PWA com CPF de acesso e PIN</li>
               </ul>
             </article>
           )}
