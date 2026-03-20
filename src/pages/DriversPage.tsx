@@ -1,6 +1,7 @@
 import { ArrowLeft, BusFront, UserPlus2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { canAccessManager } from '../lib/access'
 import { createDriver, fetchDrivers } from '../lib/api'
 import { getAdminSession } from '../lib/admin-session'
 import type { CreateDriverInput, DriverRecord } from '../types'
@@ -42,7 +43,7 @@ export function DriversPage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    if (!session) {
+    if (!session || !canAccessManager(session)) {
       return
     }
 
@@ -113,6 +114,25 @@ export function DriversPage() {
     )
   }
 
+  if (!canAccessManager(session)) {
+    return (
+      <div className="dashboard-shell">
+        <article className="content-card">
+          <h2>Acesso negado</h2>
+          <p>Somente gerente e administrador podem cadastrar ou gerenciar motoristas.</p>
+          <div className="form-actions">
+            <Link className="action-button secondary" to="/operador">
+              Ir para operador
+            </Link>
+            <Link className="action-button primary" to="/gerente">
+              Ir para gerencia
+            </Link>
+          </div>
+        </article>
+      </div>
+    )
+  }
+
   return (
     <div className="dashboard-shell">
       <section className="institutional-bar institutional-bar-inner">
@@ -136,7 +156,7 @@ export function DriversPage() {
         </div>
 
         <div className="page-actions">
-          <Link className="action-button secondary" to="/operador/gerencia">
+          <Link className="action-button secondary" to="/gerente">
             Gerencia
           </Link>
           <Link className="action-button secondary" to="/operador">

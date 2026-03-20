@@ -15,8 +15,8 @@ export default function App() {
         <Route path="/acompanhar" element={<Navigate to="/" replace />} />
         <Route path="/operador" element={<DashboardPage />} />
         <Route path="/operador/cadastro" element={<RegisterRequestPage />} />
-        <Route path="/operador/gerencia" element={<ManagerPage />} />
         <Route path="/operador/motoristas" element={<DriversPage />} />
+        <Route path="/gerente" element={<ManagerPage />} />
         <Route path="/motorista" element={<DriverPortalPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

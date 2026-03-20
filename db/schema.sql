@@ -116,6 +116,10 @@ insert into operators (name, cpf, email, password, role)
 select 'Administrador Geral', '96820373015', 'admin@capaodoleao.rs.gov.br', '1978', 'admin'
 where not exists (select 1 from operators where cpf = '96820373015');
 
+insert into operators (name, cpf, email, password, role)
+select 'Gerente Demo', '22233344455', 'gerencia@capaodoleao.rs.gov.br', '2468', 'manager'
+where not exists (select 1 from operators where cpf = '22233344455');
+
 insert into drivers (name, cpf, phone, is_whatsapp, vehicle_name, password, active)
 select 'Motorista Demo', '33322211100', '(53) 99999-0202', 1, 'Van 01', '0000', 1
 where not exists (select 1 from drivers where cpf = '33322211100');

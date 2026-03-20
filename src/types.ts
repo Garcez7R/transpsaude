@@ -7,6 +7,8 @@ export type RequestStatus =
   | 'cancelada'
   | 'concluida'
 
+export type InternalRole = 'operator' | 'manager' | 'admin'
+
 export interface DashboardSummary {
   totalRequests: number
   scheduledToday: number
@@ -65,7 +67,7 @@ export interface CitizenAccessResponse {
 export interface AdminSession {
   operatorId: number
   name: string
-  role: string
+  role: InternalRole
   cpf: string
 }
 

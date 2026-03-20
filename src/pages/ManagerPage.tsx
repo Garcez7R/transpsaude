@@ -1,9 +1,10 @@
-import { ArrowLeft, Route, Save } from 'lucide-react'
+import { ArrowLeft, LockKeyhole, LogOut, Route, Save, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { assignDriver, fetchDrivers, fetchRequests } from '../lib/api'
-import { getAdminSession } from '../lib/admin-session'
-import type { DriverRecord, TravelRequest } from '../types'
+import { canAccessManager, isValidInternalRole } from '../lib/access'
+import { assignDriver, fetchDrivers, fetchRequests, loginAdmin } from '../lib/api'
+import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
+import type { AdminSession, DriverRecord, TravelRequest } from '../types'
 
 type AssignmentState = Record<number, { driverId: string; departureTime: string; managerNotes: string }>
 
@@ -13,8 +14,21 @@ const emptyAssignment = {
   managerNotes: '',
 }
 
+function formatCpf(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  return digits
+    .replace(/^(\d{3})(\d)/, '$1.$2')
+    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1-$2')
+}
+
 export function ManagerPage() {
-  const session = typeof window !== 'undefined' ? getAdminSession() : null
+  const [session, setSession] = useState<AdminSession | null>(null)
+  const [cpf, setCpf] = useState('')
+  const [password, setPassword] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
+
   const [requests, setRequests] = useState<TravelRequest[]>([])
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
   const [assignment, setAssignment] = useState<AssignmentState>({})
@@ -24,7 +38,11 @@ export function ManagerPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!session) {
+    setSession(getAdminSession())
+  }, [])
+
+  useEffect(() => {
+    if (!session || !canAccessManager(session)) {
       return
     }
 
@@ -87,6 +105,35 @@ export function ManagerPage() {
     }))
   }
 
+  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setAuthLoading(true)
+    setAuthError('')
+
+    try {
+      const result = await loginAdmin(cpf, password)
+
+      if (!isValidInternalRole(result.session.role) || !canAccessManager(result.session)) {
+        setAuthError('Esse perfil nao tem permissao para acessar a gerencia.')
+        return
+      }
+
+      saveAdminSession(result.session)
+      setSession(result.session)
+    } catch {
+      setAuthError('Nao foi possivel autenticar esse acesso de gerencia.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  function handleLogout() {
+    clearAdminSession()
+    setSession(null)
+    setRequests([])
+    setDrivers([])
+  }
+
   async function handleAssign(requestId: number) {
     const data = assignment[requestId]
 
@@ -126,17 +173,72 @@ export function ManagerPage() {
           </div>
           <div className="institutional-copy">
             <strong>Gerencia de transporte em saude</strong>
-            <span>Entre primeiro no painel do operador</span>
+            <span>Acesso reservado a gerente e administrador</span>
           </div>
         </section>
 
+        <section className="auth-shell">
+          <article className="content-card login-card">
+            <div className="eyebrow">
+              <LockKeyhole size={16} />
+              Acesso da gerencia
+            </div>
+            <h1>Entrar na gerencia</h1>
+            <p>Somente perfis com role `manager` ou `admin` podem acessar esta area.</p>
+            <form onSubmit={handleLogin}>
+              <div className="login-grid">
+                <div className="field">
+                  <label htmlFor="manager-cpf">CPF do gerente</label>
+                  <input
+                    id="manager-cpf"
+                    value={cpf}
+                    onChange={(event) => setCpf(formatCpf(event.target.value))}
+                    inputMode="numeric"
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="manager-password">Senha</label>
+                  <input
+                    id="manager-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Sua senha"
+                    type="password"
+                  />
+                </div>
+              </div>
+              <div className="form-actions">
+                <button className="action-button primary" disabled={authLoading} type="submit">
+                  <ShieldCheck size={16} />
+                  {authLoading ? 'Entrando...' : 'Entrar na gerencia'}
+                </button>
+                <Link className="action-button secondary" to="/operador">
+                  Ir para operador
+                </Link>
+              </div>
+            </form>
+            {authError ? <p className="table-note">{authError}</p> : null}
+          </article>
+        </section>
+      </div>
+    )
+  }
+
+  if (!canAccessManager(session)) {
+    return (
+      <div className="dashboard-shell">
         <article className="content-card">
-          <h2>Sessao administrativa necessaria</h2>
-          <p>A gerencia de rotas e motoristas fica disponivel somente para acesso interno autenticado.</p>
+          <h2>Acesso negado</h2>
+          <p>Seu perfil atual nao tem permissao para entrar na gerencia.</p>
           <div className="form-actions">
-            <Link className="action-button primary" to="/operador">
-              Ir para login do painel
+            <Link className="action-button secondary" to="/operador">
+              Ir para operador
             </Link>
+            <button className="action-button primary" type="button" onClick={handleLogout}>
+              <LogOut size={16} />
+              Sair
+            </button>
           </div>
         </article>
       </div>
@@ -171,8 +273,12 @@ export function ManagerPage() {
           </Link>
           <Link className="action-button secondary" to="/operador">
             <ArrowLeft size={16} />
-            Voltar ao painel
+            Ir para operador
           </Link>
+          <button className="action-button primary" type="button" onClick={handleLogout}>
+            <LogOut size={16} />
+            Sair
+          </button>
         </div>
       </header>
 
@@ -274,12 +380,12 @@ export function ManagerPage() {
 
         <aside className="dashboard-side">
           <article className="content-card">
-            <h2>Como esse fluxo passa a funcionar</h2>
+            <h2>Regras de acesso</h2>
             <ul className="check-list">
-              <li>O operador cadastra a solicitacao normalmente</li>
-              <li>A gerencia analisa a fila e define motorista e horario</li>
-              <li>A viagem recebe status de agendada automaticamente ao ser atribuida</li>
-              <li>O motorista acessa somente as viagens vinculadas ao proprio CPF</li>
+              <li>Operator entra apenas na area de operador</li>
+              <li>Manager entra em operador, gerencia e motorista</li>
+              <li>Admin tambem tem acesso total</li>
+              <li>Driver fica restrito ao portal do motorista</li>
             </ul>
           </article>
         </aside>

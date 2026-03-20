@@ -11,6 +11,10 @@ create table if not exists drivers (
   updated_at text not null default current_timestamp
 );
 
+insert into operators (name, cpf, email, password, role)
+select 'Gerente Demo', '22233344455', 'gerencia@capaodoleao.rs.gov.br', '2468', 'manager'
+where not exists (select 1 from operators where cpf = '22233344455');
+
 alter table travel_requests add column assigned_driver_id integer;
 alter table travel_requests add column assigned_driver_name text;
 alter table travel_requests add column departure_time text;

@@ -2,6 +2,7 @@ import { ArrowLeft, CheckCircle2, FilePlus2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { createTravelRequest } from '../lib/api'
+import { canAccessOperator } from '../lib/access'
 import { getAdminSession } from '../lib/admin-session'
 import type { CreateTravelRequestInput } from '../types'
 
@@ -85,7 +86,7 @@ export function RegisterRequestPage() {
     }
   }
 
-  if (!session) {
+  if (!session || !canAccessOperator(session)) {
     return (
       <div className="dashboard-shell">
         <section className="institutional-bar institutional-bar-inner">
@@ -99,8 +100,8 @@ export function RegisterRequestPage() {
         </section>
 
         <article className="content-card">
-          <h2>Sessao administrativa necessaria</h2>
-          <p>Para cadastrar uma nova solicitacao, primeiro entre no painel do operador.</p>
+          <h2>Sessao de operador necessaria</h2>
+          <p>Para cadastrar uma nova solicitacao, entre com um perfil liberado para a area do operador.</p>
           <div className="form-actions">
             <Link className="action-button primary" to="/operador">
               Ir para login do painel

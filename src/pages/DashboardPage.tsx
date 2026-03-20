@@ -12,6 +12,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { loginAdmin, fetchDashboardSummary, fetchRequests } from '../lib/api'
+import { canAccessOperator, isValidInternalRole } from '../lib/access'
 import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
 import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } from '../types'
 
@@ -111,6 +112,12 @@ export function DashboardPage() {
 
     try {
       const result = await loginAdmin(cpf, password)
+
+      if (!isValidInternalRole(result.session.role) || !canAccessOperator(result.session)) {
+        setAuthError('Esse perfil nao pode acessar a area do operador.')
+        return
+      }
+
       saveAdminSession(result.session)
       setSession(result.session)
     } catch {
@@ -205,6 +212,26 @@ export function DashboardPage() {
     )
   }
 
+  if (!canAccessOperator(session)) {
+    return (
+      <div className="dashboard-shell">
+        <article className="content-card">
+          <h2>Acesso negado</h2>
+          <p>Esse perfil nao tem permissao para entrar na area do operador.</p>
+          <div className="form-actions">
+            <Link className="action-button secondary" to="/gerente">
+              Ir para gerencia
+            </Link>
+            <button className="action-button primary" type="button" onClick={handleLogout}>
+              <LogOut size={16} />
+              Sair
+            </button>
+          </div>
+        </article>
+      </div>
+    )
+  }
+
   return (
     <div className="dashboard-shell">
       <section className="institutional-bar institutional-bar-inner">
@@ -230,7 +257,7 @@ export function DashboardPage() {
         </div>
 
         <div className="page-actions">
-          <Link className="action-button secondary" to="/operador/gerencia">
+          <Link className="action-button secondary" to="/gerente">
             <Route size={16} />
             Gerencia
           </Link>
