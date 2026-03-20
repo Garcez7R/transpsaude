@@ -1,75 +1,82 @@
 # TranspSaude
 
-Base inicial para um sistema municipal de transporte em saude com:
+Aplicação web e PWA para apoio ao transporte de pacientes da **Prefeitura de Capão do Leão**, com foco no cadastro interno de solicitações e no acompanhamento público pelo cidadão.
 
-- painel interno do operador;
-- consulta publica por CPF e PIN;
-- PWA para uso no celular;
-- API pronta para Cloudflare Pages Functions;
-- estrutura inicial para banco `D1`.
+O projeto foi desenhado para funcionar com uma arquitetura simples, enxuta e econômica usando **Cloudflare Pages + Functions + D1**, mantendo o MVP acessível e fácil de operar.
 
-## Stack
+## Visão Geral
 
-- React + TypeScript + Vite
-- React Router
-- Cloudflare Pages Functions
-- Cloudflare D1
-- PWA manual com `manifest` + `service worker`
+O fluxo principal do sistema é:
 
-## Rodando localmente
+1. o operador atende o paciente no balcão da prefeitura;
+2. cadastra a solicitação de viagem para tratamento;
+3. o sistema libera o primeiro acesso do cidadão com **CPF + senha temporária `0000`**;
+4. no primeiro acesso, o cidadão cria um **PIN numérico de 4 dígitos**;
+5. a equipe interna atualiza o status da solicitação;
+6. o cidadão acompanha tudo pelo celular, em formato PWA.
 
-1. Instale as dependencias:
+## Módulos Atuais
 
-```bash
-npm install
-```
+### Painel Interno
 
-2. Rode o frontend:
+- login administrativo inicial;
+- visão geral das solicitações;
+- filtros por status;
+- base para gestão operacional;
+- tela inicial de cadastro de nova solicitação.
 
-```bash
-npm run dev
-```
+### Área do Cidadão
 
-3. Para deploy ou dev integrado com Cloudflare, configure o projeto no Pages e crie um banco D1.
+- acesso com CPF;
+- senha temporária inicial `0000`;
+- troca obrigatória para PIN de 4 dígitos;
+- visualização do status da solicitação;
+- histórico básico de andamento;
+- botão de instalação do app no mobile quando o navegador permitir.
 
-## Scripts
+## Status do MVP
 
-- `npm run dev` - servidor Vite local
-- `npm run build` - build de producao
-- `npm run lint` - lint do projeto
+Escopo já implementado:
 
-## Estrutura
+- identidade visual institucional da Prefeitura de Capão do Leão;
+- painel administrativo inicial;
+- fluxo público de primeiro acesso do cidadão;
+- estrutura base da API em Cloudflare Pages Functions;
+- estrutura inicial do banco D1;
+- PWA com manifesto, service worker e CTA de instalação mobile.
 
-- `src/` - app React
-- `functions/api/` - endpoints da API
-- `db/schema.sql` - schema inicial do D1
-- `public/manifest.webmanifest` - manifesto do PWA
-- `public/sw.js` - service worker
+Escopo sugerido para próxima etapa:
 
-## Modelo inicial de negocio
+- edição de status da solicitação;
+- autenticação persistente real no backend;
+- cadastro completo com gravação definitiva no D1;
+- histórico administrativo;
+- trilha de auditoria operacional;
+- recuperação de acesso controlada pela prefeitura.
 
-O MVP foi desenhado para este fluxo:
+## Stack Técnica
 
-1. operador atende o paciente no balcao;
-2. cadastra a solicitacao de viagem;
-3. sistema libera o primeiro acesso do cidadao com CPF e senha temporaria `0000`;
-4. no primeiro login, o cidadao cria um PIN numerico de 4 digitos;
-5. equipe interna atualiza o status;
-6. cidadao acompanha pelo PWA.
+- **Frontend:** React 19 + TypeScript + Vite
+- **Roteamento:** React Router
+- **Ícones:** Lucide React
+- **Backend:** Cloudflare Pages Functions
+- **Banco:** Cloudflare D1
+- **PWA:** `manifest.webmanifest` + `service worker`
 
-Status iniciais:
+## Estrutura do Projeto
 
-- `recebida`
-- `em_analise`
-- `aguardando_documentos`
-- `aprovada`
-- `agendada`
-- `cancelada`
-- `concluida`
+- [src/](/home/rgarcez/Documentos/transp-saude/src) - aplicação React
+- [src/pages/](/home/rgarcez/Documentos/transp-saude/src/pages) - telas principais
+- [src/components/](/home/rgarcez/Documentos/transp-saude/src/components) - componentes reutilizáveis
+- [functions/api/](/home/rgarcez/Documentos/transp-saude/functions/api) - endpoints da API
+- [db/schema.sql](/home/rgarcez/Documentos/transp-saude/db/schema.sql) - schema inicial do D1
+- [public/manifest.webmanifest](/home/rgarcez/Documentos/transp-saude/public/manifest.webmanifest) - manifesto do PWA
+- [public/sw.js](/home/rgarcez/Documentos/transp-saude/public/sw.js) - service worker
+- [wrangler.toml](/home/rgarcez/Documentos/transp-saude/wrangler.toml) - configuração do projeto Cloudflare
 
-## Banco D1
+## Banco de Dados
 
-O arquivo [db/schema.sql](/home/rgarcez/Documentos/transp-saude/db/schema.sql) traz uma primeira modelagem com:
+O schema inicial contempla as seguintes entidades:
 
 - `operators`
 - `patients`
@@ -77,7 +84,7 @@ O arquivo [db/schema.sql](/home/rgarcez/Documentos/transp-saude/db/schema.sql) t
 - `request_status_history`
 - `audit_logs`
 
-Campos iniciais de acesso do cidadao:
+Campos já previstos para acesso do cidadão:
 
 - `cpf`
 - `cpf_masked`
@@ -87,25 +94,107 @@ Campos iniciais de acesso do cidadao:
 - `access_activated_at`
 - `last_login_at`
 
-## Cloudflare
+## Acesso Inicial do MVP
 
-Exemplo de configuracao em [wrangler.toml](/home/rgarcez/Documentos/transp-saude/wrangler.toml).
+### Admin
 
-Para ligar o D1 real:
+Acesso administrativo inicial configurado para validação do MVP:
 
-1. crie o banco:
+- **CPF:** `968.203.730-15`
+- **Senha:** `1978`
+
+### Cidadão
+
+Fluxo inicial previsto:
+
+- login com CPF cadastrado no atendimento;
+- senha temporária padrão: `0000`;
+- obrigatoriedade de troca para PIN de 4 dígitos no primeiro acesso.
+
+## Scripts
+
+- `npm run dev` - inicia o ambiente local com Vite
+- `npm run build` - gera o build de produção
+- `npm run lint` - executa a análise estática do projeto
+- `npm run preview` - abre o build localmente para revisão
+
+## Rodando Localmente
+
+1. Instale as dependências:
+
+```bash
+npm install
+```
+
+2. Suba o ambiente local:
+
+```bash
+npm run dev
+```
+
+3. Acesse a aplicação no navegador no endereço informado pelo Vite.
+
+## Deploy na Cloudflare
+
+### 1. Criar o banco D1
 
 ```bash
 npx wrangler d1 create transpsaude-db
 ```
 
-2. atualize `database_id` no `wrangler.toml`;
-3. aplique o schema:
+### 2. Atualizar o `database_id`
+
+Edite [wrangler.toml](/home/rgarcez/Documentos/transp-saude/wrangler.toml) com o ID real do banco.
+
+### 3. Aplicar o schema
 
 ```bash
 npx wrangler d1 execute transpsaude-db --file=db/schema.sql
 ```
 
-## Observacao
+### 4. Subir o repositório
 
-Enquanto o D1 nao estiver configurado, a API responde com dados de exemplo para facilitar a validacao inicial das telas.
+```bash
+git push -u origin main
+```
+
+### 5. Criar o projeto no Pages
+
+No Cloudflare Pages, use:
+
+- **Production branch:** `main`
+- **Build command:** `npm run build`
+- **Build output directory:** `dist`
+
+### 6. Configurar o binding do banco
+
+No projeto Pages:
+
+- tipo: `D1 database`
+- nome: `DB`
+- valor: `transpsaude-db`
+
+## Observações Operacionais
+
+- enquanto o D1 não estiver configurado, a aplicação usa dados de exemplo para facilitar a validação;
+- parte do fluxo atual ainda está em modo MVP e poderá ser endurecida nas próximas etapas;
+- para produção real, o ideal é migrar senhas e PINs para armazenamento com hash;
+- se o schema do banco mudar depois do primeiro deploy, pode ser necessário aplicar migrações incrementais no D1.
+
+## Qualidade Atual
+
+Validações locais usadas no projeto:
+
+```bash
+npm run build
+npm run lint
+```
+
+## Próximos Passos Recomendados
+
+1. editar status da solicitação pelo painel;
+2. gravar novas solicitações diretamente no D1;
+3. melhorar o fluxo de autenticação administrativa;
+4. registrar histórico operacional completo;
+5. preparar relatórios e filtros adicionais;
+6. revisar segurança para uso público real.
