@@ -50,6 +50,17 @@ export interface StatusHistoryEntry {
   note?: string
 }
 
+export interface TravelRequestDetails extends TravelRequest {
+  patientCpf: string
+  phone: string
+  isWhatsapp: boolean
+  addressLine: string
+  cns: string
+  responsibleName?: string
+  responsibleCpfMasked?: string
+  useResponsibleCpfForAccess: boolean
+}
+
 export interface PublicRequestDetails extends TravelRequest {
   statusLabel: string
   loginHint: string
@@ -111,6 +122,12 @@ export interface AssignDriverInput {
   driverId: number
   departureTime: string
   managerNotes: string
+}
+
+export interface UpdateRequestStatusInput {
+  requestId: number
+  status: RequestStatus
+  note: string
 }
 
 export interface CreateTravelRequestInput {

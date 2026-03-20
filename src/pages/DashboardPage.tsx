@@ -342,7 +342,11 @@ export function DashboardPage() {
               <tbody>
                 {requests.map((request) => (
                   <tr key={request.id}>
-                    <td>{request.protocol}</td>
+                    <td>
+                      <Link className="inline-link" to={`/operador/solicitacoes/${request.id}`}>
+                        {request.protocol}
+                      </Link>
+                    </td>
                     <td>
                       <strong>{request.patientName}</strong>
                       <div className="table-note">{request.cpfMasked}</div>

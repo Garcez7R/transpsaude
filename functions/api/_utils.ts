@@ -376,3 +376,150 @@ export async function listDriverTrips(env: Env, driverId: number) {
     companionIsWhatsapp: toBoolean(item.companionIsWhatsapp),
   }))
 }
+
+export async function getRequestDetails(env: Env, requestId: number) {
+  const db = requireDb(env)
+  const request = await db.prepare(
+    `
+      select
+        tr.id,
+        tr.protocol,
+        tr.patient_name as patientName,
+        tr.cpf_masked as cpfMasked,
+        tr.access_cpf_masked as accessCpfMasked,
+        p.cpf_masked as patientCpf,
+        p.phone,
+        p.is_whatsapp as isWhatsapp,
+        p.address_line as addressLine,
+        p.cns,
+        p.responsible_name as responsibleName,
+        p.responsible_cpf_masked as responsibleCpfMasked,
+        p.use_responsible_cpf_for_access as useResponsibleCpfForAccess,
+        tr.destination_city as destinationCity,
+        tr.destination_state as destinationState,
+        tr.treatment_unit as treatmentUnit,
+        tr.specialty,
+        tr.travel_date as travelDate,
+        tr.requested_at as requestedAt,
+        tr.status,
+        tr.companion_required as companionRequired,
+        tr.companion_name as companionName,
+        tr.companion_cpf_masked as companionCpfMasked,
+        tr.companion_phone as companionPhone,
+        tr.companion_is_whatsapp as companionIsWhatsapp,
+        tr.companion_address_line as companionAddressLine,
+        tr.assigned_driver_id as assignedDriverId,
+        tr.assigned_driver_name as assignedDriverName,
+        tr.departure_time as departureTime,
+        tr.manager_notes as managerNotes,
+        tr.scheduled_at as scheduledAt,
+        tr.notes
+      from travel_requests tr
+      inner join patients p on p.id = tr.patient_id
+      where tr.id = ?1
+      limit 1
+    `,
+  )
+    .bind(requestId)
+    .first<Record<string, unknown>>()
+
+  if (!request) {
+    return null
+  }
+
+  const historyResult = await db.prepare(
+    `
+      select
+        status,
+        label,
+        updated_at as updatedAt,
+        note
+      from request_status_history
+      where travel_request_id = ?1
+      order by sort_order asc, updated_at asc
+    `,
+  )
+    .bind(requestId)
+    .all()
+
+  return {
+    ...request,
+    isWhatsapp: toBoolean(request.isWhatsapp),
+    useResponsibleCpfForAccess: toBoolean(request.useResponsibleCpfForAccess),
+    companionRequired: toBoolean(request.companionRequired),
+    companionIsWhatsapp: toBoolean(request.companionIsWhatsapp),
+    history: historyResult.results ?? [],
+  }
+}
+
+export async function updateRequestStatus(
+  env: Env,
+  requestId: number,
+  status: string,
+  note: string,
+  operatorId = 1,
+) {
+  const db = requireDb(env)
+  const request = await db.prepare(
+    `
+      select
+        id,
+        protocol
+      from travel_requests
+      where id = ?1
+      limit 1
+    `,
+  )
+    .bind(requestId)
+    .first<Record<string, unknown>>()
+
+  if (!request) {
+    return null
+  }
+
+  await db.prepare(
+    `
+      update travel_requests
+      set status = ?1,
+          updated_at = current_timestamp
+      where id = ?2
+    `,
+  )
+    .bind(status, requestId)
+    .run()
+
+  const orderResult = await db.prepare(
+    `
+      select coalesce(max(sort_order), 0) as maxSortOrder
+      from request_status_history
+      where travel_request_id = ?1
+    `,
+  )
+    .bind(requestId)
+    .first<Record<string, unknown>>()
+
+  const nextOrder = Number(orderResult?.maxSortOrder ?? 0) + 1
+  const label = statusLabels[status as keyof typeof statusLabels] ?? status
+
+  await db.prepare(
+    `
+      insert into request_status_history (
+        travel_request_id,
+        protocol,
+        status,
+        label,
+        note,
+        updated_by_operator_id,
+        updated_at,
+        sort_order
+      )
+      values (?1, ?2, ?3, ?4, ?5, ?6, datetime('now'), ?7)
+    `,
+  )
+    .bind(requestId, request.protocol, status, label, note, operatorId, nextOrder)
+    .run()
+
+  return {
+    message: `Status atualizado para ${label}.`,
+  }
+}

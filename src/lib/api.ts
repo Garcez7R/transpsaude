@@ -8,7 +8,10 @@ import type {
   DashboardSummary,
   DriverLoginResponse,
   DriverRecord,
+  StatusHistoryEntry,
   TravelRequest,
+  TravelRequestDetails,
+  UpdateRequestStatusInput,
 } from '../types'
 
 async function parseJson<T>(response: Response): Promise<T> {
@@ -34,6 +37,12 @@ export async function fetchRequests(status?: string) {
   const suffix = search.toString() ? `?${search.toString()}` : ''
   const response = await fetch(`/api/requests${suffix}`)
   return parseJson<TravelRequest[]>(response)
+}
+
+export async function fetchRequestDetails(requestId: number) {
+  const search = new URLSearchParams({ id: String(requestId) })
+  const response = await fetch(`/api/admin/request-detail?${search.toString()}`)
+  return parseJson<TravelRequestDetails & { history: StatusHistoryEntry[] }>(response)
 }
 
 export async function loginCitizen(cpf: string, password: string) {
@@ -93,6 +102,16 @@ export async function createDriver(input: CreateDriverInput) {
 
 export async function assignDriver(input: AssignDriverInput) {
   const response = await fetch('/api/admin/assignments', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function updateRequestStatus(input: UpdateRequestStatusInput) {
+  const response = await fetch('/api/admin/request-status', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
