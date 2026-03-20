@@ -1,7 +1,7 @@
 {
-  "name": "TranspSaude",
-  "short_name": "TranspSaude",
-  "description": "Consulta de solicitacoes de transporte em saude da prefeitura.",
+  "name": "TranspSaúde Capão do Leão",
+  "short_name": "TranspSaúde",
+  "description": "Consulta de solicitações de transporte em saúde da Prefeitura de Capão do Leão.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f6fbf8",

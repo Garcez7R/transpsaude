@@ -36,8 +36,8 @@ function HomePage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Prefeitura Municipal</strong>
-          <span>Secretaria de Saude • Transporte de Pacientes</span>
+          <strong>Prefeitura de Capão do Leão</strong>
+          <span>Secretaria Municipal de Saúde • Transporte de Pacientes</span>
         </div>
       </section>
 
@@ -49,8 +49,8 @@ function HomePage() {
           </div>
           <h1>Agendamento municipal de viagens para tratamento fora do domicilio.</h1>
           <p className="hero-text">
-            Uma base inicial para prefeitura cadastrar solicitacoes, acompanhar aprovacoes e
-            permitir que o cidadao veja o andamento pelo celular.
+            Plataforma da Prefeitura de Capão do Leão para cadastrar solicitações, acompanhar
+            aprovações e permitir que o cidadão veja o andamento pelo celular.
           </p>
           <div className="hero-actions">
             <Link className="primary-link" to="/operador">
@@ -73,7 +73,7 @@ function HomePage() {
             </div>
             <div>
               <strong>Uso institucional</strong>
-              <p>Base pensada para atendimento municipal e consulta publica com linguagem mais oficial.</p>
+              <p>Base pensada para o atendimento municipal de Capão do Leão, com consulta pública e linguagem mais oficial.</p>
             </div>
           </div>
           <h2>Escopo inicial recomendado</h2>
@@ -145,7 +145,7 @@ function HomePage() {
           <h2>Visual mais proximo de portal oficial da prefeitura.</h2>
           <p>
             A interface agora usa verde como base institucional, amarelo para destaques, cinza para
-            estados neutros e branco nas superficies principais.
+            estados neutros e branco nas superfícies principais da Prefeitura de Capão do Leão.
           </p>
         </article>
       </section>

@@ -86,7 +86,7 @@ export function DashboardPage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Ambiente interno da prefeitura</strong>
+          <strong>Ambiente interno da Prefeitura de Capão do Leão</strong>
           <span>Acesso destinado a operador, regulacao e apoio administrativo</span>
         </div>
       </section>
@@ -99,8 +99,8 @@ export function DashboardPage() {
           </div>
           <h1>Solicitacoes de transporte em saude</h1>
           <p>
-            Base inicial para atendimento presencial, acompanhamento de status e consulta do
-            cidadao.
+            Base inicial para o atendimento presencial da Prefeitura de Capão do Leão, com
+            acompanhamento de status e consulta do cidadão.
           </p>
         </div>
 

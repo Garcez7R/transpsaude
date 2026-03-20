@@ -34,8 +34,8 @@ export function PublicStatusPage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Consulta publica municipal</strong>
-          <span>Acompanhamento de solicitacoes de transporte para tratamento</span>
+          <strong>Consulta pública da Prefeitura de Capão do Leão</strong>
+          <span>Acompanhamento de solicitações de transporte para tratamento</span>
         </div>
       </section>
 
@@ -47,7 +47,7 @@ export function PublicStatusPage() {
         <h1>Acompanhe sua solicitacao de viagem</h1>
         <p>
           Informe o protocolo entregue no atendimento e o PIN de consulta. Esse fluxo pode virar o
-          PWA oficial da prefeitura no celular.
+          PWA oficial da Prefeitura de Capão do Leão no celular.
         </p>
       </header>
 
