@@ -218,8 +218,8 @@ export function ManagerPage() {
       saveAdminSession(result.session)
       saveManagerSession(result.session)
       setSession(result.session)
-    } catch {
-      setAuthError('Não foi possível autenticar esse acesso de gerência.')
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Não foi possível autenticar esse acesso de gerência.')
     } finally {
       setAuthLoading(false)
     }

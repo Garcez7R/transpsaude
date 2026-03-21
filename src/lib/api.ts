@@ -30,7 +30,19 @@ import { getDriverSession } from './driver-session'
 
 async function parseJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    throw new Error(`Falha na requisicao: ${response.status}`)
+    let message = `Falha na requisicao: ${response.status}`
+
+    try {
+      const payload = (await response.json()) as { message?: string }
+
+      if (payload?.message) {
+        message = payload.message
+      }
+    } catch {
+      // Mantém a mensagem padrão quando a resposta não vier em JSON.
+    }
+
+    throw new Error(message)
   }
 
   return (await response.json()) as T

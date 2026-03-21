@@ -67,8 +67,8 @@ export function AdminManagersPage() {
       setCpf('')
       setPassword('')
       window.location.reload()
-    } catch {
-      setAuthError('Não foi possível autenticar esse acesso administrativo.')
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Não foi possível autenticar esse acesso administrativo.')
     } finally {
       setAuthLoading(false)
     }

@@ -12,6 +12,10 @@ function maskCpf(value: string) {
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
+  if (!env.DB) {
+    return badRequest('Banco D1 não configurado no deploy da área administrativa.')
+  }
+
   const body = (await request.json()) as { cpf?: string; password?: string }
   const cpf = body.cpf?.trim()
   const password = body.password?.trim()
