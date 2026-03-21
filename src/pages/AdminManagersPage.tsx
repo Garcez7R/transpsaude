@@ -631,18 +631,6 @@ export function AdminManagersPage() {
           </form>
         </article>
 
-        <aside className="dashboard-side">
-          <article className="content-card">
-            <h2>Base cadastrada</h2>
-            <ul className="check-list">
-              <li>{loadingData ? 'Carregando gerentes...' : `${managers.length} gerente(s) ativo(s)`}</li>
-              <li>{loadingData ? 'Carregando operadores...' : `${operators.length} operador(es) ativo(s)`}</li>
-              <li>{loadingData ? 'Carregando motoristas...' : `${drivers.length} motorista(s) ativo(s)`}</li>
-              <li>{loadingData ? 'Carregando veículos...' : `${vehicles.length} veículo(s) disponível(is)`}</li>
-            </ul>
-            <p className="table-note">O admin pode consultar a base inteira e redefinir senhas ao editar cada cadastro.</p>
-          </article>
-        </aside>
       </section>
 
       <section className="dashboard-grid">
