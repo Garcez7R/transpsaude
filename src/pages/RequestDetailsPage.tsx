@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2, Save } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Printer, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { canAccessManager, canAccessOperator } from '../lib/access'
@@ -190,6 +190,10 @@ export function RequestDetailsPage() {
         </div>
 
         <div className="page-actions">
+          <button className="action-button secondary" type="button" onClick={() => window.print()}>
+            <Printer size={16} />
+            Imprimir comprovante
+          </button>
           <Link className="action-button secondary" to="/operador">
             <ArrowLeft size={16} />
             Voltar ao painel
@@ -298,6 +302,57 @@ export function RequestDetailsPage() {
             <div className="detail-note">
               <strong>Observações do cadastro:</strong> {details.notes || 'Sem observações registradas.'}
             </div>
+          </article>
+
+          <article className="content-card">
+            <h2>Comprovante de agendamento</h2>
+            <p className="table-note">
+              Use este bloco para impressão ou conferência rápida com o paciente no balcão.
+            </p>
+            <dl className="request-summary">
+              <div>
+                <dt>Protocolo</dt>
+                <dd>{details.protocol}</dd>
+              </div>
+              <div>
+                <dt>Paciente</dt>
+                <dd>{details.patientName}</dd>
+              </div>
+              <div>
+                <dt>CPF de acesso</dt>
+                <dd>{details.accessCpfMasked ?? details.cpfMasked}</dd>
+              </div>
+              <div>
+                <dt>Data da viagem</dt>
+                <dd>{details.travelDate}</dd>
+              </div>
+              <div>
+                <dt>Horário de saída</dt>
+                <dd>{details.departureTime || 'A definir'}</dd>
+              </div>
+              <div>
+                <dt>Local de embarque</dt>
+                <dd>{details.boardingLocationLabel || details.addressLine || 'Não informado'}</dd>
+              </div>
+              <div>
+                <dt>Destino</dt>
+                <dd>
+                  {details.destinationCity}/{details.destinationState}
+                </dd>
+              </div>
+              <div>
+                <dt>Unidade</dt>
+                <dd>{details.treatmentUnit}</dd>
+              </div>
+              <div>
+                <dt>Motorista</dt>
+                <dd>{details.assignedDriverName || 'A definir'}</dd>
+              </div>
+              <div>
+                <dt>Telefone</dt>
+                <dd>{details.phone || 'Não informado'}</dd>
+              </div>
+            </dl>
           </article>
 
           <aside className="dashboard-side">

@@ -5,6 +5,20 @@ export interface Env {
 }
 
 type InternalRole = 'operator' | 'manager' | 'admin'
+type SessionType = 'internal' | 'driver'
+
+export interface RequestFilters {
+  status?: string
+  search?: string
+  travelDate?: string
+  driverId?: number
+  destination?: string
+}
+
+const textEncoder = new TextEncoder()
+const PBKDF2_ITERATIONS = 210_000
+const INTERNAL_SESSION_DURATION_MS = 12 * 60 * 60 * 1000
+const DRIVER_SESSION_DURATION_MS = 24 * 60 * 60 * 1000
 
 function requireDb(env: Env) {
   if (!env.DB) {
@@ -40,6 +54,10 @@ export function ok(data: unknown) {
   return json(data)
 }
 
+function toSqliteDate(date: Date) {
+  return date.toISOString().replace('T', ' ').slice(0, 19)
+}
+
 function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
 }
@@ -58,6 +76,212 @@ function toBoolean(value: unknown) {
 
 function isInternalRole(value: string): value is InternalRole {
   return value === 'operator' || value === 'manager' || value === 'admin'
+}
+
+function toBase64(bytes: Uint8Array) {
+  let binary = ''
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
+  }
+
+  return btoa(binary)
+}
+
+function fromBase64(value: string) {
+  const binary = atob(value)
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0))
+}
+
+function timingSafeEqual(left: string, right: string) {
+  if (left.length !== right.length) {
+    return false
+  }
+
+  let result = 0
+
+  for (let index = 0; index < left.length; index += 1) {
+    result |= left.charCodeAt(index) ^ right.charCodeAt(index)
+  }
+
+  return result === 0
+}
+
+async function deriveSecretHash(secret: string, saltBase64: string, iterations: number) {
+  const salt = fromBase64(saltBase64)
+  const key = await crypto.subtle.importKey('raw', textEncoder.encode(secret), 'PBKDF2', false, ['deriveBits'])
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt,
+      iterations,
+      hash: 'SHA-256',
+    },
+    key,
+    256,
+  )
+
+  return toBase64(new Uint8Array(bits))
+}
+
+export async function createSecretHash(secret: string) {
+  const salt = crypto.getRandomValues(new Uint8Array(16))
+  const saltBase64 = toBase64(salt)
+  const digest = await deriveSecretHash(secret, saltBase64, PBKDF2_ITERATIONS)
+
+  return `pbkdf2$${PBKDF2_ITERATIONS}$${saltBase64}$${digest}`
+}
+
+export async function verifySecretHash(secret: string, storedHash: string) {
+  const [algorithm, iterationsValue, saltBase64, digest] = storedHash.split('$')
+
+  if (algorithm !== 'pbkdf2' || !iterationsValue || !saltBase64 || !digest) {
+    return false
+  }
+
+  const iterations = Number(iterationsValue)
+
+  if (!Number.isFinite(iterations) || iterations <= 0) {
+    return false
+  }
+
+  const calculated = await deriveSecretHash(secret, saltBase64, iterations)
+  return timingSafeEqual(calculated, digest)
+}
+
+async function verifySecretWithFallback(options: {
+  secret: string
+  storedHash?: string | null
+  legacySecret?: string | null
+}) {
+  if (options.storedHash) {
+    const matchesHash = await verifySecretHash(options.secret, options.storedHash)
+    return { matches: matchesHash, shouldUpgrade: false }
+  }
+
+  const legacySecret = String(options.legacySecret ?? '')
+  const matchesLegacy = legacySecret !== '' && timingSafeEqual(options.secret, legacySecret)
+
+  return {
+    matches: matchesLegacy,
+    shouldUpgrade: matchesLegacy,
+  }
+}
+
+async function touchSession(db: D1Database, token: string, sessionType: SessionType) {
+  const expiresAt = toSqliteDate(
+    new Date(Date.now() + (sessionType === 'internal' ? INTERNAL_SESSION_DURATION_MS : DRIVER_SESSION_DURATION_MS)),
+  )
+
+  await db.prepare(
+    `
+      update auth_sessions
+      set last_used_at = current_timestamp,
+          expires_at = ?2
+      where token = ?1
+    `,
+  )
+    .bind(token, expiresAt)
+    .run()
+
+  return expiresAt
+}
+
+export async function closeSession(env: Env, token: string) {
+  const db = requireDb(env)
+  const result = await db.prepare(
+    `
+      update auth_sessions
+      set active = 0,
+          last_used_at = current_timestamp
+      where token = ?1
+        and active = 1
+    `,
+  )
+    .bind(token)
+    .run()
+
+  return Number(result.meta.changes ?? 0) > 0
+}
+
+export async function createSession(
+  env: Env,
+  params:
+    | { sessionType: 'internal'; operatorId: number; role: InternalRole; name: string }
+    | { sessionType: 'driver'; driverId: number; name: string },
+) {
+  const db = requireDb(env)
+  const token = crypto.randomUUID()
+  const expiresAt = toSqliteDate(
+    new Date(Date.now() + (params.sessionType === 'internal' ? INTERNAL_SESSION_DURATION_MS : DRIVER_SESSION_DURATION_MS)),
+  )
+
+  if (params.sessionType === 'internal') {
+    await db.prepare(
+      `
+        insert into auth_sessions (
+          token,
+          session_type,
+          operator_id,
+          role,
+          name,
+          active,
+          expires_at,
+          last_used_at
+        )
+        values (?1, 'internal', ?2, ?3, ?4, 1, ?5, current_timestamp)
+      `,
+    )
+      .bind(token, params.operatorId, params.role, params.name, expiresAt)
+      .run()
+
+    return { token, expiresAt }
+  }
+
+  await db.prepare(
+    `
+      insert into auth_sessions (
+        token,
+        session_type,
+        driver_id,
+        name,
+        active,
+        expires_at,
+        last_used_at
+      )
+      values (?1, 'driver', ?2, ?3, 1, ?4, current_timestamp)
+    `,
+  )
+    .bind(token, params.driverId, params.name, expiresAt)
+    .run()
+
+  return { token, expiresAt }
+}
+
+export async function writeAuditLog(
+  env: Env,
+  operatorId: number | null,
+  action: string,
+  entityType: string,
+  entityId: string,
+  metadata?: Record<string, unknown>,
+) {
+  const db = requireDb(env)
+
+  await db.prepare(
+    `
+      insert into audit_logs (
+        operator_id,
+        action,
+        entity_type,
+        entity_id,
+        metadata
+      )
+      values (?1, ?2, ?3, ?4, ?5)
+    `,
+  )
+    .bind(operatorId, action, entityType, entityId, metadata ? JSON.stringify(metadata) : null)
+    .run()
 }
 
 export async function requireInternalRole(
@@ -101,21 +325,14 @@ export async function requireInternalRole(
     return null
   }
 
-  await db.prepare(
-    `
-      update auth_sessions
-      set last_used_at = current_timestamp
-      where token = ?1
-    `,
-  )
-    .bind(token)
-    .run()
+  const expiresAt = await touchSession(db, token, 'internal')
 
   return {
     token,
     operatorId,
     role,
     name: String(session.name ?? ''),
+    expiresAt,
   }
 }
 
@@ -150,20 +367,13 @@ export async function readDriverSession(env: Env, request: Request) {
     return null
   }
 
-  await db.prepare(
-    `
-      update auth_sessions
-      set last_used_at = current_timestamp
-      where token = ?1
-    `,
-  )
-    .bind(token)
-    .run()
+  const expiresAt = await touchSession(db, token, 'driver')
 
   return {
     token,
     driverId,
     name: String(session.name ?? ''),
+    expiresAt,
   }
 }
 
@@ -181,7 +391,7 @@ async function getNextHistoryOrder(db: D1Database, requestId: number) {
   return Number(orderResult?.maxSortOrder ?? 0) + 1
 }
 
-export async function listRequests(env: Env, status?: string) {
+export async function listRequests(env: Env, filters: RequestFilters = {}) {
   const db = requireDb(env)
 
   let query = `
@@ -223,11 +433,57 @@ export async function listRequests(env: Env, status?: string) {
     inner join patients p on p.id = tr.patient_id
   `
 
-  const params: string[] = []
+  const whereClauses: string[] = []
+  const params: Array<string | number> = []
 
-  if (status) {
-    query += ' where tr.status = ?1'
-    params.push(status)
+  if (filters.status) {
+    whereClauses.push(`tr.status = ?${params.length + 1}`)
+    params.push(filters.status)
+  }
+
+  if (filters.travelDate) {
+    whereClauses.push(`tr.travel_date = ?${params.length + 1}`)
+    params.push(filters.travelDate)
+  }
+
+  if (filters.driverId && Number.isFinite(filters.driverId) && filters.driverId > 0) {
+    whereClauses.push(`tr.assigned_driver_id = ?${params.length + 1}`)
+    params.push(filters.driverId)
+  }
+
+  if (filters.destination?.trim()) {
+    whereClauses.push(`lower(tr.destination_city) like ?${params.length + 1}`)
+    params.push(`%${filters.destination.trim().toLowerCase()}%`)
+  }
+
+  if (filters.search?.trim()) {
+    const search = filters.search.trim()
+    const normalizedDigits = search.replace(/\D/g, '')
+
+    if (normalizedDigits.length >= 3) {
+      whereClauses.push(
+        `(replace(replace(replace(tr.cpf_masked, '.', ''), '-', ''), ' ', '') like ?${params.length + 1}
+          or replace(replace(replace(tr.access_cpf_masked, '.', ''), '-', ''), ' ', '') like ?${params.length + 2}
+          or replace(replace(replace(p.cpf_masked, '.', ''), '-', ''), ' ', '') like ?${params.length + 3}
+          or replace(replace(replace(p.access_cpf_masked, '.', ''), '-', ''), ' ', '') like ?${params.length + 4})`,
+      )
+      const digitsPattern = `%${normalizedDigits}%`
+      params.push(digitsPattern, digitsPattern, digitsPattern, digitsPattern)
+    } else {
+      const likeValue = `%${search.toLowerCase()}%`
+      whereClauses.push(
+        `(lower(tr.protocol) like ?${params.length + 1}
+          or lower(tr.patient_name) like ?${params.length + 2}
+          or lower(tr.destination_city) like ?${params.length + 3}
+          or lower(tr.treatment_unit) like ?${params.length + 4}
+          or lower(coalesce(tr.assigned_driver_name, '')) like ?${params.length + 5})`,
+      )
+      params.push(likeValue, likeValue, likeValue, likeValue, likeValue)
+    }
+  }
+
+  if (whereClauses.length > 0) {
+    query += ` where ${whereClauses.join(' and ')}`
   }
 
   query += ' order by tr.created_at desc'
@@ -247,7 +503,8 @@ export async function listRequests(env: Env, status?: string) {
 export async function getSummary(env: Env) {
   const requests = await listRequests(env)
   const totalRequests = requests.length
-  const scheduledToday = requests.filter((item) => item.status === 'agendada').length
+  const today = new Date().toISOString().slice(0, 10)
+  const scheduledToday = requests.filter((item) => item.status === 'agendada' && item.travelDate === today).length
   const pendingDocuments = requests.filter((item) => item.status === 'aguardando_documentos').length
   const approvedRequests = requests.filter((item) =>
     item.status === 'aprovada' || item.status === 'agendada' || item.status === 'concluida'
@@ -272,7 +529,9 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
         full_name as patientName,
         access_cpf_masked as cpfMasked,
         temporary_password as temporaryPassword,
+        temporary_password_hash as temporaryPasswordHash,
         citizen_pin as citizenPin,
+        citizen_pin_hash as citizenPinHash,
         must_change_pin as mustChangePin
       from patients
       where access_cpf = ?1
@@ -289,11 +548,53 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
 
   const mustChangePin = toBoolean(patientAccess.mustChangePin)
   const temporaryPassword = String(patientAccess.temporaryPassword ?? '')
+  const temporaryPasswordHash = String(patientAccess.temporaryPasswordHash ?? '')
   const citizenPin = String(patientAccess.citizenPin ?? '')
-  const passwordMatches = (mustChangePin && password === temporaryPassword) || password === citizenPin
+  const citizenPinHash = String(patientAccess.citizenPinHash ?? '')
+  const temporaryMatch = mustChangePin
+    ? await verifySecretWithFallback({
+        secret: password,
+        storedHash: temporaryPasswordHash,
+        legacySecret: temporaryPassword,
+      })
+    : { matches: false, shouldUpgrade: false }
+  const pinMatch = await verifySecretWithFallback({
+    secret: password,
+    storedHash: citizenPinHash,
+    legacySecret: citizenPin,
+  })
+  const passwordMatches = temporaryMatch.matches || pinMatch.matches
 
   if (!passwordMatches) {
     return null
+  }
+
+  if (temporaryMatch.shouldUpgrade) {
+    await db.prepare(
+      `
+        update patients
+        set temporary_password_hash = ?1,
+            temporary_password = '',
+            updated_at = current_timestamp
+        where id = ?2
+      `,
+    )
+      .bind(await createSecretHash(password), patientAccess.id)
+      .run()
+  }
+
+  if (pinMatch.shouldUpgrade) {
+    await db.prepare(
+      `
+        update patients
+        set citizen_pin_hash = ?1,
+            citizen_pin = '',
+            updated_at = current_timestamp
+        where id = ?2
+      `,
+    )
+      .bind(await createSecretHash(password), patientAccess.id)
+      .run()
   }
 
   const requestResult = await db.prepare(
@@ -336,10 +637,10 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
 
   if (!requestResult) {
     return {
-      mustChangePin: mustChangePin && password === temporaryPassword,
+      mustChangePin: mustChangePin && temporaryMatch.matches,
       patientName: String(patientAccess.patientName ?? ''),
       cpfMasked: String(patientAccess.cpfMasked ?? ''),
-      temporaryPasswordLabel: temporaryPassword,
+      temporaryPasswordLabel: '0000',
       request: null,
     }
   }
@@ -373,10 +674,10 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
     .run()
 
   return {
-    mustChangePin: mustChangePin && password === temporaryPassword,
+    mustChangePin: mustChangePin && temporaryMatch.matches,
     patientName: String(patientAccess.patientName ?? ''),
     cpfMasked: String(patientAccess.cpfMasked ?? ''),
-    temporaryPasswordLabel: temporaryPassword,
+    temporaryPasswordLabel: '0000',
     request: {
       ...requestResult,
       companionRequired: toBoolean(requestResult.companionRequired),
@@ -418,7 +719,10 @@ export async function activateCitizenPin(env: Env, cpf: string, newPin: string) 
   await db.prepare(
     `
       update patients
-      set citizen_pin = ?1,
+      set citizen_pin = '',
+          citizen_pin_hash = ?1,
+          temporary_password = '',
+          temporary_password_hash = null,
           must_change_pin = 0,
           access_activated_at = coalesce(access_activated_at, current_timestamp),
           last_login_at = current_timestamp,
@@ -426,7 +730,7 @@ export async function activateCitizenPin(env: Env, cpf: string, newPin: string) 
       where id = ?2
     `,
   )
-    .bind(newPin, patient.id)
+    .bind(await createSecretHash(newPin), patient.id)
     .run()
 
   return loginCitizen(env, cpf, newPin)
@@ -530,6 +834,7 @@ export async function loginDriver(env: Env, cpf: string, password: string) {
         d.name,
         d.cpf,
         d.password,
+        d.password_hash as passwordHash,
         coalesce(v.name, d.vehicle_name) as vehicleName
       from drivers d
       left join vehicles v on v.id = d.vehicle_id
@@ -541,8 +846,32 @@ export async function loginDriver(env: Env, cpf: string, password: string) {
     .bind(normalizedCpf)
     .first<Record<string, unknown>>()
 
-  if (!driver || String(driver.password ?? '') !== password) {
+  if (!driver) {
     return null
+  }
+
+  const passwordMatch = await verifySecretWithFallback({
+    secret: password,
+    storedHash: String(driver.passwordHash ?? ''),
+    legacySecret: String(driver.password ?? ''),
+  })
+
+  if (!passwordMatch.matches) {
+    return null
+  }
+
+  if (passwordMatch.shouldUpgrade) {
+    await db.prepare(
+      `
+        update drivers
+        set password_hash = ?1,
+            password = '',
+            updated_at = current_timestamp
+        where id = ?2
+      `,
+    )
+      .bind(await createSecretHash(password), driver.id)
+      .run()
   }
 
   return {

@@ -1,4 +1,4 @@
-import { badRequest, notFound, ok, type Env } from '../_utils'
+import { badRequest, createSecretHash, createSession, notFound, ok, verifySecretHash, type Env } from '../_utils'
 
 function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
@@ -29,7 +29,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         name,
         role,
         cpf,
-        password
+        password,
+        password_hash as passwordHash
       from operators
       where cpf = ?1
         and active = 1
@@ -39,37 +40,48 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     .bind(normalizedCpf)
     .first<Record<string, unknown>>()
 
-  if (!operator || String(operator.password ?? '') !== password) {
+  if (!operator) {
     return notFound('Acesso administrativo não encontrado.')
   }
 
-  const token = crypto.randomUUID()
+  const passwordHash = String(operator.passwordHash ?? '')
+  const legacyPassword = String(operator.password ?? '')
+  const matchesHash = passwordHash ? await verifySecretHash(password, passwordHash) : false
+  const matchesLegacy = !passwordHash && legacyPassword !== '' && legacyPassword === password
 
-  await env.DB.prepare(
-    `
-      insert into auth_sessions (
-        token,
-        session_type,
-        operator_id,
-        role,
-        name,
-        active,
-        expires_at,
-        last_used_at
-      )
-      values (?1, 'internal', ?2, ?3, ?4, 1, datetime('now', '+7 days'), current_timestamp)
-    `,
-  )
-    .bind(token, operator.id, operator.role, operator.name)
-    .run()
+  if (!matchesHash && !matchesLegacy) {
+    return notFound('Acesso administrativo não encontrado.')
+  }
+
+  if (matchesLegacy) {
+    await env.DB.prepare(
+      `
+        update operators
+        set password_hash = ?1,
+            password = '',
+            updated_at = current_timestamp
+        where id = ?2
+      `,
+    )
+      .bind(await createSecretHash(password), operator.id)
+      .run()
+  }
+
+  const sessionRecord = await createSession(env, {
+    sessionType: 'internal',
+    operatorId: Number(operator.id),
+    role: String(operator.role) as 'operator' | 'manager' | 'admin',
+    name: String(operator.name),
+  })
 
   return ok({
     session: {
-      token,
+      token: sessionRecord.token,
       operatorId: operator.id,
       name: operator.name,
       role: operator.role,
       cpf: maskCpf(String(operator.cpf ?? '')),
+      expiresAt: sessionRecord.expiresAt,
     },
   })
 }

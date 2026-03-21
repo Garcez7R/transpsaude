@@ -86,6 +86,7 @@ export interface AdminSession {
   name: string
   role: InternalRole
   cpf: string
+  expiresAt: string
 }
 
 export interface AdminLoginResponse {
@@ -138,6 +139,15 @@ export interface DriverSession {
   name: string
   cpf: string
   vehicleName: string
+  expiresAt: string
+}
+
+export interface RequestQueryFilters {
+  status?: RequestStatus | 'todos'
+  search?: string
+  travelDate?: string
+  driverId?: number | null
+  destination?: string
 }
 
 export interface DriverLoginResponse {

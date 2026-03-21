@@ -12,7 +12,8 @@ where type = 'table'
     'vehicles',
     'drivers',
     'request_status_history',
-    'audit_logs'
+    'audit_logs',
+    'auth_sessions'
   )
 order by name;
 
@@ -24,6 +25,7 @@ pragma table_info(vehicles);
 pragma table_info(drivers);
 pragma table_info(request_status_history);
 pragma table_info(audit_logs);
+pragma table_info(auth_sessions);
 
 /***** Seeds e acessos iniciais *****/
 select id, name, cpf, email, role, active, created_by_operator_id
@@ -83,4 +85,6 @@ select 'drivers', count(*) from drivers
 union all
 select 'request_status_history', count(*) from request_status_history
 union all
-select 'audit_logs', count(*) from audit_logs;
+select 'audit_logs', count(*) from audit_logs
+union all
+select 'auth_sessions', count(*) from auth_sessions;

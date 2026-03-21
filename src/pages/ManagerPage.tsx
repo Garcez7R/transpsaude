@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
-import { assignDriver, fetchDrivers, fetchRequests, loginAdmin } from '../lib/api'
+import { assignDriver, fetchDrivers, fetchRequests, loginAdmin, logoutSession } from '../lib/api'
 import { clearAdminSession, saveAdminSession } from '../lib/admin-session'
 import { clearAdminAreaSession } from '../lib/admin-area-session'
 import { clearManagerSession, getManagerSession, saveManagerSession } from '../lib/manager-session'
@@ -45,6 +45,11 @@ export function ManagerPage() {
 
   const [requests, setRequests] = useState<TravelRequest[]>([])
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
+  const [selectedStatus, setSelectedStatus] = useState<'todos' | TravelRequest['status']>('todos')
+  const [search, setSearch] = useState('')
+  const [travelDate, setTravelDate] = useState('')
+  const [destination, setDestination] = useState('')
+  const [driverFilterId, setDriverFilterId] = useState('')
   const [assignment, setAssignment] = useState<AssignmentState>({})
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<number | null>(null)
@@ -67,7 +72,16 @@ export function ManagerPage() {
       setError('')
 
       try {
-        const [requestData, driverData] = await Promise.all([fetchRequests(), fetchDrivers()])
+        const [requestData, driverData] = await Promise.all([
+          fetchRequests({
+            status: selectedStatus,
+            search,
+            travelDate,
+            destination,
+            driverId: driverFilterId ? Number(driverFilterId) : null,
+          }),
+          fetchDrivers(),
+        ])
 
         if (!active) {
           return
@@ -105,7 +119,7 @@ export function ManagerPage() {
     return () => {
       active = false
     }
-  }, [session])
+  }, [destination, driverFilterId, search, selectedStatus, session, travelDate])
 
   function updateAssignment(
     requestId: number,
@@ -149,7 +163,15 @@ export function ManagerPage() {
     }
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    if (session?.token) {
+      try {
+        await logoutSession(session.token)
+      } catch {
+        // A limpeza local continua mesmo se a API não responder.
+      }
+    }
+
     clearAdminSession()
     clearManagerSession()
     clearAdminAreaSession()
@@ -186,7 +208,13 @@ export function ManagerPage() {
       })
 
       setMessage(result.message)
-      const refreshed = await fetchRequests()
+      const refreshed = await fetchRequests({
+        status: selectedStatus,
+        search,
+        travelDate,
+        destination,
+        driverId: driverFilterId ? Number(driverFilterId) : null,
+      })
       setRequests(refreshed)
     } catch {
       setError('Não foi possível atribuir o motorista para essa viagem.')
@@ -317,6 +345,87 @@ export function ManagerPage() {
 
       {error ? <p className="table-note">{error}</p> : null}
       {message ? <p className="table-note">{message}</p> : null}
+
+      <section className="content-card">
+        <div className="form-grid">
+          <div className="field">
+            <label htmlFor="manager-search">Buscar</label>
+            <input
+              id="manager-search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Paciente, protocolo, CPF, unidade..."
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="manager-date">Data da viagem</label>
+            <input
+              id="manager-date"
+              type="date"
+              value={travelDate}
+              onChange={(event) => setTravelDate(event.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="manager-destination">Destino</label>
+            <input
+              id="manager-destination"
+              value={destination}
+              onChange={(event) => setDestination(event.target.value)}
+              placeholder="Cidade de destino"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="manager-status">Status</label>
+            <select
+              id="manager-status"
+              value={selectedStatus}
+              onChange={(event) => setSelectedStatus(event.target.value as 'todos' | TravelRequest['status'])}
+            >
+              <option value="todos">Todos os status</option>
+              <option value="recebida">Recebida</option>
+              <option value="em_analise">Em análise</option>
+              <option value="aguardando_documentos">Aguardando documentos</option>
+              <option value="aprovada">Aprovada</option>
+              <option value="agendada">Agendada</option>
+              <option value="cancelada">Cancelada</option>
+              <option value="concluida">Concluída</option>
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="manager-driver-filter">Motorista</label>
+            <select
+              id="manager-driver-filter"
+              value={driverFilterId}
+              onChange={(event) => setDriverFilterId(event.target.value)}
+            >
+              <option value="">Todos os motoristas</option>
+              {drivers.map((driver) => (
+                <option key={driver.id} value={driver.id}>
+                  {driver.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field full">
+            <div className="form-actions">
+              <button
+                className="action-button secondary"
+                type="button"
+                onClick={() => {
+                  setSelectedStatus('todos')
+                  setSearch('')
+                  setTravelDate('')
+                  setDestination('')
+                  setDriverFilterId('')
+                }}
+              >
+                Limpar filtros
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="dashboard-grid">
         <div className="content-card">

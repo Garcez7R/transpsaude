@@ -1,4 +1,13 @@
-import { badRequest, forbidden, listPatients, notFound, ok, requireInternalRole, type Env } from '../_utils'
+import {
+  badRequest,
+  forbidden,
+  listPatients,
+  notFound,
+  ok,
+  requireInternalRole,
+  type Env,
+  writeAuditLog,
+} from '../_utils'
 
 function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
@@ -106,6 +115,11 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
     )
     .run()
 
+  await writeAuditLog(env, session.operatorId, 'update', 'patient', String(body.id), {
+    fullName: body.fullName,
+    accessCpf,
+  })
+
   return ok({ message: `Paciente ${body.fullName} atualizado com sucesso.` })
 }
 
@@ -149,6 +163,10 @@ export const onRequestDelete: PagesFunction<Env> = async ({ env, request }) => {
   )
     .bind(id)
     .run()
+
+  await writeAuditLog(env, session.operatorId, 'delete', 'patient', String(id), {
+    fullName: String(existing.fullName),
+  })
 
   return ok({ message: `Paciente ${String(existing.fullName)} desativado com sucesso.` })
 }

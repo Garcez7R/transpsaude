@@ -1,4 +1,4 @@
-import { badRequest, forbidden, listVehicles, notFound, ok, requireInternalRole, type Env } from '../_utils'
+import { badRequest, forbidden, listVehicles, notFound, ok, requireInternalRole, type Env, writeAuditLog } from '../_utils'
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
   const session = await requireInternalRole(env, request, ['manager', 'admin'])
@@ -57,6 +57,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   )
     .bind(body.plate.toUpperCase())
     .first<Record<string, unknown>>()
+
+  await writeAuditLog(env, session.operatorId, 'create', 'vehicle', String(created?.id ?? body.plate.toUpperCase()), {
+    name: body.name,
+    plate: body.plate.toUpperCase(),
+    category: body.category,
+  })
 
   return ok({
     ...created,
@@ -122,6 +128,12 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
     .bind(body.name, body.id)
     .run()
 
+  await writeAuditLog(env, session.operatorId, 'update', 'vehicle', String(body.id), {
+    name: body.name,
+    plate: body.plate.toUpperCase(),
+    category: body.category,
+  })
+
   return ok({ message: `Veículo ${body.name} atualizado com sucesso.` })
 }
 
@@ -180,6 +192,10 @@ export const onRequestDelete: PagesFunction<Env> = async ({ env, request }) => {
   )
     .bind(id)
     .run()
+
+  await writeAuditLog(env, session.operatorId, 'delete', 'vehicle', String(id), {
+    name: String(existing.name),
+  })
 
   return ok({ message: `Veículo ${String(existing.name)} desativado com sucesso.` })
 }

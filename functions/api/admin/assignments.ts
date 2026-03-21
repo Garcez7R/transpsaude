@@ -1,4 +1,4 @@
-import { badRequest, forbidden, notFound, ok, requireInternalRole, type Env } from '../_utils'
+import { badRequest, forbidden, notFound, ok, requireInternalRole, type Env, writeAuditLog } from '../_utils'
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   const session = await requireInternalRole(env, request, ['manager', 'admin'])
@@ -107,6 +107,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       session.operatorId,
     )
     .run()
+
+  await writeAuditLog(env, session.operatorId, 'assign', 'travel_request', String(body.requestId), {
+    protocol: String(travelRequest.protocol),
+    driverName: String(driver.name),
+    departureTime: body.departureTime,
+    boardingLocationName: body.useCustomBoardingLocation ? body.boardingLocationName ?? '' : 'endereco_paciente',
+  })
 
   return ok({
     message: `Viagem atribuida para ${String(driver.name)} com sucesso.`,

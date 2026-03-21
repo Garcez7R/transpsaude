@@ -13,6 +13,7 @@ import type {
   DriverRecord,
   OperatorRecord,
   PatientRecord,
+  RequestQueryFilters,
   StatusHistoryEntry,
   TravelRequest,
   TravelRequestDetails,
@@ -68,11 +69,27 @@ export async function fetchDashboardSummary() {
   return parseJson<DashboardSummary>(response)
 }
 
-export async function fetchRequests(status?: string) {
+export async function fetchRequests(filters: RequestQueryFilters = {}) {
   const search = new URLSearchParams()
 
-  if (status && status !== 'todos') {
-    search.set('status', status)
+  if (filters.status && filters.status !== 'todos') {
+    search.set('status', filters.status)
+  }
+
+  if (filters.search?.trim()) {
+    search.set('search', filters.search.trim())
+  }
+
+  if (filters.travelDate) {
+    search.set('travelDate', filters.travelDate)
+  }
+
+  if (filters.driverId && filters.driverId > 0) {
+    search.set('driverId', String(filters.driverId))
+  }
+
+  if (filters.destination?.trim()) {
+    search.set('destination', filters.destination.trim())
   }
 
   const suffix = search.toString() ? `?${search.toString()}` : ''
@@ -237,6 +254,18 @@ export async function loginDriver(cpf: string, password: string) {
   })
 
   return parseJson<DriverLoginResponse>(response)
+}
+
+export async function logoutSession(token: string) {
+  const response = await fetch('/api/logout', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-session-token': token,
+    },
+  })
+
+  return parseJson<{ message: string }>(response)
 }
 
 export async function fetchDriverTrips(driverId: number) {

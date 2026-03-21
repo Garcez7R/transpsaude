@@ -1,4 +1,14 @@
-import { badRequest, forbidden, listOperators, notFound, ok, requireInternalRole, type Env } from '../_utils'
+import {
+  badRequest,
+  createSecretHash,
+  forbidden,
+  listOperators,
+  notFound,
+  ok,
+  requireInternalRole,
+  type Env,
+  writeAuditLog,
+} from '../_utils'
 
 function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
@@ -31,16 +41,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         cpf,
         email,
         password,
+        password_hash,
         role,
         active,
         created_by_operator_id,
         updated_at
       )
-      values (?1, ?2, ?3, ?4, 'operator', 1, ?5, current_timestamp)
+      values (?1, ?2, ?3, '', ?4, 'operator', 1, ?5, current_timestamp)
     `,
   )
-    .bind(body.name, cpf, body.email, body.password, session.operatorId)
+    .bind(body.name, cpf, body.email, await createSecretHash(body.password), session.operatorId)
     .run()
+
+  await writeAuditLog(env, session.operatorId, 'create', 'operator', cpf, {
+    name: body.name,
+    email: body.email,
+  })
 
   return ok({
     message: `Operador ${body.name} cadastrado com sucesso.`,
@@ -101,13 +117,19 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
       set name = ?1,
           cpf = ?2,
           email = ?3,
-          password = case when ?4 != '' then ?4 else password end,
+          password = case when ?4 != '' then '' else password end,
+          password_hash = case when ?4 != '' then ?5 else password_hash end,
           updated_at = current_timestamp
-      where id = ?5
+      where id = ?6
     `,
   )
-    .bind(body.name, cpf, body.email, body.password ?? '', body.id)
+    .bind(body.name, cpf, body.email, body.password ?? '', body.password ? await createSecretHash(body.password) : '', body.id)
     .run()
+
+  await writeAuditLog(env, session.operatorId, 'update', 'operator', String(body.id), {
+    name: body.name,
+    email: body.email,
+  })
 
   return ok({ message: `Operador ${body.name} atualizado com sucesso.` })
 }
@@ -153,6 +175,10 @@ export const onRequestDelete: PagesFunction<Env> = async ({ env, request }) => {
   )
     .bind(id)
     .run()
+
+  await writeAuditLog(env, session.operatorId, 'delete', 'operator', String(id), {
+    name: String(existing.name),
+  })
 
   return ok({ message: `Operador ${String(existing.name)} desativado com sucesso.` })
 }

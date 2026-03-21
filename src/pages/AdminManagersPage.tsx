@@ -2,7 +2,7 @@ import { ArrowLeft, ShieldCheck, UserPlus2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessAdmin, isValidInternalRole } from '../lib/access'
-import { createManager, createOperator, loginAdmin } from '../lib/api'
+import { createManager, createOperator, loginAdmin, logoutSession } from '../lib/api'
 import { clearAdminSession, saveAdminSession } from '../lib/admin-session'
 import { clearManagerSession } from '../lib/manager-session'
 import { clearAdminAreaSession, getAdminAreaSession, saveAdminAreaSession } from '../lib/admin-area-session'
@@ -335,7 +335,15 @@ export function AdminManagersPage() {
             <button
               className="action-button secondary"
               type="button"
-              onClick={() => {
+              onClick={async () => {
+                if (session?.token) {
+                  try {
+                    await logoutSession(session.token)
+                  } catch {
+                    // A limpeza local continua mesmo se a API não responder.
+                  }
+                }
+
                 clearAdminSession()
                 clearAdminAreaSession()
                 clearManagerSession()

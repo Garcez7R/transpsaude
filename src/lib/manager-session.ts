@@ -10,7 +10,14 @@ export function getManagerSession() {
   }
 
   try {
-    return JSON.parse(stored) as AdminSession
+    const session = JSON.parse(stored) as AdminSession
+
+    if (session.expiresAt && new Date(session.expiresAt).getTime() <= Date.now()) {
+      window.localStorage.removeItem(SESSION_KEY)
+      return null
+    }
+
+    return session
   } catch {
     window.localStorage.removeItem(SESSION_KEY)
     return null

@@ -1,4 +1,14 @@
-import { badRequest, forbidden, listDrivers, notFound, ok, requireInternalRole, type Env } from '../_utils'
+import {
+  badRequest,
+  createSecretHash,
+  forbidden,
+  listDrivers,
+  notFound,
+  ok,
+  requireInternalRole,
+  type Env,
+  writeAuditLog,
+} from '../_utils'
 
 function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
@@ -70,12 +80,21 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         vehicle_id,
         vehicle_name,
         password,
+        password_hash,
         active
       )
-      values (?1, ?2, ?3, ?4, ?5, ?6, ?7, 1)
+      values (?1, ?2, ?3, ?4, ?5, ?6, '', ?7, 1)
     `,
   )
-    .bind(body.name, cpf, body.phone, body.isWhatsapp ? 1 : 0, vehicle.id, vehicle.name, body.password)
+    .bind(
+      body.name,
+      cpf,
+      body.phone,
+      body.isWhatsapp ? 1 : 0,
+      vehicle.id,
+      vehicle.name,
+      await createSecretHash(body.password),
+    )
     .run()
 
   const created = await env.DB.prepare(
@@ -97,6 +116,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   )
     .bind(cpf)
     .first<Record<string, unknown>>()
+
+  await writeAuditLog(env, session.operatorId, 'create', 'driver', cpf, {
+    name: body.name,
+    vehicleName: String(vehicle.name),
+  })
 
   return ok({
     ...created,
@@ -170,13 +194,29 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
           is_whatsapp = ?4,
           vehicle_id = ?5,
           vehicle_name = ?6,
-          password = case when ?7 != '' then ?7 else password end,
+          password = case when ?7 != '' then '' else password end,
+          password_hash = case when ?7 != '' then ?8 else password_hash end,
           updated_at = current_timestamp
-      where id = ?8
+      where id = ?9
     `,
   )
-    .bind(body.name, cpf, body.phone, body.isWhatsapp ? 1 : 0, vehicle.id, vehicle.name, body.password ?? '', body.id)
+    .bind(
+      body.name,
+      cpf,
+      body.phone,
+      body.isWhatsapp ? 1 : 0,
+      vehicle.id,
+      vehicle.name,
+      body.password ?? '',
+      body.password ? await createSecretHash(body.password) : '',
+      body.id,
+    )
     .run()
+
+  await writeAuditLog(env, session.operatorId, 'update', 'driver', String(body.id), {
+    name: body.name,
+    vehicleName: String(vehicle.name),
+  })
 
   return ok({ message: `Motorista ${body.name} atualizado com sucesso.` })
 }
@@ -221,6 +261,10 @@ export const onRequestDelete: PagesFunction<Env> = async ({ env, request }) => {
   )
     .bind(id)
     .run()
+
+  await writeAuditLog(env, session.operatorId, 'delete', 'driver', String(id), {
+    name: String(existing.name),
+  })
 
   return ok({ message: `Motorista ${String(existing.name)} desativado com sucesso.` })
 }

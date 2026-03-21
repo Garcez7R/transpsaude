@@ -10,7 +10,14 @@ export function getDriverSession() {
   }
 
   try {
-    return JSON.parse(stored) as DriverSession
+    const session = JSON.parse(stored) as DriverSession
+
+    if (session.expiresAt && new Date(session.expiresAt).getTime() <= Date.now()) {
+      window.localStorage.removeItem(SESSION_KEY)
+      return null
+    }
+
+    return session
   } catch {
     window.localStorage.removeItem(SESSION_KEY)
     return null

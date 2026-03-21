@@ -1,4 +1,12 @@
-import { badRequest, forbidden, ok, requireInternalRole, type Env } from '../_utils'
+import {
+  badRequest,
+  createSecretHash,
+  forbidden,
+  ok,
+  requireInternalRole,
+  type Env,
+  writeAuditLog,
+} from '../_utils'
 
 function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
@@ -81,6 +89,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   }
 
   const protocol = buildProtocol()
+  const temporaryPasswordHash = await createSecretHash('0000')
   const patientCpf = normalizeCpf(body.cpf)
   const patientCpfMasked = maskCpf(patientCpf)
   const accessCpf = normalizeCpf(body.accessCpf)
@@ -128,10 +137,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
           responsible_cpf_masked,
           use_responsible_cpf_for_access,
           temporary_password,
+          temporary_password_hash,
           citizen_pin,
+          citizen_pin_hash,
           must_change_pin
         )
-        values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'Capao do Leao', 'RS', ?10, ?11, ?12, ?13, '0000', null, 1)
+        values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'Capao do Leao', 'RS', ?10, ?11, ?12, ?13, '', ?14, '', null, 1)
         returning id
       `,
     )
@@ -149,6 +160,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         responsibleCpf,
         responsibleCpfMasked,
         body.useResponsibleCpfForAccess ? 1 : 0,
+        temporaryPasswordHash,
       )
       .first<Record<string, unknown>>()
 
@@ -169,12 +181,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
             responsible_cpf = ?10,
             responsible_cpf_masked = ?11,
             use_responsible_cpf_for_access = ?12,
-            temporary_password = '0000',
-            citizen_pin = null,
-          must_change_pin = 1,
-          active = 1,
-          updated_at = current_timestamp
-        where id = ?13
+            temporary_password = '',
+            temporary_password_hash = ?13,
+            citizen_pin = '',
+            citizen_pin_hash = null,
+            must_change_pin = 1,
+            active = 1,
+            updated_at = current_timestamp
+        where id = ?14
       `,
     )
       .bind(
@@ -190,6 +204,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         responsibleCpf,
         responsibleCpfMasked,
         body.useResponsibleCpfForAccess ? 1 : 0,
+        temporaryPasswordHash,
         patientId,
       )
       .run()
@@ -274,9 +289,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       where protocol = ?1
       limit 1
     `,
-  )
+    )
     .bind(protocol)
     .first<Record<string, unknown>>()
+
+  await writeAuditLog(env, session.operatorId, 'create', 'travel_request', protocol, {
+    requestId: createdRequest?.id ?? null,
+    patientName: body.patientName,
+    destinationCity: body.destinationCity,
+    treatmentUnit: body.treatmentUnit,
+    travelDate: body.travelDate,
+  })
 
   if (createdRequest?.id) {
     await env.DB.prepare(

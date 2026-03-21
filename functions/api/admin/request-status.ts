@@ -1,4 +1,13 @@
-import { badRequest, forbidden, notFound, ok, requireInternalRole, updateRequestStatus, type Env } from '../_utils'
+import {
+  badRequest,
+  forbidden,
+  notFound,
+  ok,
+  requireInternalRole,
+  updateRequestStatus,
+  type Env,
+  writeAuditLog,
+} from '../_utils'
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   const session = await requireInternalRole(env, request, ['operator', 'manager', 'admin'])
@@ -22,6 +31,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   if (!result) {
     return notFound('Solicitação não encontrada.')
   }
+
+  await writeAuditLog(env, session.operatorId, 'status_change', 'travel_request', String(body.requestId), {
+    status: body.status,
+    note: body.note ?? '',
+  })
 
   return ok(result)
 }

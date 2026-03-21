@@ -1,6 +1,6 @@
 import { BusFront, LogOut, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { fetchDriverTrips, loginDriver } from '../lib/api'
+import { fetchDriverTrips, loginDriver, logoutSession } from '../lib/api'
 import { clearDriverSession, getDriverSession, saveDriverSession } from '../lib/driver-session'
 import type { DriverSession, TravelRequest } from '../types'
 
@@ -76,7 +76,15 @@ export function DriverPortalPage() {
     }
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    if (session?.token) {
+      try {
+        await logoutSession(session.token)
+      } catch {
+        // A limpeza local continua mesmo se a API não responder.
+      }
+    }
+
     clearDriverSession()
     setSession(null)
     setTrips([])

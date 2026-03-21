@@ -1,7 +1,7 @@
-import { Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, ShieldCheck } from 'lucide-react'
+import { Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { loginAdmin, fetchDashboardSummary, fetchRequests } from '../lib/api'
+import { loginAdmin, fetchDashboardSummary, fetchRequests, logoutSession } from '../lib/api'
 import { canAccessOperator, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
 import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } from '../types'
@@ -45,6 +45,9 @@ export function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [requests, setRequests] = useState<TravelRequest[]>([])
   const [selectedStatus, setSelectedStatus] = useState<RequestStatus | 'todos'>('todos')
+  const [search, setSearch] = useState('')
+  const [travelDate, setTravelDate] = useState('')
+  const [destination, setDestination] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -66,7 +69,12 @@ export function DashboardPage() {
       try {
         const [dashboardData, requestsData] = await Promise.all([
           fetchDashboardSummary(),
-          fetchRequests(selectedStatus),
+          fetchRequests({
+            status: selectedStatus,
+            search,
+            travelDate,
+            destination,
+          }),
         ])
 
         if (!active) {
@@ -93,7 +101,7 @@ export function DashboardPage() {
     return () => {
       active = false
     }
-  }, [selectedStatus, session])
+  }, [destination, search, selectedStatus, session, travelDate])
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -117,7 +125,15 @@ export function DashboardPage() {
     }
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    if (session?.token) {
+      try {
+        await logoutSession(session.token)
+      } catch {
+        // A limpeza local continua mesmo se a API não responder.
+      }
+    }
+
     clearAdminSession()
     setSession(null)
     setSummary(null)
@@ -300,6 +316,33 @@ export function DashboardPage() {
       <section className="dashboard-grid">
         <div className="content-card">
           <div className="toolbar-row">
+            <div className="field search-field">
+              <label htmlFor="request-search">Buscar</label>
+              <input
+                id="request-search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Protocolo, paciente, CPF, unidade..."
+              />
+            </div>
+            <div className="field compact-field">
+              <label htmlFor="request-date-filter">Data da viagem</label>
+              <input
+                id="request-date-filter"
+                type="date"
+                value={travelDate}
+                onChange={(event) => setTravelDate(event.target.value)}
+              />
+            </div>
+            <div className="field compact-field">
+              <label htmlFor="destination-filter">Destino</label>
+              <input
+                id="destination-filter"
+                value={destination}
+                onChange={(event) => setDestination(event.target.value)}
+                placeholder="Cidade"
+              />
+            </div>
             <div className="select-field">
               <label htmlFor="status-filter">Filtrar por status</label>
               <select
@@ -315,7 +358,16 @@ export function DashboardPage() {
               </select>
             </div>
 
-            <button className="ghost-button" type="button" onClick={() => setSelectedStatus('todos')}>
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={() => {
+                setSelectedStatus('todos')
+                setSearch('')
+                setTravelDate('')
+                setDestination('')
+              }}
+            >
               <Filter size={16} />
               Limpar filtro
             </button>
@@ -323,7 +375,7 @@ export function DashboardPage() {
 
           <div className="status-line">
             <span className="subtle-label">
-              <RefreshCcw size={14} />
+              {search || travelDate || destination ? <Search size={14} /> : <RefreshCcw size={14} />}
               {visibleCountLabel}
             </span>
             {error ? <span className="status-pill">{error}</span> : null}
