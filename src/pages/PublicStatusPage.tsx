@@ -64,7 +64,7 @@ export function PublicStatusPage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Consulta pública da Prefeitura de Capão do Leão</strong>
+          <strong>Prefeitura Municipal de Capão do Leão</strong>
           <span>Acompanhamento de solicitações de transporte em saúde</span>
         </div>
       </section>
