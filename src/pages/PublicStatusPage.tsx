@@ -124,20 +124,6 @@ export function PublicStatusPage() {
           {error ? <p className="table-note">{error}</p> : null}
         </article>
 
-        <article className="public-card">
-          <h2>Privacidade e uso das informações</h2>
-          <p>
-            Os dados informados nesta consulta são utilizados exclusivamente para o acompanhamento
-            da solicitação de transporte em saúde, em ambiente institucional da Prefeitura
-            Municipal de Capão do Leão.
-          </p>
-          <p className="table-note">
-            O tratamento das informações observa os princípios da Lei Geral de Proteção de Dados
-            Pessoais (LGPD) e as garantias aplicáveis do Marco Civil da Internet, com acesso
-            restrito às finalidades administrativas e assistenciais do serviço.
-          </p>
-        </article>
-
         {access?.mustChangePin ? (
           <article className="public-card">
             <div className="eyebrow">
@@ -267,6 +253,20 @@ export function PublicStatusPage() {
             </p>
           </article>
         )}
+
+        <article className="public-card">
+          <h2>Privacidade e uso das informações</h2>
+          <p>
+            Os dados informados nesta consulta são utilizados exclusivamente para o acompanhamento
+            da solicitação de transporte em saúde, em ambiente institucional da Prefeitura
+            Municipal de Capão do Leão.
+          </p>
+          <p className="table-note">
+            O tratamento das informações observa os princípios da Lei Geral de Proteção de Dados
+            Pessoais (LGPD) e as garantias aplicáveis do Marco Civil da Internet, com acesso
+            restrito às finalidades administrativas e assistenciais do serviço.
+          </p>
+        </article>
       </div>
     </div>
   )
