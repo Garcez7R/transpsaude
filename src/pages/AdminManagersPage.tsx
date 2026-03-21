@@ -70,7 +70,7 @@ function formatPhone(value: string) {
 }
 
 export function AdminManagersPage() {
-  const session = typeof window !== 'undefined' ? getAdminAreaSession() : null
+  const [session, setSession] = useState(() => (typeof window !== 'undefined' ? getAdminAreaSession() : null))
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -178,7 +178,7 @@ export function AdminManagersPage() {
       saveAdminAreaSession(result.session)
       setCpf('')
       setPassword('')
-      window.location.reload()
+      setSession(result.session)
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Não foi possível autenticar esse acesso administrativo.')
     } finally {
@@ -207,10 +207,10 @@ export function AdminManagersPage() {
 
       saveAdminSession(result.session)
       saveAdminAreaSession(result.session)
+      setSession(result.session)
       setFirstAccess(null)
       setNewPassword('')
       setCpf('')
-      window.location.reload()
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Não foi possível concluir o primeiro acesso.')
     } finally {
@@ -493,7 +493,7 @@ export function AdminManagersPage() {
               clearAdminSession()
               clearAdminAreaSession()
               clearManagerSession()
-              window.location.reload()
+              setSession(null)
             }}
           >
             Sair

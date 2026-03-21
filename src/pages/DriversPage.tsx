@@ -83,7 +83,7 @@ function formatPhone(value: string) {
 }
 
 export function DriversPage() {
-  const session = typeof window !== 'undefined' ? getManagerSession() : null
+  const [session] = useState(() => (typeof window !== 'undefined' ? getManagerSession() : null))
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
   const [vehicles, setVehicles] = useState<VehicleRecord[]>([])
   const [operators, setOperators] = useState<OperatorRecord[]>([])
@@ -138,9 +138,6 @@ export function DriversPage() {
         setOperators(operatorData)
         setPatients(patientData)
 
-        if (!selectedDriverId && driverData[0]) {
-          setSelectedDriverId(String(driverData[0].id))
-        }
       } catch {
         if (active) {
           setError('Não foi possível carregar motoristas e veículos.')
@@ -157,7 +154,13 @@ export function DriversPage() {
     return () => {
       active = false
     }
-  }, [session, selectedDriverId])
+  }, [session])
+
+  useEffect(() => {
+    if (!selectedDriverId && drivers[0]) {
+      setSelectedDriverId(String(drivers[0].id))
+    }
+  }, [drivers, selectedDriverId])
 
   useEffect(() => {
     if (!selectedDriverId) {
