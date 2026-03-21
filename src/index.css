@@ -752,6 +752,27 @@ th {
   gap: 16px;
 }
 
+.scroll-list {
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.scroll-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scroll-list::-webkit-scrollbar-thumb {
+  background: rgba(87, 102, 107, 0.28);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.scroll-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .assignment-card {
   border: 1px solid rgba(18, 48, 58, 0.08);
   border-radius: 20px;

@@ -615,7 +615,7 @@ export function ManagerPage() {
         <article className="content-card">
           <h2>Destinos mais frequentes</h2>
           {reports.byDestination.length > 0 ? (
-            <div className="assignment-list">
+            <div className="assignment-list scroll-list">
               {reports.byDestination.map((item) => (
                 <article className="assignment-card" key={item.destinationLabel}>
                   <strong>{item.destinationLabel}</strong>
@@ -631,7 +631,7 @@ export function ManagerPage() {
         <article className="content-card">
           <h2>Carga por motorista</h2>
           {reports.byDriver.length > 0 ? (
-            <div className="assignment-list">
+            <div className="assignment-list scroll-list">
               {reports.byDriver.map((item) => (
                 <article className="assignment-card" key={item.driverName}>
                   <strong>{item.driverName}</strong>
@@ -651,7 +651,7 @@ export function ManagerPage() {
           {loading ? (
             <p className="table-note">Carregando viagens...</p>
           ) : (
-            <div className="assignment-list">
+            <div className="assignment-list scroll-list">
               {requests.map((request) => {
                 const data = assignment[request.id] ?? emptyAssignment
 

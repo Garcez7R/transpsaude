@@ -692,7 +692,7 @@ export function DriversPage() {
           {loading ? (
             <p className="table-note">Carregando veículos...</p>
           ) : (
-            <div className="assignment-list">
+            <div className="assignment-list scroll-list">
               {vehicles.map((vehicle) => (
                 <article className="assignment-card" key={vehicle.id}>
                   <strong>{vehicle.name}</strong>
@@ -728,7 +728,7 @@ export function DriversPage() {
             {loading ? (
               <p className="table-note">Carregando base de motoristas...</p>
             ) : (
-              <div className="assignment-list">
+              <div className="assignment-list scroll-list">
                 {drivers.map((driver) => (
                   <article className="assignment-card" key={driver.id}>
                     <strong>{driver.name}</strong>
@@ -833,7 +833,7 @@ export function DriversPage() {
               </div>
             </form>
           ) : (
-            <div className="assignment-list">
+            <div className="assignment-list scroll-list">
               {patients.map((patient) => (
                 <article className="assignment-card" key={patient.id}>
                   <strong>{patient.fullName}</strong>
@@ -879,7 +879,7 @@ export function DriversPage() {
         <aside className="dashboard-side">
           <article className="content-card">
             <h2>Operadores cadastrados</h2>
-            <div className="assignment-list">
+            <div className="assignment-list scroll-list">
               {operators.map((operator) => (
                 <article className="assignment-card" key={operator.id}>
                   <strong>{operator.name}</strong>
@@ -938,7 +938,7 @@ export function DriversPage() {
 
           {selectedDriverId ? (
             driverTrips.length > 0 ? (
-              <div className="assignment-list">
+              <div className="assignment-list scroll-list">
                 {driverTrips.map((trip) => (
                   <article className="assignment-card" key={trip.id}>
                     <div className="assignment-header">

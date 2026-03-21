@@ -753,7 +753,7 @@ export function AdminManagersPage() {
           {loadingData ? (
             <p className="table-note">Carregando gerentes...</p>
           ) : (
-            <div className="assignment-list">
+            <div className="assignment-list scroll-list">
               {managers.map((manager) => (
                 <article className="assignment-card" key={manager.id}>
                   <strong>{manager.name}</strong>
@@ -793,7 +793,7 @@ export function AdminManagersPage() {
           {loadingData ? (
             <p className="table-note">Carregando operadores...</p>
           ) : (
-            <div className="assignment-list">
+            <div className="assignment-list scroll-list">
               {operators.map((operator) => (
                 <article className="assignment-card" key={operator.id}>
                   <strong>{operator.name}</strong>
@@ -835,7 +835,7 @@ export function AdminManagersPage() {
           {loadingData ? (
             <p className="table-note">Carregando motoristas...</p>
           ) : (
-            <div className="assignment-list">
+            <div className="assignment-list scroll-list">
               {drivers.map((driver) => (
                 <article className="assignment-card" key={driver.id}>
                   <strong>{driver.name}</strong>
