@@ -33,7 +33,7 @@ export function PublicStatusPage() {
     } catch {
       setAccess(null)
       setRequest(null)
-      setError('Não encontramos acesso para esse CPF e senha/PIN.')
+      setError('Não foi possível localizar um acesso válido com o CPF e o PIN informados.')
     } finally {
       setLoading(false)
     }
@@ -51,7 +51,7 @@ export function PublicStatusPage() {
       setPassword(newPin)
       setNewPin('')
     } catch {
-      setError('Não foi possível ativar o novo PIN. Confira se ele tem 4 dígitos.')
+      setError('Não foi possível concluir o cadastro do novo PIN. Verifique se ele possui 4 dígitos numéricos.')
     } finally {
       setLoading(false)
     }
@@ -65,25 +65,26 @@ export function PublicStatusPage() {
         </div>
         <div className="institutional-copy">
           <strong>Consulta pública da Prefeitura de Capão do Leão</strong>
-          <span>Acompanhamento de solicitações de transporte para tratamento</span>
+          <span>Acompanhamento de solicitações de transporte em saúde</span>
         </div>
       </section>
 
       <header className="public-header">
         <div className="eyebrow">
           <ShieldCheck size={16} />
-          Consulta do cidadão
+          Área do cidadão
         </div>
-        <h1>Acompanhe sua solicitação de viagem</h1>
+        <h1>Consultar solicitação de transporte</h1>
         <p>
-          Informe seu CPF e a senha atual. No primeiro acesso, o cidadão entra com a senha
-          temporária <strong>0000</strong> e já define um PIN numérico de 4 dígitos.
+          Informe seu CPF e o PIN de acesso. No primeiro acesso, utilize a senha temporária
+          <strong> 0000 </strong>
+          e cadastre, em seguida, um PIN numérico de 4 dígitos para consultas futuras.
         </p>
       </header>
 
       <div className="public-layout">
         <article className="public-card">
-          <h2>Acessar acompanhamento</h2>
+          <h2>Entrar para acompanhar</h2>
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
               <div className="field">
@@ -98,7 +99,7 @@ export function PublicStatusPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="password">Senha atual ou PIN</label>
+                <label htmlFor="password">PIN de acesso</label>
                 <input
                   id="password"
                   value={password}
@@ -112,15 +113,17 @@ export function PublicStatusPage() {
             <div className="form-actions">
               <button className="action-button primary" disabled={loading} type="submit">
                 <Search size={16} />
-                {loading ? 'Entrando...' : 'Entrar e acompanhar'}
+                {loading ? 'Validando acesso...' : 'Consultar solicitação'}
               </button>
             </div>
           </form>
           <p className="table-note">
-            Primeiro acesso: use o CPF cadastrado pelo operador e a senha temporária <strong>0000</strong>.
+            Primeiro acesso: utilize o CPF informado no cadastro presencial e a senha temporária
+            <strong> 0000</strong>.
           </p>
           <p className="table-note">
-            Consulte novamente algumas horas antes da viagem para confirmar horário, embarque e eventuais alterações.
+            Recomendamos consultar esta tela algumas horas antes da viagem para confirmar horário,
+            local de embarque e eventuais atualizações.
           </p>
           {error ? <p className="table-note">{error}</p> : null}
         </article>
@@ -129,12 +132,15 @@ export function PublicStatusPage() {
           <article className="public-card">
             <div className="eyebrow">
               <KeyRound size={16} />
-              Primeiro acesso
+              Ativação de acesso
             </div>
-            <h2>Cadastre seu novo PIN numérico</h2>
+            <h2>Cadastrar novo PIN</h2>
             <p>
-              {access.patientName}, para proteger seu acompanhamento, troque agora a senha
-              temporária {access.temporaryPasswordLabel} por um PIN de 4 dígitos.
+              {access.patientName}, para maior segurança, substitua agora a senha temporária
+              {' '}
+              <strong>{access.temporaryPasswordLabel}</strong>
+              {' '}
+              por um PIN numérico de 4 dígitos.
             </p>
             <form onSubmit={handleActivatePin}>
               <div className="form-grid">
@@ -142,17 +148,17 @@ export function PublicStatusPage() {
                   <label htmlFor="new-pin">Novo PIN de 4 dígitos</label>
                   <input
                     id="new-pin"
-                  value={newPin}
-                  onChange={(event) => setNewPin(event.target.value.replace(/\D/g, '').slice(0, 4))}
-                  inputMode="numeric"
-                  placeholder="1234"
-                  autoFocus
-                />
+                    value={newPin}
+                    onChange={(event) => setNewPin(event.target.value.replace(/\D/g, '').slice(0, 4))}
+                    inputMode="numeric"
+                    placeholder="1234"
+                    autoFocus
+                  />
                 </div>
               </div>
               <div className="form-actions">
                 <button className="action-button primary" disabled={loading || newPin.length !== 4} type="submit">
-                  {loading ? 'Ativando...' : 'Salvar novo PIN'}
+                  {loading ? 'Salvando novo PIN...' : 'Confirmar novo PIN'}
                 </button>
               </div>
             </form>
@@ -164,13 +170,15 @@ export function PublicStatusPage() {
             <article className="public-card departure-highlight">
               <div className="eyebrow">
                 <ShieldCheck size={16} />
-                Saída prevista
+                Informações principais
               </div>
               <h2>
-                    {request.travelDate || 'Data a definir'} {request.departureTime ? `às ${request.departureTime}` : ''}
+                {request.travelDate || 'Data a definir'} {request.departureTime ? `às ${request.departureTime}` : ''}
               </h2>
               <p>
-                Embarque em <strong>{request.boardingLocationLabel || request.addressLine || 'local a definir'}</strong>.
+                Local de embarque:
+                {' '}
+                <strong>{request.boardingLocationLabel || request.addressLine || 'a definir'}</strong>.
               </p>
             </article>
 
@@ -213,22 +221,26 @@ export function PublicStatusPage() {
                   <dd>{request.companionRequired ? 'Necessário' : 'Não necessário'}</dd>
                 </div>
                 <div>
-                  <dt>Motorista designado</dt>
+                  <dt>Motorista responsável</dt>
                   <dd>{request.assignedDriverName || 'A definir'}</dd>
                 </div>
                 <div>
-                  <dt>Orientação</dt>
+                  <dt>Orientações</dt>
                   <dd>{request.loginHint}</dd>
                 </div>
               </dl>
             </article>
 
             <article className="public-card">
-              <h2>Histórico recente</h2>
+              <h2>Histórico da solicitação</h2>
               <ol className="status-history">
                 {request.history.map((entry) => (
                   <li key={`${entry.status}-${entry.updatedAt}`}>
-                    <strong>{entry.label}</strong> em {entry.updatedAt}
+                    <strong>{entry.label}</strong>
+                    {' '}
+                    em
+                    {' '}
+                    {entry.updatedAt}
                     {entry.note ? ` - ${entry.note}` : ''}
                   </li>
                 ))}
@@ -238,10 +250,10 @@ export function PublicStatusPage() {
         ) : (
           <article className="empty-state">
             <Search size={28} />
-            <h2>Acesso cidadão pronto para uso</h2>
+            <h2>Consulta disponível</h2>
             <p>
-              O layout já está preparado para o cidadão acessar com CPF e senha temporária 0000 no
-              primeiro login, trocando em seguida para um PIN de 4 dígitos.
+              Após o cadastro presencial realizado pela equipe da prefeitura, esta área poderá ser
+              utilizada para acompanhar o andamento da solicitação de transporte.
             </p>
           </article>
         )}
