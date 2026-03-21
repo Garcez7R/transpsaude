@@ -118,10 +118,6 @@ export function PublicStatusPage() {
             </div>
           </form>
           <p className="table-note">
-            Primeiro acesso: utilize o CPF informado no cadastro presencial e a senha temporária
-            <strong> 0000</strong>.
-          </p>
-          <p className="table-note">
             Recomendamos consultar esta tela algumas horas antes da viagem para confirmar horário,
             local de embarque e eventuais atualizações.
           </p>
