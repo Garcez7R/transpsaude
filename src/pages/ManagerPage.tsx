@@ -1,5 +1,5 @@
 import { ArrowLeft, LockKeyhole, LogOut, Route, Save, ShieldCheck } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
@@ -26,6 +26,16 @@ const emptyAssignment = {
   managerNotes: '',
   useCustomBoardingLocation: false,
   boardingLocationName: '',
+}
+
+const statusLabels: Record<TravelRequest['status'], string> = {
+  recebida: 'Recebida',
+  em_analise: 'Em análise',
+  aguardando_documentos: 'Aguardando documentos',
+  aprovada: 'Aprovada',
+  agendada: 'Agendada',
+  cancelada: 'Cancelada',
+  concluida: 'Concluída',
 }
 
 function formatCpf(value: string) {
@@ -55,6 +65,58 @@ export function ManagerPage() {
   const [savingId, setSavingId] = useState<number | null>(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+
+  const reports = useMemo(() => {
+    const byStatus = Object.entries(
+      requests.reduce<Record<string, number>>((accumulator, request) => {
+        accumulator[request.status] = (accumulator[request.status] ?? 0) + 1
+        return accumulator
+      }, {}),
+    )
+      .map(([status, total]) => ({
+        key: status,
+        label: statusLabels[status as TravelRequest['status']] ?? status,
+        total,
+      }))
+      .sort((left, right) => right.total - left.total)
+
+    const byDestination = Object.entries(
+      requests.reduce<Record<string, number>>((accumulator, request) => {
+        const key = `${request.destinationCity}/${request.destinationState}`
+        accumulator[key] = (accumulator[key] ?? 0) + 1
+        return accumulator
+      }, {}),
+    )
+      .map(([destinationLabel, total]) => ({ destinationLabel, total }))
+      .sort((left, right) => right.total - left.total)
+      .slice(0, 5)
+
+    const byDriver = Object.entries(
+      requests.reduce<Record<string, number>>((accumulator, request) => {
+        const key = request.assignedDriverName?.trim() || 'Sem motorista definido'
+        accumulator[key] = (accumulator[key] ?? 0) + 1
+        return accumulator
+      }, {}),
+    )
+      .map(([driverName, total]) => ({ driverName, total }))
+      .sort((left, right) => right.total - left.total)
+
+    const companionTotal = requests.filter((request) => request.companionRequired).length
+    const scheduledTotal = requests.filter((request) => request.status === 'agendada').length
+    const pendingTotal = requests.filter((request) => request.status === 'aguardando_documentos').length
+    const withoutDriverTotal = requests.filter((request) => !request.assignedDriverName).length
+
+    return {
+      byStatus,
+      byDestination,
+      byDriver,
+      companionTotal,
+      scheduledTotal,
+      pendingTotal,
+      withoutDriverTotal,
+      total: requests.length,
+    }
+  }, [requests])
 
   useEffect(() => {
     setSession(getManagerSession())
@@ -346,6 +408,25 @@ export function ManagerPage() {
       {error ? <p className="table-note">{error}</p> : null}
       {message ? <p className="table-note">{message}</p> : null}
 
+      <section className="metrics-grid">
+        <article className="metric-card">
+          <strong>{reports.total}</strong>
+          <p>solicitações no relatório</p>
+        </article>
+        <article className="metric-card">
+          <strong>{reports.scheduledTotal}</strong>
+          <p>viagens agendadas</p>
+        </article>
+        <article className="metric-card">
+          <strong>{reports.pendingTotal}</strong>
+          <p>aguardando documentos</p>
+        </article>
+        <article className="metric-card">
+          <strong>{reports.withoutDriverTotal}</strong>
+          <p>ainda sem motorista</p>
+        </article>
+      </section>
+
       <section className="content-card">
         <div className="form-grid">
           <div className="field">
@@ -425,6 +506,73 @@ export function ManagerPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="dashboard-grid">
+        <article className="content-card">
+          <h2>Relatórios da gerência</h2>
+          <p className="table-note">
+            Os blocos abaixo respeitam os filtros atuais da tela e ajudam na distribuição diária das viagens.
+          </p>
+          <div className="status-grid">
+            {reports.byStatus.length > 0 ? (
+              reports.byStatus.map((item) => (
+                <div className="status-card" key={item.key}>
+                  <h3>{item.label}</h3>
+                  <p>{item.total} solicitação(ões)</p>
+                </div>
+              ))
+            ) : (
+              <div className="status-card">
+                <h3>Sem dados</h3>
+                <p>Não há solicitações para compor o relatório atual.</p>
+              </div>
+            )}
+          </div>
+        </article>
+
+        <aside className="dashboard-side">
+          <article className="content-card">
+            <h2>Acompanhantes</h2>
+            <p className="table-note">
+              {reports.companionTotal} solicitação(ões) deste recorte exigem acompanhante.
+            </p>
+          </article>
+        </aside>
+      </section>
+
+      <section className="dashboard-grid">
+        <article className="content-card">
+          <h2>Destinos mais frequentes</h2>
+          {reports.byDestination.length > 0 ? (
+            <div className="assignment-list">
+              {reports.byDestination.map((item) => (
+                <article className="assignment-card" key={item.destinationLabel}>
+                  <strong>{item.destinationLabel}</strong>
+                  <p className="table-note">{item.total} viagem(ns) no filtro atual</p>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="table-note">Nenhum destino encontrado para os filtros selecionados.</p>
+          )}
+        </article>
+
+        <article className="content-card">
+          <h2>Carga por motorista</h2>
+          {reports.byDriver.length > 0 ? (
+            <div className="assignment-list">
+              {reports.byDriver.map((item) => (
+                <article className="assignment-card" key={item.driverName}>
+                  <strong>{item.driverName}</strong>
+                  <p className="table-note">{item.total} viagem(ns) vinculada(s)</p>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="table-note">Nenhuma viagem vinculada a motorista neste recorte.</p>
+          )}
+        </article>
       </section>
 
       <section className="dashboard-grid">
