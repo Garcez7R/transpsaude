@@ -6,3 +6,12 @@
 
 /manifest.webmanifest
   Cache-Control: no-cache, no-store, must-revalidate
+
+/favicon.png
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/pwa-192.png
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/pwa-512.png
+  Cache-Control: no-cache, no-store, must-revalidate

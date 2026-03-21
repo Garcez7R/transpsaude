@@ -1,5 +1,10 @@
-const CACHE_NAME = 'transpsaude-v3'
-const STATIC_ASSETS = ['/manifest.webmanifest', '/favicon.png', '/pwa-192.png', '/pwa-512.png']
+const CACHE_NAME = 'transpsaude-v4'
+const STATIC_ASSETS = [
+  '/manifest.webmanifest',
+  '/favicon.png?v=cp1',
+  '/pwa-192.png?v=cp1',
+  '/pwa-512.png?v=cp1',
+]
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
@@ -25,7 +30,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   const isSameOrigin = url.origin === self.location.origin
   const isNavigation = event.request.mode === 'navigate'
-  const isStaticAsset = isSameOrigin && STATIC_ASSETS.includes(url.pathname)
+  const requestPath = `${url.pathname}${url.search}`
+  const isStaticAsset = isSameOrigin && STATIC_ASSETS.includes(requestPath)
 
   if (isNavigation) {
     event.respondWith(
