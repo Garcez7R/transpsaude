@@ -6,6 +6,7 @@ import { createManager, createOperator, loginAdmin, logoutSession } from '../lib
 import { clearAdminSession, saveAdminSession } from '../lib/admin-session'
 import { clearManagerSession } from '../lib/manager-session'
 import { clearAdminAreaSession, getAdminAreaSession, saveAdminAreaSession } from '../lib/admin-area-session'
+import { toEmailCase, toTitleCase } from '../lib/text-format'
 import type { CreateManagerInput, CreateOperatorInput } from '../types'
 
 const initialForm: CreateManagerInput = {
@@ -218,7 +219,7 @@ export function AdminManagersPage() {
                 <input
                   id="manager-name"
                   value={form.name}
-                  onChange={(event) => updateField('name', event.target.value)}
+                  onChange={(event) => updateField('name', toTitleCase(event.target.value))}
                   placeholder="Nome completo"
                   required
                 />
@@ -239,7 +240,7 @@ export function AdminManagersPage() {
                 <input
                   id="manager-email"
                   value={form.email}
-                  onChange={(event) => updateField('email', event.target.value)}
+                  onChange={(event) => updateField('email', toEmailCase(event.target.value))}
                   placeholder="gerencia@prefeitura.rs.gov.br"
                   required
                 />
@@ -275,7 +276,7 @@ export function AdminManagersPage() {
                 <input
                   id="operator-name"
                   value={operatorForm.name}
-                  onChange={(event) => updateOperatorField('name', event.target.value)}
+                  onChange={(event) => updateOperatorField('name', toTitleCase(event.target.value))}
                   placeholder="Nome completo"
                   required
                 />
@@ -296,7 +297,7 @@ export function AdminManagersPage() {
                 <input
                   id="operator-email"
                   value={operatorForm.email}
-                  onChange={(event) => updateOperatorField('email', event.target.value)}
+                  onChange={(event) => updateOperatorField('email', toEmailCase(event.target.value))}
                   placeholder="operador@prefeitura.rs.gov.br"
                   required
                 />

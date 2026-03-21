@@ -21,6 +21,7 @@ import {
   updateVehicle,
 } from '../lib/api'
 import { getManagerSession } from '../lib/manager-session'
+import { toEmailCase, toInstitutionalText, toTitleCase } from '../lib/text-format'
 import type {
   CreateDriverInput,
   CreateOperatorInput,
@@ -454,7 +455,7 @@ export function DriversPage() {
                 <input
                   id="vehicle-name"
                   value={vehicleForm.name}
-                  onChange={(event) => updateVehicleField('name', event.target.value)}
+                  onChange={(event) => updateVehicleField('name', toInstitutionalText(event.target.value))}
                   placeholder="Van 01, Micro-ônibus..."
                   required
                 />
@@ -474,7 +475,7 @@ export function DriversPage() {
                 <input
                   id="vehicle-category"
                   value={vehicleForm.category}
-                  onChange={(event) => updateVehicleField('category', event.target.value)}
+                  onChange={(event) => updateVehicleField('category', toTitleCase(event.target.value))}
                   placeholder="Van, Ambulância, Micro-ônibus..."
                   required
                 />
@@ -510,7 +511,7 @@ export function DriversPage() {
                 <input
                   id="driver-name"
                   value={driverForm.name}
-                  onChange={(event) => updateDriverField('name', event.target.value)}
+                  onChange={(event) => updateDriverField('name', toTitleCase(event.target.value))}
                   placeholder="Nome completo"
                   required
                 />
@@ -610,7 +611,7 @@ export function DriversPage() {
                   <input
                     id="operator-name"
                     value={operatorForm.name}
-                    onChange={(event) => updateOperatorField('name', event.target.value)}
+                    onChange={(event) => updateOperatorField('name', toTitleCase(event.target.value))}
                     placeholder="Nome completo"
                     required
                   />
@@ -631,7 +632,7 @@ export function DriversPage() {
                   <input
                     id="operator-email"
                     value={operatorForm.email}
-                    onChange={(event) => updateOperatorField('email', event.target.value)}
+                    onChange={(event) => updateOperatorField('email', toEmailCase(event.target.value))}
                     placeholder="operador@prefeitura.rs.gov.br"
                     required
                   />
@@ -775,7 +776,7 @@ export function DriversPage() {
               <div className="form-grid">
                 <div className="field">
                   <label htmlFor="patient-edit-name">Nome</label>
-                  <input id="patient-edit-name" value={patientForm.fullName} onChange={(event) => updatePatientField('fullName', event.target.value)} required />
+                  <input id="patient-edit-name" value={patientForm.fullName} onChange={(event) => updatePatientField('fullName', toTitleCase(event.target.value))} required />
                 </div>
                 <div className="field">
                   <label htmlFor="patient-edit-cpf">CPF</label>
@@ -797,7 +798,7 @@ export function DriversPage() {
                 </div>
                 <div className="field full">
                   <label htmlFor="patient-edit-address">Endereço</label>
-                  <input id="patient-edit-address" value={patientForm.addressLine} onChange={(event) => updatePatientField('addressLine', event.target.value)} required />
+                  <input id="patient-edit-address" value={patientForm.addressLine} onChange={(event) => updatePatientField('addressLine', toInstitutionalText(event.target.value))} required />
                 </div>
                 <div className="field">
                   <label htmlFor="patient-edit-cns">CNS</label>
@@ -805,7 +806,7 @@ export function DriversPage() {
                 </div>
                 <div className="field">
                   <label htmlFor="patient-edit-responsible-name">Responsável</label>
-                  <input id="patient-edit-responsible-name" value={patientForm.responsibleName} onChange={(event) => updatePatientField('responsibleName', event.target.value)} />
+                  <input id="patient-edit-responsible-name" value={patientForm.responsibleName} onChange={(event) => updatePatientField('responsibleName', toTitleCase(event.target.value))} />
                 </div>
                 <div className="field">
                   <label htmlFor="patient-edit-responsible-cpf">CPF do responsável</label>

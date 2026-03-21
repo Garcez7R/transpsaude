@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { createTravelRequest } from '../lib/api'
 import { canAccessOperator } from '../lib/access'
 import { getAdminSession } from '../lib/admin-session'
+import { toInstitutionalText, toTitleCase } from '../lib/text-format'
 import type { CreateTravelRequestInput } from '../types'
 
 const initialForm: CreateTravelRequestInput = {
@@ -152,7 +153,7 @@ export function RegisterRequestPage() {
             <div className="form-grid">
               <div className="field">
                 <label htmlFor="patient-name">Nome do paciente</label>
-                <input id="patient-name" value={form.patientName} onChange={(event) => updateField('patientName', event.target.value)} placeholder="Nome completo" required />
+                <input id="patient-name" value={form.patientName} onChange={(event) => updateField('patientName', toTitleCase(event.target.value))} placeholder="Nome completo" required />
               </div>
               <div className="field">
                 <label htmlFor="cpf-register">CPF do paciente</label>
@@ -174,7 +175,7 @@ export function RegisterRequestPage() {
               </div>
               <div className="field full">
                 <label htmlFor="address-line">Endereço do paciente</label>
-                <input id="address-line" value={form.addressLine} onChange={(event) => updateField('addressLine', event.target.value)} placeholder="Rua, numero, bairro e referencia" required />
+                <input id="address-line" value={form.addressLine} onChange={(event) => updateField('addressLine', toInstitutionalText(event.target.value))} placeholder="Rua, numero, bairro e referencia" required />
               </div>
               <div className="field full checkbox-field">
                 <label className="checkbox-row" htmlFor="use-responsible-access">
@@ -184,7 +185,7 @@ export function RegisterRequestPage() {
               </div>
               <div className="field">
                 <label htmlFor="responsible-name">Nome do responsável</label>
-                <input id="responsible-name" value={form.responsibleName} onChange={(event) => updateField('responsibleName', event.target.value)} placeholder="Preencher quando houver responsável" required={form.useResponsibleCpfForAccess} />
+                <input id="responsible-name" value={form.responsibleName} onChange={(event) => updateField('responsibleName', toTitleCase(event.target.value))} placeholder="Preencher quando houver responsável" required={form.useResponsibleCpfForAccess} />
               </div>
               <div className="field">
                 <label htmlFor="responsible-cpf">CPF do responsável</label>
@@ -205,7 +206,7 @@ export function RegisterRequestPage() {
                 <>
                   <div className="field">
                     <label htmlFor="companion-name">Nome do acompanhante</label>
-                    <input id="companion-name" value={form.companionName} onChange={(event) => updateField('companionName', event.target.value)} placeholder="Nome completo do acompanhante" required />
+                    <input id="companion-name" value={form.companionName} onChange={(event) => updateField('companionName', toTitleCase(event.target.value))} placeholder="Nome completo do acompanhante" required />
                   </div>
                   <div className="field">
                     <label htmlFor="companion-cpf">CPF do acompanhante</label>
@@ -232,7 +233,7 @@ export function RegisterRequestPage() {
                     <input
                       id="companion-address"
                       value={form.usePatientAddressForCompanion ? form.addressLine : form.companionAddressLine}
-                      onChange={(event) => updateField('companionAddressLine', event.target.value)}
+                      onChange={(event) => updateField('companionAddressLine', toInstitutionalText(event.target.value))}
                       placeholder="Rua, numero, bairro e referencia"
                       required
                       readOnly={form.usePatientAddressForCompanion}
@@ -242,7 +243,7 @@ export function RegisterRequestPage() {
               ) : null}
               <div className="field">
                 <label htmlFor="destination-city">Cidade de destino</label>
-                <input id="destination-city" value={form.destinationCity} onChange={(event) => updateField('destinationCity', event.target.value)} placeholder="Pelotas, Porto Alegre..." required />
+                <input id="destination-city" value={form.destinationCity} onChange={(event) => updateField('destinationCity', toTitleCase(event.target.value))} placeholder="Pelotas, Porto Alegre..." required />
               </div>
               <div className="field">
                 <label htmlFor="destination-state">UF</label>
@@ -250,11 +251,11 @@ export function RegisterRequestPage() {
               </div>
               <div className="field">
                 <label htmlFor="treatment-unit">Unidade de tratamento</label>
-                <input id="treatment-unit" value={form.treatmentUnit} onChange={(event) => updateField('treatmentUnit', event.target.value)} placeholder="Hospital, clínica ou centro" required />
+                <input id="treatment-unit" value={form.treatmentUnit} onChange={(event) => updateField('treatmentUnit', toInstitutionalText(event.target.value))} placeholder="Hospital, clínica ou centro" required />
               </div>
               <div className="field">
                 <label htmlFor="specialty">Especialidade</label>
-                <input id="specialty" value={form.specialty} onChange={(event) => updateField('specialty', event.target.value)} placeholder="Oncologia, nefrologia..." required />
+                <input id="specialty" value={form.specialty} onChange={(event) => updateField('specialty', toTitleCase(event.target.value))} placeholder="Oncologia, nefrologia..." required />
               </div>
               <div className="field">
                 <label htmlFor="travel-date">Data da viagem</label>
