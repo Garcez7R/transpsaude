@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { loginAdmin, fetchDashboardSummary, fetchRequests, logoutSession } from '../lib/api'
 import { canAccessOperator, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
-import { clearAdminSession, getAdminSession, saveAdminSession } from '../lib/admin-session'
+import { clearOperatorSession, getOperatorSession, saveOperatorSession } from '../lib/operator-session'
 import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } from '../types'
 
 const statusOptions: Array<{ value: RequestStatus | 'todos'; label: string }> = [
@@ -52,7 +52,7 @@ export function DashboardPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    setSession(getAdminSession())
+    setSession(getOperatorSession())
   }, [])
 
   useEffect(() => {
@@ -68,13 +68,13 @@ export function DashboardPage() {
 
       try {
         const [dashboardData, requestsData] = await Promise.all([
-          fetchDashboardSummary(),
+          fetchDashboardSummary('operator'),
           fetchRequests({
             status: selectedStatus,
             search,
             travelDate,
             destination,
-          }),
+          }, 'operator'),
         ])
 
         if (!active) {
@@ -116,7 +116,7 @@ export function DashboardPage() {
         return
       }
 
-      saveAdminSession(result.session)
+      saveOperatorSession(result.session)
       setSession(result.session)
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Não foi possível autenticar esse acesso administrativo.')
@@ -134,7 +134,7 @@ export function DashboardPage() {
       }
     }
 
-    clearAdminSession()
+    clearOperatorSession()
     setSession(null)
     setSummary(null)
     setRequests([])

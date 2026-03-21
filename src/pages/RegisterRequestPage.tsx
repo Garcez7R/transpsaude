@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { createTravelRequest } from '../lib/api'
 import { canAccessOperator } from '../lib/access'
-import { getAdminSession } from '../lib/admin-session'
+import { getOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText, toTitleCase } from '../lib/text-format'
 import type { CreateTravelRequestInput } from '../types'
 
@@ -52,7 +52,7 @@ function formatPhone(value: string) {
 }
 
 export function RegisterRequestPage() {
-  const session = typeof window !== 'undefined' ? getAdminSession() : null
+  const session = typeof window !== 'undefined' ? getOperatorSession() : null
   const [form, setForm] = useState(initialForm)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState<{ protocol: string; message: string } | null>(null)
@@ -77,7 +77,7 @@ export function RegisterRequestPage() {
     setSuccess(null)
 
     try {
-      const result = await createTravelRequest(form)
+      const result = await createTravelRequest(form, 'operator')
       setSuccess({ protocol: result.protocol, message: result.message })
       setForm(initialForm)
     } catch {

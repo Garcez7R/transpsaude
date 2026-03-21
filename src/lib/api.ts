@@ -29,6 +29,7 @@ import type {
 } from '../types'
 import { getAdminSession } from './admin-session'
 import { getDriverSession } from './driver-session'
+import { getOperatorSession } from './operator-session'
 
 async function parseJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -74,6 +75,20 @@ function withAdminHeaders(init?: RequestInit): RequestInit {
   }
 }
 
+function withOperatorHeaders(init?: RequestInit): RequestInit {
+  const session = typeof window !== 'undefined' ? getOperatorSession() : null
+  const headers = new Headers(init?.headers)
+
+  if (session) {
+    headers.set('x-session-token', session.token)
+  }
+
+  return {
+    ...init,
+    headers,
+  }
+}
+
 function withDriverHeaders(init?: RequestInit): RequestInit {
   const session = typeof window !== 'undefined' ? getDriverSession() : null
   const headers = new Headers(init?.headers)
@@ -88,12 +103,12 @@ function withDriverHeaders(init?: RequestInit): RequestInit {
   }
 }
 
-export async function fetchDashboardSummary() {
-  const response = await fetch('/api/dashboard', withAdminHeaders())
+export async function fetchDashboardSummary(accessMode: 'internal' | 'operator' = 'internal') {
+  const response = await fetch('/api/dashboard', accessMode === 'operator' ? withOperatorHeaders() : withAdminHeaders())
   return parseJson<DashboardSummary>(response)
 }
 
-export async function fetchRequests(filters: RequestQueryFilters = {}) {
+export async function fetchRequests(filters: RequestQueryFilters = {}, accessMode: 'internal' | 'operator' = 'internal') {
   const search = new URLSearchParams()
 
   if (filters.status && filters.status !== 'todos') {
@@ -117,13 +132,16 @@ export async function fetchRequests(filters: RequestQueryFilters = {}) {
   }
 
   const suffix = search.toString() ? `?${search.toString()}` : ''
-  const response = await fetch(`/api/requests${suffix}`, withAdminHeaders())
+  const response = await fetch(`/api/requests${suffix}`, accessMode === 'operator' ? withOperatorHeaders() : withAdminHeaders())
   return parseJson<TravelRequest[]>(response)
 }
 
-export async function fetchRequestDetails(requestId: number) {
+export async function fetchRequestDetails(requestId: number, accessMode: 'internal' | 'operator' = 'internal') {
   const search = new URLSearchParams({ id: String(requestId) })
-  const response = await fetch(`/api/admin/request-detail?${search.toString()}`, withAdminHeaders())
+  const response = await fetch(
+    `/api/admin/request-detail?${search.toString()}`,
+    accessMode === 'operator' ? withOperatorHeaders() : withAdminHeaders(),
+  )
   return parseJson<TravelRequestDetails & { history: StatusHistoryEntry[] }>(response)
 }
 
@@ -157,8 +175,8 @@ export async function loginAdmin(cpf: string, password: string) {
   return parseJson<AdminLoginResponse>(response)
 }
 
-export async function createTravelRequest(input: CreateTravelRequestInput) {
-  const response = await fetch('/api/admin/requests', withAdminHeaders({
+export async function createTravelRequest(input: CreateTravelRequestInput, accessMode: 'internal' | 'operator' = 'internal') {
+  const response = await fetch('/api/admin/requests', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -273,8 +291,8 @@ export async function assignDriver(input: AssignDriverInput) {
   return parseJson<{ message: string }>(response)
 }
 
-export async function updateRequestStatus(input: UpdateRequestStatusInput) {
-  const response = await fetch('/api/admin/request-status', withAdminHeaders({
+export async function updateRequestStatus(input: UpdateRequestStatusInput, accessMode: 'internal' | 'operator' = 'internal') {
+  const response = await fetch('/api/admin/request-status', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -283,8 +301,8 @@ export async function updateRequestStatus(input: UpdateRequestStatusInput) {
   return parseJson<{ message: string }>(response)
 }
 
-export async function updateRequestSchedule(input: UpdateRequestScheduleInput) {
-  const response = await fetch('/api/admin/request-schedule', withAdminHeaders({
+export async function updateRequestSchedule(input: UpdateRequestScheduleInput, accessMode: 'internal' | 'operator' = 'internal') {
+  const response = await fetch('/api/admin/request-schedule', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),

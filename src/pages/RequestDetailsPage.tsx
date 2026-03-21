@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { canAccessManager, canAccessOperator } from '../lib/access'
 import { fetchRequestDetails, updateRequestSchedule, updateRequestStatus } from '../lib/api'
-import { getAdminSession } from '../lib/admin-session'
+import { getOperatorSession } from '../lib/operator-session'
 import type { RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '../types'
 
 const statusOptions: Array<{ value: RequestStatus; label: string }> = [
@@ -17,7 +17,7 @@ const statusOptions: Array<{ value: RequestStatus; label: string }> = [
 ]
 
 export function RequestDetailsPage() {
-  const session = typeof window !== 'undefined' ? getAdminSession() : null
+  const session = typeof window !== 'undefined' ? getOperatorSession() : null
   const params = useParams()
   const requestId = Number(params.id ?? '')
   const [details, setDetails] = useState<TravelRequestDetails | null>(null)
@@ -45,7 +45,7 @@ export function RequestDetailsPage() {
       setError('')
 
       try {
-        const data = await fetchRequestDetails(requestId)
+        const data = await fetchRequestDetails(requestId, 'operator')
 
         if (!active) {
           return
@@ -91,9 +91,9 @@ export function RequestDetailsPage() {
         requestId: details.id,
         status,
         note,
-      })
+      }, 'operator')
 
-      const refreshed = await fetchRequestDetails(details.id)
+      const refreshed = await fetchRequestDetails(details.id, 'operator')
       const { history: historyData, ...requestData } = refreshed
       setDetails(requestData)
       setHistory(historyData)
@@ -123,9 +123,9 @@ export function RequestDetailsPage() {
         travelDate: scheduleDate,
         departureTime: scheduleTime,
         note: scheduleNote,
-      })
+      }, 'operator')
 
-      const refreshed = await fetchRequestDetails(details.id)
+      const refreshed = await fetchRequestDetails(details.id, 'operator')
       const { history: historyData, ...requestData } = refreshed
       setDetails(requestData)
       setHistory(historyData)
