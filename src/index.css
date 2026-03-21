@@ -255,6 +255,19 @@ button {
   gap: 12px;
 }
 
+.filter-stack {
+  display: grid;
+  gap: 14px;
+  max-width: 560px;
+}
+
+.filter-actions {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .primary-link,
 .secondary-link,
 .ghost-button,
@@ -581,6 +594,10 @@ button {
 .field textarea {
   resize: vertical;
   min-height: 132px;
+}
+
+.filter-stack .field label {
+  min-height: auto;
 }
 
 .table-wrapper {

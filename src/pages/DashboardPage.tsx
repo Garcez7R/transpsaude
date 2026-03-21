@@ -315,8 +315,8 @@ export function DashboardPage() {
 
       <section className="dashboard-grid">
         <div className="content-card">
-          <div className="toolbar-row">
-            <div className="field search-field">
+          <div className="filter-stack">
+            <div className="field">
               <label htmlFor="request-search">Buscar</label>
               <input
                 id="request-search"
@@ -325,7 +325,7 @@ export function DashboardPage() {
                 placeholder="Protocolo, paciente, CPF, unidade..."
               />
             </div>
-            <div className="field compact-field">
+            <div className="field">
               <label htmlFor="request-date-filter">Data da viagem</label>
               <input
                 id="request-date-filter"
@@ -334,7 +334,7 @@ export function DashboardPage() {
                 onChange={(event) => setTravelDate(event.target.value)}
               />
             </div>
-            <div className="field compact-field">
+            <div className="field">
               <label htmlFor="destination-filter">Destino</label>
               <input
                 id="destination-filter"
@@ -343,7 +343,7 @@ export function DashboardPage() {
                 placeholder="Cidade"
               />
             </div>
-            <div className="select-field">
+            <div className="field">
               <label htmlFor="status-filter">Filtrar por status</label>
               <select
                 id="status-filter"
@@ -357,7 +357,8 @@ export function DashboardPage() {
                 ))}
               </select>
             </div>
-
+          </div>
+          <div className="filter-actions">
             <button
               className="ghost-button"
               type="button"

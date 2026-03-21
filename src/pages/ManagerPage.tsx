@@ -428,7 +428,7 @@ export function ManagerPage() {
       </section>
 
       <section className="content-card">
-        <div className="form-grid">
+        <div className="filter-stack">
           <div className="field">
             <label htmlFor="manager-search">Buscar</label>
             <input
@@ -488,23 +488,21 @@ export function ManagerPage() {
               ))}
             </select>
           </div>
-          <div className="field full">
-            <div className="form-actions">
-              <button
-                className="action-button secondary"
-                type="button"
-                onClick={() => {
-                  setSelectedStatus('todos')
-                  setSearch('')
-                  setTravelDate('')
-                  setDestination('')
-                  setDriverFilterId('')
-                }}
-              >
-                Limpar filtros
-              </button>
-            </div>
-          </div>
+        </div>
+        <div className="filter-actions">
+          <button
+            className="action-button secondary"
+            type="button"
+            onClick={() => {
+              setSelectedStatus('todos')
+              setSearch('')
+              setTravelDate('')
+              setDestination('')
+              setDriverFilterId('')
+            }}
+          >
+            Limpar filtros
+          </button>
         </div>
       </section>
 
