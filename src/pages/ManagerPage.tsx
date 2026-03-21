@@ -309,7 +309,7 @@ export function ManagerPage() {
             <form onSubmit={handleLogin}>
               <div className="login-grid">
                 <div className="field">
-                  <label htmlFor="manager-cpf">CPF do acesso interno</label>
+                  <label htmlFor="manager-cpf">CPF do gerente</label>
                   <input
                     id="manager-cpf"
                     value={cpf}

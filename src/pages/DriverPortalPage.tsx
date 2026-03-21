@@ -165,6 +165,9 @@ export function DriverPortalPage() {
           Motorista autenticado
         </div>
         <h1>{session.name}</h1>
+        <p>
+          Sessão ativa para <strong>{session.name}</strong> com perfil <strong>motorista</strong>.
+        </p>
         <p>Veículo designado: <strong>{session.vehicleName}</strong></p>
         <div className="form-actions">
           <button className="action-button secondary" type="button" onClick={handleLogout}>
