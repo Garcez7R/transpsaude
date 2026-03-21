@@ -1,6 +1,6 @@
 import { BusFront, LogOut, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { fetchDriverTrips, loginDriver, logoutSession } from '../lib/api'
+import { activateDriverPassword, fetchDriverTrips, loginDriver, logoutSession } from '../lib/api'
 import { clearDriverSession, getDriverSession, saveDriverSession } from '../lib/driver-session'
 import type { DriverSession, TravelRequest } from '../types'
 
@@ -16,9 +16,11 @@ export function DriverPortalPage() {
   const [session, setSession] = useState<DriverSession | null>(null)
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
   const [trips, setTrips] = useState<TravelRequest[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [firstAccess, setFirstAccess] = useState<{ cpf: string; name: string } | null>(null)
 
   useEffect(() => {
     setSession(getDriverSession())
@@ -67,10 +69,46 @@ export function DriverPortalPage() {
 
     try {
       const result = await loginDriver(cpf, password)
+      if (result.mustChangePassword || !result.session) {
+        setFirstAccess({ cpf, name: result.name })
+        setPassword('')
+        return
+      }
       saveDriverSession(result.session)
       setSession(result.session)
-    } catch {
-      setError('Não foi possível autenticar esse motorista.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível autenticar esse motorista.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleFirstAccess(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!firstAccess) {
+      return
+    }
+
+    setLoading(true)
+    setError('')
+
+    try {
+      await activateDriverPassword(firstAccess.cpf, newPassword)
+      const result = await loginDriver(firstAccess.cpf, newPassword)
+
+      if (!result.session) {
+        setError('Não foi possível concluir o primeiro acesso do motorista.')
+        return
+      }
+
+      saveDriverSession(result.session)
+      setSession(result.session)
+      setFirstAccess(null)
+      setNewPassword('')
+      setCpf('')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível concluir o primeiro acesso do motorista.')
     } finally {
       setLoading(false)
     }
@@ -143,6 +181,39 @@ export function DriverPortalPage() {
           </form>
           {error ? <p className="table-note">{error}</p> : null}
         </article>
+
+        {firstAccess ? (
+          <article className="public-card">
+            <div className="eyebrow">
+              <BusFront size={16} />
+              Primeiro acesso
+            </div>
+            <h2>Cadastrar novo PIN</h2>
+            <p>
+              {firstAccess.name}, este acesso foi criado com o PIN temporário <strong>0000</strong>. Defina agora um novo PIN numérico de 4 dígitos.
+            </p>
+            <form onSubmit={handleFirstAccess}>
+              <div className="form-grid">
+                <div className="field">
+                  <label htmlFor="driver-new-password">Novo PIN do motorista</label>
+                  <input
+                    id="driver-new-password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value.replace(/\D/g, '').slice(0, 4))}
+                    inputMode="numeric"
+                    placeholder="1234"
+                  />
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <button className="action-button primary" disabled={loading || newPassword.length !== 4} type="submit">
+                  {loading ? 'Salvando novo PIN...' : 'Confirmar novo PIN'}
+                </button>
+              </div>
+            </form>
+          </article>
+        ) : null}
       </div>
     )
   }

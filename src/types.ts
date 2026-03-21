@@ -56,6 +56,7 @@ export interface StatusHistoryEntry {
 }
 
 export interface TravelRequestDetails extends TravelRequest {
+  patientId: number
   patientCpf: string
   phone: string
   isWhatsapp: boolean
@@ -89,8 +90,20 @@ export interface AdminSession {
   expiresAt: string
 }
 
+export interface FirstAccessChallenge {
+  mustChangePassword: boolean
+  temporaryPasswordLabel: string
+  name: string
+  cpf: string
+}
+
 export interface AdminLoginResponse {
-  session: AdminSession
+  mustChangePassword: boolean
+  temporaryPasswordLabel: string
+  name: string
+  cpf: string
+  role?: InternalRole
+  session?: AdminSession
 }
 
 export interface DriverRecord {
@@ -161,7 +174,11 @@ export interface RequestQueryFilters {
 }
 
 export interface DriverLoginResponse {
-  session: DriverSession
+  mustChangePassword: boolean
+  temporaryPasswordLabel: string
+  name: string
+  cpf: string
+  session?: DriverSession
 }
 
 export interface CreateDriverInput {

@@ -2,7 +2,7 @@ import { ArrowLeft, CheckCircle2, Printer, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { canAccessManager, canAccessOperator } from '../lib/access'
-import { fetchRequestDetails, updateRequestSchedule, updateRequestStatus } from '../lib/api'
+import { fetchRequestDetails, resetAccess, updateRequestSchedule, updateRequestStatus } from '../lib/api'
 import { getOperatorSession } from '../lib/operator-session'
 import type { RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '../types'
 
@@ -32,6 +32,20 @@ export function RequestDetailsPage() {
   const [savingSchedule, setSavingSchedule] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+
+  async function handleResetPatientAccess() {
+    if (!details) {
+      return
+    }
+
+    try {
+      const result = await resetAccess('patient', details.patientId, 'operator')
+      setMessage(result.message)
+      setError('')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível redefinir o acesso do paciente.')
+    }
+  }
 
   useEffect(() => {
     if (!session || !canAccessOperator(session) || !Number.isFinite(requestId) || requestId <= 0) {
@@ -190,6 +204,9 @@ export function RequestDetailsPage() {
         </div>
 
         <div className="page-actions">
+          <button className="action-button secondary" type="button" onClick={() => void handleResetPatientAccess()}>
+            Resetar acesso do paciente
+          </button>
           <button className="action-button secondary" type="button" onClick={() => window.print()}>
             <Printer size={16} />
             Imprimir comprovante

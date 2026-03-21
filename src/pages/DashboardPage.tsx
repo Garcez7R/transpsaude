@@ -1,7 +1,7 @@
 import { Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { loginAdmin, fetchDashboardSummary, fetchRequests, logoutSession } from '../lib/api'
+import { activateAdminPassword, loginAdmin, fetchDashboardSummary, fetchRequests, logoutSession } from '../lib/api'
 import { canAccessOperator, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { clearOperatorSession, getOperatorSession, saveOperatorSession } from '../lib/operator-session'
 import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } from '../types'
@@ -39,8 +39,10 @@ export function DashboardPage() {
   const [session, setSession] = useState<AdminSession | null>(null)
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
+  const [firstAccess, setFirstAccess] = useState<{ cpf: string; name: string } | null>(null)
 
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [requests, setRequests] = useState<TravelRequest[]>([])
@@ -111,6 +113,12 @@ export function DashboardPage() {
     try {
       const result = await loginAdmin(cpf, password)
 
+      if (result.mustChangePassword || !result.session) {
+        setFirstAccess({ cpf, name: result.name })
+        setPassword('')
+        return
+      }
+
       if (!isValidInternalRole(result.session.role) || !canAccessOperator(result.session)) {
         setAuthError('Esse perfil não pode acessar a área do operador.')
         return
@@ -120,6 +128,37 @@ export function DashboardPage() {
       setSession(result.session)
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Não foi possível autenticar esse acesso administrativo.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  async function handleFirstAccess(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!firstAccess) {
+      return
+    }
+
+    setAuthLoading(true)
+    setAuthError('')
+
+    try {
+      await activateAdminPassword(firstAccess.cpf, newPassword)
+      const result = await loginAdmin(firstAccess.cpf, newPassword)
+
+      if (!result.session || !isValidInternalRole(result.session.role) || !canAccessOperator(result.session)) {
+        setAuthError('Esse perfil não pode acessar a área do operador.')
+        return
+      }
+
+      saveOperatorSession(result.session)
+      setSession(result.session)
+      setFirstAccess(null)
+      setNewPassword('')
+      setCpf('')
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Não foi possível concluir o primeiro acesso.')
     } finally {
       setAuthLoading(false)
     }
@@ -224,6 +263,38 @@ export function DashboardPage() {
             </form>
             {authError ? <p className="table-note">{authError}</p> : null}
           </article>
+
+          {firstAccess ? (
+            <article className="content-card login-card">
+              <div className="eyebrow">
+                <LockKeyhole size={16} />
+                Primeiro acesso
+              </div>
+              <h2>Cadastrar novo PIN</h2>
+              <p>
+                {firstAccess.name}, este acesso foi criado com o PIN temporário <strong>0000</strong>. Defina agora um novo PIN numérico de 4 dígitos.
+              </p>
+              <form onSubmit={handleFirstAccess}>
+                <div className="login-grid">
+                  <div className="field">
+                    <label htmlFor="operator-new-password">Novo PIN do operador</label>
+                    <input
+                      id="operator-new-password"
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value.replace(/\D/g, '').slice(0, 4))}
+                      inputMode="numeric"
+                      placeholder="1234"
+                    />
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button className="action-button primary" disabled={authLoading || newPassword.length !== 4} type="submit">
+                    {authLoading ? 'Salvando novo PIN...' : 'Confirmar novo PIN'}
+                  </button>
+                </div>
+              </form>
+            </article>
+          ) : null}
 
           <article className="content-card">
             <h2>Escopo liberado para esse acesso</h2>

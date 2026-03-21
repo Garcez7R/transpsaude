@@ -1,0 +1,48 @@
+import { badRequest, createSecretHash, normalizeCpf, notFound, ok, type Env } from '../_utils'
+
+export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
+  const body = (await request.json()) as { cpf?: string; newPassword?: string }
+  const cpf = body.cpf?.trim()
+  const newPassword = body.newPassword?.trim()
+
+  if (!cpf || !newPassword) {
+    return badRequest('Informe CPF e novo PIN do acesso interno.')
+  }
+
+  if (!/^\d{4}$/.test(newPassword)) {
+    return badRequest('O novo PIN deve ter 4 dígitos numéricos.')
+  }
+
+  const normalizedCpf = normalizeCpf(cpf)
+
+  const operator = await env.DB.prepare(
+    `
+      select id
+      from operators
+      where cpf = ?1
+        and active = 1
+      limit 1
+    `,
+  )
+    .bind(normalizedCpf)
+    .first<Record<string, unknown>>()
+
+  if (!operator) {
+    return notFound('Acesso interno não encontrado.')
+  }
+
+  await env.DB.prepare(
+    `
+      update operators
+      set password = '',
+          password_hash = ?1,
+          must_change_password = 0,
+          updated_at = current_timestamp
+      where id = ?2
+    `,
+  )
+    .bind(await createSecretHash(newPassword), operator.id)
+    .run()
+
+  return ok({ message: 'PIN redefinido com sucesso.' })
+}

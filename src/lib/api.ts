@@ -175,6 +175,16 @@ export async function loginAdmin(cpf: string, password: string) {
   return parseJson<AdminLoginResponse>(response)
 }
 
+export async function activateAdminPassword(cpf: string, newPassword: string) {
+  const response = await fetch('/api/admin/activate-password', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ cpf, newPassword }),
+  })
+
+  return parseJson<{ message: string }>(response)
+}
+
 export async function createTravelRequest(input: CreateTravelRequestInput, accessMode: 'internal' | 'operator' = 'internal') {
   const response = await fetch('/api/admin/requests', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
     method: 'POST',
@@ -258,6 +268,20 @@ export async function createOperator(input: CreateOperatorInput) {
   return parseJson<{ message: string }>(response)
 }
 
+export async function resetAccess(
+  targetType: 'operator' | 'manager' | 'driver' | 'patient',
+  id: number,
+  accessMode: 'internal' | 'operator' = 'internal',
+) {
+  const response = await fetch('/api/admin/access-reset', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ targetType, id }),
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
 export async function fetchOperators() {
   const response = await fetch('/api/admin/operators', withAdminHeaders())
   return parseJson<OperatorRecord[]>(response)
@@ -319,6 +343,16 @@ export async function loginDriver(cpf: string, password: string) {
   })
 
   return parseJson<DriverLoginResponse>(response)
+}
+
+export async function activateDriverPassword(cpf: string, newPassword: string) {
+  const response = await fetch('/api/driver/activate-password', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ cpf, newPassword }),
+  })
+
+  return parseJson<{ message: string }>(response)
 }
 
 export async function logoutSession(token: string) {

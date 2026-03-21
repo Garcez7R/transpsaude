@@ -1,4 +1,14 @@
-import { badRequest, createSecretHash, createSession, notFound, ok, serverError, verifySecretHash, type Env } from '../_utils'
+import {
+  DEFAULT_FIRST_ACCESS_PASSWORD,
+  badRequest,
+  createSecretHash,
+  createSession,
+  notFound,
+  ok,
+  serverError,
+  verifySecretHash,
+  type Env,
+} from '../_utils'
 
 function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
@@ -35,7 +45,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
           role,
           cpf,
           password,
-          password_hash as passwordHash
+          password_hash as passwordHash,
+          must_change_password as mustChangePassword
         from operators
         where cpf = ?1
           and active = 1
@@ -76,6 +87,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       }
     }
 
+    if (Number(operator.mustChangePassword ?? 0) === 1) {
+      return ok({
+        mustChangePassword: true,
+        temporaryPasswordLabel: DEFAULT_FIRST_ACCESS_PASSWORD,
+        name: String(operator.name),
+        cpf: maskCpf(String(operator.cpf ?? '')),
+        role: String(operator.role),
+      })
+    }
+
     const sessionRecord = await createSession(env, {
       sessionType: 'internal',
       operatorId: Number(operator.id),
@@ -84,6 +105,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     })
 
     return ok({
+      mustChangePassword: false,
+      temporaryPasswordLabel: DEFAULT_FIRST_ACCESS_PASSWORD,
+      name: String(operator.name),
+      cpf: maskCpf(String(operator.cpf ?? '')),
+      role: String(operator.role),
       session: {
         token: sessionRecord.token,
         operatorId: operator.id,

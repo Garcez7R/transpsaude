@@ -15,6 +15,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     return notFound('Motorista não encontrado.')
   }
 
+  if (record.mustChangePassword) {
+    return ok({
+      mustChangePassword: true,
+      temporaryPasswordLabel: record.temporaryPasswordLabel,
+      name: record.name,
+      cpf: record.cpf,
+    })
+  }
+
   const sessionRecord = await createSession(env, {
     sessionType: 'driver',
     driverId: Number(record.driverId),
@@ -22,6 +31,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   })
 
   return ok({
+    mustChangePassword: false,
+    temporaryPasswordLabel: record.temporaryPasswordLabel,
+    name: record.name,
+    cpf: record.cpf,
     session: {
       ...record,
       token: sessionRecord.token,

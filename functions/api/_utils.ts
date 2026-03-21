@@ -19,6 +19,7 @@ const textEncoder = new TextEncoder()
 const PBKDF2_ITERATIONS = 210_000
 const INTERNAL_SESSION_DURATION_MS = 12 * 60 * 60 * 1000
 const DRIVER_SESSION_DURATION_MS = 24 * 60 * 60 * 1000
+export const DEFAULT_FIRST_ACCESS_PASSWORD = '0000'
 
 function requireDb(env: Env) {
   if (!env.DB) {
@@ -62,11 +63,11 @@ function toSqliteDate(date: Date) {
   return date.toISOString().replace('T', ' ').slice(0, 19)
 }
 
-function normalizeCpf(value: string) {
+export function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
 }
 
-function maskCpf(value: string) {
+export function maskCpf(value: string) {
   const digits = normalizeCpf(value)
   return digits
     .replace(/^(\d{3})(\d)/, '$1.$2')
@@ -606,6 +607,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       select
         tr.id,
         tr.protocol,
+        tr.patient_id as patientId,
         tr.patient_name as patientName,
         tr.cpf_masked as cpfMasked,
         tr.access_cpf_masked as accessCpfMasked,
@@ -644,7 +646,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       mustChangePin: mustChangePin && temporaryMatch.matches,
       patientName: String(patientAccess.patientName ?? ''),
       cpfMasked: String(patientAccess.cpfMasked ?? ''),
-      temporaryPasswordLabel: '0000',
+      temporaryPasswordLabel: DEFAULT_FIRST_ACCESS_PASSWORD,
       request: null,
     }
   }
@@ -681,7 +683,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
     mustChangePin: mustChangePin && temporaryMatch.matches,
     patientName: String(patientAccess.patientName ?? ''),
     cpfMasked: String(patientAccess.cpfMasked ?? ''),
-    temporaryPasswordLabel: '0000',
+    temporaryPasswordLabel: DEFAULT_FIRST_ACCESS_PASSWORD,
     request: {
       ...requestResult,
       companionRequired: toBoolean(requestResult.companionRequired),
@@ -864,6 +866,7 @@ export async function loginDriver(env: Env, cpf: string, password: string) {
         d.cpf,
         d.password,
         d.password_hash as passwordHash,
+        d.must_change_password as mustChangePassword,
         coalesce(v.name, d.vehicle_name) as vehicleName
       from drivers d
       left join vehicles v on v.id = d.vehicle_id
@@ -908,6 +911,8 @@ export async function loginDriver(env: Env, cpf: string, password: string) {
     name: String(driver.name ?? ''),
     cpf: maskCpf(String(driver.cpf ?? '')),
     vehicleName: String(driver.vehicleName ?? ''),
+    mustChangePassword: toBoolean(driver.mustChangePassword),
+    temporaryPasswordLabel: DEFAULT_FIRST_ACCESS_PASSWORD,
   }
 }
 

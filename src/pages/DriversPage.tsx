@@ -15,6 +15,7 @@ import {
   fetchOperators,
   fetchPatients,
   fetchVehicles,
+  resetAccess,
   updateDriver,
   updateOperator,
   updatePatient,
@@ -375,6 +376,16 @@ export function DriversPage() {
     }
   }
 
+  async function handleResetAccess(targetType: 'operator' | 'driver' | 'patient', id: number) {
+    try {
+      const result = await resetAccess(targetType, id)
+      setMessage(result.message)
+      setError('')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível redefinir esse acesso.')
+    }
+  }
+
   if (!session) {
     return (
       <div className="dashboard-shell">
@@ -555,15 +566,8 @@ export function DriversPage() {
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="driver-password">{editingDriverId ? 'Novo PIN do motorista' : 'PIN inicial do motorista'}</label>
-                <input
-                  id="driver-password"
-                  value={driverForm.password}
-                  onChange={(event) => updateDriverField('password', event.target.value.replace(/\D/g, '').slice(0, 4))}
-                  inputMode="numeric"
-                  placeholder="0000"
-                  required={!editingDriverId}
-                />
+                <label>Primeiro acesso</label>
+                <input value={editingDriverId ? 'Use o botão de reset para voltar ao PIN 0000' : 'PIN temporário 0000 com troca obrigatória no primeiro acesso'} readOnly />
               </div>
               <div className="field full checkbox-field">
                 <label className="checkbox-row" htmlFor="driver-whatsapp">
@@ -638,14 +642,8 @@ export function DriversPage() {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="operator-password">{editingOperatorId ? 'Nova senha do operador' : 'Senha inicial'}</label>
-                  <input
-                    id="operator-password"
-                    value={operatorForm.password}
-                    onChange={(event) => updateOperatorField('password', event.target.value)}
-                    placeholder={editingOperatorId ? 'Opcional para redefinir' : 'Senha inicial'}
-                    required={!editingOperatorId}
-                  />
+                  <label>Primeiro acesso</label>
+                  <input value={editingOperatorId ? 'Use o botão de reset para voltar ao PIN 0000' : 'PIN temporário 0000 com troca obrigatória no primeiro acesso'} readOnly />
                 </div>
               </div>
               <div className="form-actions">
@@ -754,11 +752,14 @@ export function DriversPage() {
                           })
                         }}
                       >
-                        Editar
-                      </button>
-                      <button className="action-button primary" type="button" onClick={() => void handleDeleteDriver(driver.id)}>
-                        Excluir
-                      </button>
+                      Editar
+                    </button>
+                    <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('driver', driver.id)}>
+                      Resetar PIN
+                    </button>
+                    <button className="action-button primary" type="button" onClick={() => void handleDeleteDriver(driver.id)}>
+                      Excluir
+                    </button>
                     </div>
                   </article>
                 ))}
@@ -862,6 +863,9 @@ export function DriversPage() {
                     >
                       Editar
                     </button>
+                    <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('patient', patient.id)}>
+                      Resetar acesso
+                    </button>
                     <button className="action-button primary" type="button" onClick={() => void handleDeletePatient(patient.id)}>
                       Excluir
                     </button>
@@ -896,6 +900,9 @@ export function DriversPage() {
                       }}
                     >
                       Editar
+                    </button>
+                    <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('operator', operator.id)}>
+                      Resetar senha
                     </button>
                     <button className="action-button primary" type="button" onClick={() => void handleDeleteOperator(operator.id)}>
                       Excluir

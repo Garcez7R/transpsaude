@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
-import { assignDriver, fetchDrivers, fetchRequests, loginAdmin, logoutSession } from '../lib/api'
+import { activateAdminPassword, assignDriver, fetchDrivers, fetchRequests, loginAdmin, logoutSession } from '../lib/api'
 import { clearAdminSession, saveAdminSession } from '../lib/admin-session'
 import { clearAdminAreaSession } from '../lib/admin-area-session'
 import { clearManagerSession, getManagerSession, saveManagerSession } from '../lib/manager-session'
@@ -50,8 +50,10 @@ export function ManagerPage() {
   const [session, setSession] = useState<AdminSession | null>(null)
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
+  const [firstAccess, setFirstAccess] = useState<{ cpf: string; name: string } | null>(null)
 
   const [requests, setRequests] = useState<TravelRequest[]>([])
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
@@ -210,6 +212,12 @@ export function ManagerPage() {
     try {
       const result = await loginAdmin(cpf, password)
 
+      if (result.mustChangePassword || !result.session) {
+        setFirstAccess({ cpf, name: result.name })
+        setPassword('')
+        return
+      }
+
       if (!isValidInternalRole(result.session.role) || !canAccessManager(result.session)) {
         setAuthError('Esse perfil não tem permissão para acessar a gerência.')
         return
@@ -220,6 +228,38 @@ export function ManagerPage() {
       setSession(result.session)
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Não foi possível autenticar esse acesso de gerência.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  async function handleFirstAccess(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!firstAccess) {
+      return
+    }
+
+    setAuthLoading(true)
+    setAuthError('')
+
+    try {
+      await activateAdminPassword(firstAccess.cpf, newPassword)
+      const result = await loginAdmin(firstAccess.cpf, newPassword)
+
+      if (!result.session || !isValidInternalRole(result.session.role) || !canAccessManager(result.session)) {
+        setAuthError('Esse perfil não tem permissão para acessar a gerência.')
+        return
+      }
+
+      saveAdminSession(result.session)
+      saveManagerSession(result.session)
+      setSession(result.session)
+      setFirstAccess(null)
+      setNewPassword('')
+      setCpf('')
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Não foi possível concluir o primeiro acesso.')
     } finally {
       setAuthLoading(false)
     }
@@ -341,6 +381,38 @@ export function ManagerPage() {
             </form>
             {authError ? <p className="table-note">{authError}</p> : null}
           </article>
+
+          {firstAccess ? (
+            <article className="content-card login-card">
+              <div className="eyebrow">
+                <LockKeyhole size={16} />
+                Primeiro acesso
+              </div>
+              <h2>Cadastrar novo PIN</h2>
+              <p>
+                {firstAccess.name}, este acesso foi criado com o PIN temporário <strong>0000</strong>. Defina agora um novo PIN numérico de 4 dígitos.
+              </p>
+              <form onSubmit={handleFirstAccess}>
+                <div className="login-grid">
+                  <div className="field">
+                    <label htmlFor="manager-new-password">Novo PIN do gerente</label>
+                    <input
+                      id="manager-new-password"
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value.replace(/\D/g, '').slice(0, 4))}
+                      inputMode="numeric"
+                      placeholder="1234"
+                    />
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button className="action-button primary" disabled={authLoading || newPassword.length !== 4} type="submit">
+                    {authLoading ? 'Salvando novo PIN...' : 'Confirmar novo PIN'}
+                  </button>
+                </div>
+              </form>
+            </article>
+          ) : null}
         </section>
       </div>
     )

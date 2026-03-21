@@ -1,4 +1,5 @@
 import {
+  DEFAULT_FIRST_ACCESS_PASSWORD,
   badRequest,
   createSecretHash,
   forbidden,
@@ -6,6 +7,7 @@ import {
   notFound,
   ok,
   requireInternalRole,
+  serverError,
   type Env,
   writeAuditLog,
 } from '../_utils'
@@ -34,100 +36,108 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
-  const session = await requireInternalRole(env, request, ['manager', 'admin'])
+  try {
+    const session = await requireInternalRole(env, request, ['manager', 'admin'])
 
-  if (!session) {
-    return forbidden('Somente gerente ou administrador podem cadastrar motoristas.')
-  }
+    if (!session) {
+      return forbidden('Somente gerente ou administrador podem cadastrar motoristas.')
+    }
 
-  const body = (await request.json()) as {
-    name?: string
-    cpf?: string
-    phone?: string
-    isWhatsapp?: boolean
-    vehicleId?: number
-    password?: string
-  }
+    const body = (await request.json()) as {
+      name?: string
+      cpf?: string
+      phone?: string
+      isWhatsapp?: boolean
+      vehicleId?: number
+    }
 
-  if (!body.name || !body.cpf || !body.phone || !body.vehicleId || !body.password) {
-    return badRequest('Preencha nome, CPF, telefone, veículo e senha do motorista.')
-  }
+    if (!body.name || !body.cpf || !body.phone || !body.vehicleId) {
+      return badRequest('Preencha nome, CPF, telefone e veículo do motorista.')
+    }
 
-  const cpf = normalizeCpf(body.cpf)
-  const vehicle = await env.DB.prepare(
-    `
-      select id, name
-      from vehicles
-      where id = ?1
-        and active = 1
-      limit 1
-    `,
-  )
-    .bind(body.vehicleId)
-    .first<Record<string, unknown>>()
-
-  if (!vehicle) {
-    return badRequest('Veículo não encontrado.')
-  }
-
-  await env.DB.prepare(
-    `
-      insert into drivers (
-        name,
-        cpf,
-        phone,
-        is_whatsapp,
-        vehicle_id,
-        vehicle_name,
-        password,
-        password_hash,
-        active
-      )
-      values (?1, ?2, ?3, ?4, ?5, ?6, '', ?7, 1)
-    `,
-  )
-    .bind(
-      body.name,
-      cpf,
-      body.phone,
-      body.isWhatsapp ? 1 : 0,
-      vehicle.id,
-      vehicle.name,
-      await createSecretHash(body.password),
+    const cpf = normalizeCpf(body.cpf)
+    const vehicle = await env.DB.prepare(
+      `
+        select id, name
+        from vehicles
+        where id = ?1
+          and active = 1
+        limit 1
+      `,
     )
-    .run()
+      .bind(body.vehicleId)
+      .first<Record<string, unknown>>()
 
-  const created = await env.DB.prepare(
-    `
-      select
-        d.id,
-        d.name,
-        d.cpf,
-        d.phone,
-        d.is_whatsapp as isWhatsapp,
-        d.vehicle_id as vehicleId,
-        coalesce(v.name, d.vehicle_name) as vehicleName,
-        d.active
-      from drivers d
-      left join vehicles v on v.id = d.vehicle_id
-      where d.cpf = ?1
-      limit 1
-    `,
-  )
-    .bind(cpf)
-    .first<Record<string, unknown>>()
+    if (!vehicle) {
+      return badRequest('Veículo não encontrado.')
+    }
 
-  await writeAuditLog(env, session.operatorId, 'create', 'driver', cpf, {
-    name: body.name,
-    vehicleName: String(vehicle.name),
-  })
+    await env.DB.prepare(
+      `
+        insert into drivers (
+          name,
+          cpf,
+          phone,
+          is_whatsapp,
+          vehicle_id,
+          vehicle_name,
+          password,
+          password_hash,
+          must_change_password,
+          active
+        )
+        values (?1, ?2, ?3, ?4, ?5, ?6, '', ?7, 1, 1)
+      `,
+    )
+      .bind(
+        body.name,
+        cpf,
+        body.phone,
+        body.isWhatsapp ? 1 : 0,
+        vehicle.id,
+        vehicle.name,
+        await createSecretHash(DEFAULT_FIRST_ACCESS_PASSWORD),
+      )
+      .run()
 
-  return ok({
-    ...created,
-    cpfMasked: maskCpf(cpf),
-    isWhatsapp: Boolean(created?.isWhatsapp),
-    active: Boolean(created?.active),
-  })
+    const created = await env.DB.prepare(
+      `
+        select
+          d.id,
+          d.name,
+          d.cpf,
+          d.phone,
+          d.is_whatsapp as isWhatsapp,
+          d.vehicle_id as vehicleId,
+          coalesce(v.name, d.vehicle_name) as vehicleName,
+          d.active
+        from drivers d
+        left join vehicles v on v.id = d.vehicle_id
+        where d.cpf = ?1
+        limit 1
+      `,
+    )
+      .bind(cpf)
+      .first<Record<string, unknown>>()
+
+    await writeAuditLog(env, session.operatorId, 'create', 'driver', cpf, {
+      name: body.name,
+      vehicleName: String(vehicle.name),
+      temporaryPassword: DEFAULT_FIRST_ACCESS_PASSWORD,
+    })
+
+    return ok({
+      ...created,
+      cpfMasked: maskCpf(cpf),
+      isWhatsapp: Boolean(created?.isWhatsapp),
+      active: Boolean(created?.active),
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Não foi possível cadastrar o motorista.'
+    return message.includes('UNIQUE constraint failed')
+      ? badRequest('Já existe um motorista com esse CPF.')
+      : serverError(message)
+  }
 }
 
 export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {

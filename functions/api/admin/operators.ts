@@ -1,4 +1,5 @@
 import {
+  DEFAULT_FIRST_ACCESS_PASSWORD,
   badRequest,
   createSecretHash,
   forbidden,
@@ -6,6 +7,7 @@ import {
   notFound,
   ok,
   requireInternalRole,
+  serverError,
   type Env,
   writeAuditLog,
 } from '../_utils'
@@ -15,52 +17,60 @@ function normalizeCpf(value: string) {
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
-  const session = await requireInternalRole(env, request, ['manager', 'admin'])
+  try {
+    const session = await requireInternalRole(env, request, ['manager', 'admin'])
 
-  if (!session) {
-    return forbidden('Somente gerente ou administrador podem cadastrar operadores.')
+    if (!session) {
+      return forbidden('Somente gerente ou administrador podem cadastrar operadores.')
+    }
+
+    const body = (await request.json()) as {
+      name?: string
+      cpf?: string
+      email?: string
+    }
+
+    if (!body.name || !body.cpf || !body.email) {
+      return badRequest('Preencha nome, CPF e e-mail do operador.')
+    }
+
+    const cpf = normalizeCpf(body.cpf)
+
+    await env.DB.prepare(
+      `
+        insert into operators (
+          name,
+          cpf,
+          email,
+          password,
+          password_hash,
+          must_change_password,
+          role,
+          active,
+          created_by_operator_id,
+          updated_at
+        )
+        values (?1, ?2, ?3, '', ?4, 1, 'operator', 1, ?5, current_timestamp)
+      `,
+    )
+      .bind(body.name, cpf, body.email, await createSecretHash(DEFAULT_FIRST_ACCESS_PASSWORD), session.operatorId)
+      .run()
+
+    await writeAuditLog(env, session.operatorId, 'create', 'operator', cpf, {
+      name: body.name,
+      email: body.email,
+      temporaryPassword: DEFAULT_FIRST_ACCESS_PASSWORD,
+    })
+
+    return ok({
+      message: `Operador ${body.name} cadastrado com senha temporária 0000.`,
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Não foi possível cadastrar o operador.'
+    return message.includes('UNIQUE constraint failed')
+      ? badRequest('Já existe um operador ou outro acesso com esse CPF ou e-mail.')
+      : serverError(message)
   }
-
-  const body = (await request.json()) as {
-    name?: string
-    cpf?: string
-    email?: string
-    password?: string
-  }
-
-  if (!body.name || !body.cpf || !body.email || !body.password) {
-    return badRequest('Preencha nome, CPF, email e senha do operador.')
-  }
-
-  const cpf = normalizeCpf(body.cpf)
-
-  await env.DB.prepare(
-    `
-      insert into operators (
-        name,
-        cpf,
-        email,
-        password,
-        password_hash,
-        role,
-        active,
-        created_by_operator_id,
-        updated_at
-      )
-      values (?1, ?2, ?3, '', ?4, 'operator', 1, ?5, current_timestamp)
-    `,
-  )
-    .bind(body.name, cpf, body.email, await createSecretHash(body.password), session.operatorId)
-    .run()
-
-  await writeAuditLog(env, session.operatorId, 'create', 'operator', cpf, {
-    name: body.name,
-    email: body.email,
-  })
-
-  return ok({
-    message: `Operador ${body.name} cadastrado com sucesso.`,
-  })
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {

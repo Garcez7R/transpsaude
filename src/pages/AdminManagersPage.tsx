@@ -14,7 +14,9 @@ import {
   fetchOperators,
   fetchVehicles,
   loginAdmin,
+  resetAccess,
   logoutSession,
+  activateAdminPassword,
   updateDriver,
   updateManager,
   updateOperator,
@@ -71,8 +73,10 @@ export function AdminManagersPage() {
   const session = typeof window !== 'undefined' ? getAdminAreaSession() : null
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
+  const [firstAccess, setFirstAccess] = useState<{ cpf: string; name: string } | null>(null)
   const [form, setForm] = useState(initialForm)
   const [operatorForm, setOperatorForm] = useState<CreateOperatorInput>({
     name: '',
@@ -159,6 +163,12 @@ export function AdminManagersPage() {
     try {
       const result = await loginAdmin(cpf, password)
 
+      if (result.mustChangePassword || !result.session) {
+        setFirstAccess({ cpf, name: result.name })
+        setPassword('')
+        return
+      }
+
       if (!isValidInternalRole(result.session.role) || !canAccessAdmin(result.session)) {
         setAuthError('Somente o administrador pode acessar esta área.')
         return
@@ -171,6 +181,38 @@ export function AdminManagersPage() {
       window.location.reload()
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Não foi possível autenticar esse acesso administrativo.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  async function handleFirstAccess(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!firstAccess) {
+      return
+    }
+
+    setAuthLoading(true)
+    setAuthError('')
+
+    try {
+      await activateAdminPassword(firstAccess.cpf, newPassword)
+      const result = await loginAdmin(firstAccess.cpf, newPassword)
+
+      if (!result.session || !isValidInternalRole(result.session.role) || !canAccessAdmin(result.session)) {
+        setAuthError('Somente o administrador pode acessar esta área.')
+        return
+      }
+
+      saveAdminSession(result.session)
+      saveAdminAreaSession(result.session)
+      setFirstAccess(null)
+      setNewPassword('')
+      setCpf('')
+      window.location.reload()
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Não foi possível concluir o primeiro acesso.')
     } finally {
       setAuthLoading(false)
     }
@@ -302,6 +344,16 @@ export function AdminManagersPage() {
     }
   }
 
+  async function handleResetAccess(targetType: 'operator' | 'manager' | 'driver', id: number) {
+    try {
+      const result = await resetAccess(targetType, id)
+      setMessage(result.message)
+      setError('')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível redefinir esse acesso.')
+    }
+  }
+
   if (!session || !canAccessAdmin(session)) {
     return (
       <div className="dashboard-shell">
@@ -354,6 +406,38 @@ export function AdminManagersPage() {
             </form>
             {authError ? <p className="table-note">{authError}</p> : null}
           </article>
+
+          {firstAccess ? (
+            <article className="content-card login-card">
+              <div className="eyebrow">
+                <ShieldCheck size={16} />
+                Primeiro acesso
+              </div>
+              <h2>Cadastrar novo PIN</h2>
+              <p>
+                {firstAccess.name}, este acesso foi criado com o PIN temporário <strong>0000</strong>. Defina agora um novo PIN numérico de 4 dígitos.
+              </p>
+              <form onSubmit={handleFirstAccess}>
+                <div className="login-grid">
+                  <div className="field">
+                    <label htmlFor="admin-new-password">Novo PIN do administrador</label>
+                    <input
+                      id="admin-new-password"
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value.replace(/\D/g, '').slice(0, 4))}
+                      inputMode="numeric"
+                      placeholder="1234"
+                    />
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button className="action-button primary" disabled={authLoading || newPassword.length !== 4} type="submit">
+                    {authLoading ? 'Salvando novo PIN...' : 'Confirmar novo PIN'}
+                  </button>
+                </div>
+              </form>
+            </article>
+          ) : null}
         </section>
       </div>
     )
@@ -454,14 +538,8 @@ export function AdminManagersPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="manager-password-register">{editingManagerId ? 'Nova senha do gerente' : 'Senha inicial'}</label>
-                <input
-                  id="manager-password-register"
-                  value={form.password}
-                  onChange={(event) => updateField('password', event.target.value)}
-                  placeholder={editingManagerId ? 'Opcional para redefinir' : 'Senha inicial'}
-                  required={!editingManagerId}
-                />
+                <label>Primeiro acesso</label>
+                <input value={editingManagerId ? 'Use o botão de reset para voltar ao PIN 0000' : 'PIN temporário 0000 com troca obrigatória no primeiro acesso'} readOnly />
               </div>
             </div>
             <div className="form-actions">
@@ -523,14 +601,8 @@ export function AdminManagersPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="operator-password-register">{editingOperatorId ? 'Nova senha do operador' : 'Senha inicial'}</label>
-                <input
-                  id="operator-password-register"
-                  value={operatorForm.password}
-                  onChange={(event) => updateOperatorField('password', event.target.value)}
-                  placeholder={editingOperatorId ? 'Opcional para redefinir' : 'Senha inicial'}
-                  required={!editingOperatorId}
-                />
+                <label>Primeiro acesso</label>
+                <input value={editingOperatorId ? 'Use o botão de reset para voltar ao PIN 0000' : 'PIN temporário 0000 com troca obrigatória no primeiro acesso'} readOnly />
               </div>
             </div>
             <div className="form-actions">
@@ -627,15 +699,8 @@ export function AdminManagersPage() {
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="admin-driver-password">{editingDriverId ? 'Novo PIN do motorista' : 'PIN inicial do motorista'}</label>
-                <input
-                  id="admin-driver-password"
-                  value={driverForm.password}
-                  onChange={(event) => updateDriverField('password', event.target.value.replace(/\D/g, '').slice(0, 4))}
-                  inputMode="numeric"
-                  placeholder="0000"
-                  required={!editingDriverId}
-                />
+                <label>Primeiro acesso</label>
+                <input value={editingDriverId ? 'Use o botão de reset para voltar ao PIN 0000' : 'PIN temporário 0000 com troca obrigatória no primeiro acesso'} readOnly />
               </div>
               <div className="field full checkbox-field">
                 <label className="checkbox-row" htmlFor="admin-driver-whatsapp">
@@ -710,6 +775,9 @@ export function AdminManagersPage() {
                     >
                       Editar
                     </button>
+                    <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('manager', manager.id)}>
+                      Resetar senha
+                    </button>
                     <button className="action-button primary" type="button" onClick={() => void handleDeleteManager(manager.id)}>
                       Excluir
                     </button>
@@ -746,6 +814,9 @@ export function AdminManagersPage() {
                       }}
                     >
                       Editar
+                    </button>
+                    <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('operator', operator.id)}>
+                      Resetar senha
                     </button>
                     <button className="action-button primary" type="button" onClick={() => void handleDeleteOperator(operator.id)}>
                       Excluir
@@ -789,6 +860,9 @@ export function AdminManagersPage() {
                       }}
                     >
                       Editar
+                    </button>
+                    <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('driver', driver.id)}>
+                      Resetar PIN
                     </button>
                     <button className="action-button primary" type="button" onClick={() => void handleDeleteDriver(driver.id)}>
                       Excluir
