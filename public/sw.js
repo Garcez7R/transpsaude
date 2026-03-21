@@ -1,5 +1,5 @@
-const CACHE_NAME = 'transpsaude-v2'
-const STATIC_ASSETS = ['/manifest.webmanifest', '/favicon.svg', '/pwa-192.svg', '/pwa-512.svg']
+const CACHE_NAME = 'transpsaude-v3'
+const STATIC_ASSETS = ['/manifest.webmanifest', '/favicon.png', '/pwa-192.png', '/pwa-512.png']
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
