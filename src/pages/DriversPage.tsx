@@ -167,7 +167,7 @@ export function DriversPage() {
 
     async function loadTrips() {
       try {
-        const data = await fetchDriverTrips(Number(selectedDriverId))
+        const data = await fetchDriverTrips(Number(selectedDriverId), 'internal')
 
         if (active) {
           setDriverTrips(data)

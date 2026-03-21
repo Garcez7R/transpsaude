@@ -280,9 +280,10 @@ export async function logoutSession(token: string) {
   return parseJson<{ message: string }>(response)
 }
 
-export async function fetchDriverTrips(driverId: number) {
+export async function fetchDriverTrips(driverId: number, accessMode: 'driver' | 'internal' = 'driver') {
   const search = new URLSearchParams({ driverId: String(driverId) })
-  const response = await fetch(`/api/driver/trips?${search.toString()}`, withDriverHeaders(withAdminHeaders()))
+  const init = accessMode === 'internal' ? withAdminHeaders() : withDriverHeaders()
+  const response = await fetch(`/api/driver/trips?${search.toString()}`, init)
   return parseJson<TravelRequest[]>(response)
 }
 

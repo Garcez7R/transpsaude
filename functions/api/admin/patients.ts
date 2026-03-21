@@ -115,6 +115,24 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
     )
     .run()
 
+  await env.DB.prepare(
+    `
+      update travel_requests
+      set patient_name = ?1,
+          cpf_masked = ?2,
+          access_cpf_masked = ?3,
+          updated_at = current_timestamp
+      where patient_id = ?4
+    `,
+  )
+    .bind(
+      body.fullName,
+      maskCpf(patientCpf),
+      maskCpf(accessCpf),
+      body.id,
+    )
+    .run()
+
   await writeAuditLog(env, session.operatorId, 'update', 'patient', String(body.id), {
     fullName: body.fullName,
     accessCpf,
