@@ -115,6 +115,16 @@ export interface OperatorRecord {
   active: boolean
 }
 
+export interface ManagerRecord {
+  id: number
+  name: string
+  cpf: string
+  cpfMasked: string
+  email: string
+  role: Extract<InternalRole, 'manager'>
+  active: boolean
+}
+
 export interface PatientRecord {
   id: number
   fullName: string
@@ -192,6 +202,14 @@ export interface CreateOperatorInput {
 }
 
 export interface UpdateOperatorInput {
+  id: number
+  name: string
+  cpf: string
+  email: string
+  password?: string
+}
+
+export interface UpdateManagerInput {
   id: number
   name: string
   cpf: string

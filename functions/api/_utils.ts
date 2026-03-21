@@ -793,6 +793,31 @@ export async function listOperators(env: Env) {
   }))
 }
 
+export async function listManagers(env: Env) {
+  const db = requireDb(env)
+  const result = await db.prepare(
+    `
+      select
+        id,
+        name,
+        cpf,
+        email,
+        role,
+        active
+      from operators
+      where role = 'manager'
+        and active = 1
+      order by name asc
+    `,
+  ).all()
+
+  return (result.results ?? []).map((manager) => ({
+    ...manager,
+    cpfMasked: typeof manager.cpf === 'string' ? maskCpf(manager.cpf) : '',
+    active: toBoolean(manager.active),
+  }))
+}
+
 export async function listPatients(env: Env) {
   const db = requireDb(env)
   const result = await db.prepare(

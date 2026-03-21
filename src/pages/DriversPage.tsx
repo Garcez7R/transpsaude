@@ -227,8 +227,8 @@ export function DriversPage() {
       setDrivers(refreshed)
       setDriverForm(initialDriverForm)
       setEditingDriverId(null)
-    } catch {
-      setError('Não foi possível salvar o motorista.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível salvar o motorista.')
     } finally {
       setSavingDriver(false)
     }
@@ -257,8 +257,8 @@ export function DriversPage() {
       setVehicles(refreshed)
       setVehicleForm(initialVehicleForm)
       setEditingVehicleId(null)
-    } catch {
-      setError('Não foi possível salvar o veículo.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível salvar o veículo.')
     } finally {
       setSavingVehicle(false)
     }
@@ -288,8 +288,8 @@ export function DriversPage() {
       const refreshed = await fetchOperators()
       setOperators(refreshed)
       setMessage(result.message)
-    } catch {
-      setError('Não foi possível salvar o operador.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível salvar o operador.')
     } finally {
       setSavingOperator(false)
     }
@@ -308,8 +308,8 @@ export function DriversPage() {
       setEditingPatientId(null)
       setPatientForm(initialPatientForm)
       setMessage(result.message)
-    } catch {
-      setError('Não foi possível salvar o paciente.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível salvar o paciente.')
     } finally {
       setSavingPatient(false)
     }
@@ -325,8 +325,8 @@ export function DriversPage() {
       }
       setMessage(result.message)
       setError('')
-    } catch {
-      setError('Não foi possível excluir o operador.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível excluir o operador.')
     }
   }
 
@@ -340,8 +340,8 @@ export function DriversPage() {
       }
       setMessage(result.message)
       setError('')
-    } catch {
-      setError('Não foi possível excluir o motorista.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível excluir o motorista.')
     }
   }
 
@@ -355,8 +355,8 @@ export function DriversPage() {
       }
       setMessage(result.message)
       setError('')
-    } catch {
-      setError('Não foi possível excluir o veículo.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível excluir o veículo.')
     }
   }
 
@@ -370,8 +370,8 @@ export function DriversPage() {
       }
       setMessage(result.message)
       setError('')
-    } catch {
-      setError('Não foi possível excluir o paciente.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível excluir o paciente.')
     }
   }
 
@@ -555,14 +555,14 @@ export function DriversPage() {
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="driver-password">Senha inicial do motorista</label>
+                <label htmlFor="driver-password">{editingDriverId ? 'Novo PIN do motorista' : 'PIN inicial do motorista'}</label>
                 <input
                   id="driver-password"
                   value={driverForm.password}
                   onChange={(event) => updateDriverField('password', event.target.value.replace(/\D/g, '').slice(0, 4))}
                   inputMode="numeric"
                   placeholder="0000"
-                  required
+                  required={!editingDriverId}
                 />
               </div>
               <div className="field full checkbox-field">
@@ -638,13 +638,13 @@ export function DriversPage() {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="operator-password">Senha inicial</label>
+                  <label htmlFor="operator-password">{editingOperatorId ? 'Nova senha do operador' : 'Senha inicial'}</label>
                   <input
                     id="operator-password"
                     value={operatorForm.password}
                     onChange={(event) => updateOperatorField('password', event.target.value)}
-                    placeholder="Senha inicial"
-                    required
+                    placeholder={editingOperatorId ? 'Opcional para redefinir' : 'Senha inicial'}
+                    required={!editingOperatorId}
                   />
                 </div>
               </div>

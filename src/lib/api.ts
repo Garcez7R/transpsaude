@@ -11,6 +11,7 @@ import type {
   DashboardSummary,
   DriverLoginResponse,
   DriverRecord,
+  ManagerRecord,
   OperatorRecord,
   PatientRecord,
   RequestQueryFilters,
@@ -18,6 +19,7 @@ import type {
   TravelRequest,
   TravelRequestDetails,
   UpdateDriverInput,
+  UpdateManagerInput,
   UpdateOperatorInput,
   UpdatePatientInput,
   UpdateRequestScheduleInput,
@@ -200,6 +202,29 @@ export async function createManager(input: CreateManagerInput) {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function fetchManagers() {
+  const response = await fetch('/api/admin/managers', withAdminHeaders())
+  return parseJson<ManagerRecord[]>(response)
+}
+
+export async function updateManager(input: UpdateManagerInput) {
+  const response = await fetch('/api/admin/managers', withAdminHeaders({
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function deleteManager(id: number) {
+  const response = await fetch(`/api/admin/managers?id=${id}`, withAdminHeaders({
+    method: 'DELETE',
   }))
 
   return parseJson<{ message: string }>(response)
