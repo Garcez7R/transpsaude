@@ -250,10 +250,10 @@ export function PublicStatusPage() {
         ) : (
           <article className="empty-state">
             <Search size={28} />
-            <h2>Consulta disponível</h2>
+            <h2>Nenhuma consulta realizada</h2>
             <p>
-              Após o cadastro presencial realizado pela equipe da prefeitura, esta área poderá ser
-              utilizada para acompanhar o andamento da solicitação de transporte.
+              Após o atendimento presencial e o registro da solicitação pela equipe da prefeitura,
+              utilize esta área para acompanhar o andamento do transporte em saúde.
             </p>
           </article>
         )}
