@@ -394,6 +394,26 @@ export function AdminManagersPage() {
             <ArrowLeft size={16} />
             Voltar ao painel
           </Link>
+          <button
+            className="action-button primary"
+            type="button"
+            onClick={async () => {
+              if (session?.token) {
+                try {
+                  await logoutSession(session.token)
+                } catch {
+                  // A limpeza local continua mesmo se a API não responder.
+                }
+              }
+
+              clearAdminSession()
+              clearAdminAreaSession()
+              clearManagerSession()
+              window.location.reload()
+            }}
+          >
+            Sair
+          </button>
         </div>
       </header>
 
@@ -541,36 +561,14 @@ export function AdminManagersPage() {
 
         <aside className="dashboard-side">
           <article className="content-card">
-            <h2>Permissões por perfil</h2>
+            <h2>Base cadastrada</h2>
             <ul className="check-list">
-              <li>Administrador cria gerente e operador</li>
-              <li>Gerente e administrador criam, editam e desativam motoristas e operadores</li>
-              <li>Somente administrador cria novos gerentes</li>
-              <li>Redefinição de senha acontece pela edição do cadastro</li>
-              <li>O painel do admin concentra a governança dos acessos internos</li>
+              <li>{loadingData ? 'Carregando gerentes...' : `${managers.length} gerente(s) ativo(s)`}</li>
+              <li>{loadingData ? 'Carregando operadores...' : `${operators.length} operador(es) ativo(s)`}</li>
+              <li>{loadingData ? 'Carregando motoristas...' : `${drivers.length} motorista(s) ativo(s)`}</li>
+              <li>{loadingData ? 'Carregando veículos...' : `${vehicles.length} veículo(s) disponível(is)`}</li>
             </ul>
-          </article>
-          <article className="content-card">
-            <button
-              className="action-button secondary"
-              type="button"
-              onClick={async () => {
-                if (session?.token) {
-                  try {
-                    await logoutSession(session.token)
-                  } catch {
-                    // A limpeza local continua mesmo se a API não responder.
-                  }
-                }
-
-                clearAdminSession()
-                clearAdminAreaSession()
-                clearManagerSession()
-                window.location.reload()
-              }}
-            >
-              Sair do admin
-            </button>
+            <p className="table-note">O admin pode consultar a base inteira e redefinir senhas ao editar cada cadastro.</p>
           </article>
         </aside>
       </section>
@@ -673,14 +671,14 @@ export function AdminManagersPage() {
         </article>
 
         <article className="content-card">
-          <h2>Base cadastrada</h2>
+          <h2>Permissões por perfil</h2>
           <ul className="check-list">
-            <li>{loadingData ? 'Carregando gerentes...' : `${managers.length} gerente(s) ativo(s)`}</li>
-            <li>{loadingData ? 'Carregando operadores...' : `${operators.length} operador(es) ativo(s)`}</li>
-            <li>{loadingData ? 'Carregando motoristas...' : `${drivers.length} motorista(s) ativo(s)`}</li>
-            <li>{loadingData ? 'Carregando veículos...' : `${vehicles.length} veículo(s) disponível(is)`}</li>
+            <li>Administrador cria gerente e operador</li>
+            <li>Gerente e administrador criam, editam e desativam motoristas e operadores</li>
+            <li>Somente administrador cria novos gerentes</li>
+            <li>Redefinição de senha acontece pela edição do cadastro</li>
+            <li>O painel do admin concentra a governança dos acessos internos</li>
           </ul>
-          <p className="table-note">O admin pode consultar a base inteira e redefinir senhas ao editar cada cadastro.</p>
         </article>
       </section>
 

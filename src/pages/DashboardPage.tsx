@@ -192,7 +192,7 @@ export function DashboardPage() {
             <form onSubmit={handleLogin}>
               <div className="login-grid">
                 <div className="field">
-                  <label htmlFor="admin-cpf">CPF do acesso interno</label>
+                  <label htmlFor="admin-cpf">CPF do operador</label>
                   <input
                     id="admin-cpf"
                     value={cpf}
