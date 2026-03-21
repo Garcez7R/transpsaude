@@ -50,6 +50,10 @@ export function forbidden(message: string) {
   return json({ message }, 403)
 }
 
+export function serverError(message: string) {
+  return json({ message }, 500)
+}
+
 export function ok(data: unknown) {
   return json(data)
 }

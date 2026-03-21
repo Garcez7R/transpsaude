@@ -33,10 +33,20 @@ async function parseJson<T>(response: Response): Promise<T> {
     let message = `Falha na requisicao: ${response.status}`
 
     try {
-      const payload = (await response.json()) as { message?: string }
+      const responseText = await response.text()
 
-      if (payload?.message) {
-        message = payload.message
+      if (responseText) {
+        try {
+          const payload = JSON.parse(responseText) as { message?: string }
+
+          if (payload?.message) {
+            message = payload.message
+          } else {
+            message = responseText
+          }
+        } catch {
+          message = responseText
+        }
       }
     } catch {
       // Mantém a mensagem padrão quando a resposta não vier em JSON.
