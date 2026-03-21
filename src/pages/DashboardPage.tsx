@@ -176,7 +176,7 @@ export function DashboardPage() {
             <span />
           </div>
           <div className="institutional-copy">
-            <strong>Ambiente interno da Prefeitura de Capão do Leão</strong>
+            <strong>Ambiente interno da Prefeitura Municipal de Capão do Leão</strong>
             <span>Acesso destinado a operador, regulação e apoio administrativo</span>
           </div>
         </section>
@@ -265,7 +265,7 @@ export function DashboardPage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Ambiente interno da Prefeitura de Capão do Leão</strong>
+          <strong>Ambiente interno da Prefeitura Municipal de Capão do Leão</strong>
           <span>Acesso destinado a operador, regulação e apoio administrativo</span>
         </div>
       </section>

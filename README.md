@@ -1,6 +1,6 @@
 # TranspSaude
 
-Aplicação web e PWA para apoio ao transporte de pacientes da **Prefeitura de Capão do Leão**, com foco no cadastro interno de solicitações e no acompanhamento público pelo cidadão.
+Aplicação web e PWA para apoio ao transporte de pacientes da **Prefeitura Municipal de Capão do Leão**, com foco no cadastro interno de solicitações e no acompanhamento público pelo cidadão.
 
 O projeto foi desenhado para funcionar com uma arquitetura simples, enxuta e econômica usando **Cloudflare Pages + Functions + D1**, mantendo o MVP acessível e fácil de operar.
 
@@ -38,7 +38,7 @@ O fluxo principal do sistema é:
 
 Escopo já implementado:
 
-- identidade visual institucional da Prefeitura de Capão do Leão;
+- identidade visual institucional da Prefeitura Municipal de Capão do Leão;
 - painel administrativo inicial;
 - fluxo público de primeiro acesso do cidadão;
 - estrutura base da API em Cloudflare Pages Functions;

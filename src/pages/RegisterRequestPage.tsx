@@ -94,7 +94,7 @@ export function RegisterRequestPage() {
             <span />
           </div>
           <div className="institutional-copy">
-            <strong>Cadastro interno da Prefeitura de Capão do Leão</strong>
+            <strong>Cadastro interno da Prefeitura Municipal de Capão do Leão</strong>
             <span>Entre primeiro no painel administrativo</span>
           </div>
         </section>
@@ -119,7 +119,7 @@ export function RegisterRequestPage() {
           <span />
         </div>
         <div className="institutional-copy">
-          <strong>Cadastro interno da Prefeitura de Capão do Leão</strong>
+          <strong>Cadastro interno da Prefeitura Municipal de Capão do Leão</strong>
           <span>Nova solicitação de transporte para tratamento</span>
         </div>
       </section>
