@@ -80,20 +80,6 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - pode reorganizar viagens e distribuir a agenda dos motoristas;
 - pode atuar sobre a base operacional, sem substituir a governança administrativa plena.
 
-### Administrador
-
-- acesso completo às áreas internas;
-- criação e gestão de gerentes;
-- governança de acessos internos;
-- visão administrativa dos agendamentos e da base operacional;
-- apoio à operação, supervisão e manutenção da base cadastral.
-
-**Particularidades do perfil**
-
-- possui alcance transversal sobre o ambiente interno;
-- pode apoiar a operação sem depender da área de gerência;
-- concentra a administração dos acessos mais sensíveis do sistema.
-
 ### Motorista
 
 - acesso próprio ao portal funcional do motorista;
