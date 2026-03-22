@@ -41,6 +41,15 @@ async function parseJson<T>(response: Response): Promise<T> {
       const responseText = await response.text()
 
       if (responseText) {
+        if (responseText.includes('Worker threw exception')) {
+          const rayMatch = responseText.match(/Ray ID:\s*<\/span>\s*<strong[^>]*>([^<]+)</i)
+          const rayId = rayMatch?.[1]?.trim()
+          message = rayId
+            ? `Falha interna do Cloudflare Worker. Ray ID: ${rayId}.`
+            : 'Falha interna do Cloudflare Worker.'
+          throw new Error(message)
+        }
+
         try {
           const payload = JSON.parse(responseText) as { message?: string }
 
