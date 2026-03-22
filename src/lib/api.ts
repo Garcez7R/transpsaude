@@ -30,6 +30,7 @@ import type {
 } from '../types'
 import { getAdminSession } from './admin-session'
 import { getDriverSession } from './driver-session'
+import { getManagerSession } from './manager-session'
 import { getOperatorSession } from './operator-session'
 
 async function parseJson<T>(response: Response): Promise<T> {
@@ -76,6 +77,20 @@ function withAdminHeaders(init?: RequestInit): RequestInit {
   }
 }
 
+function withInternalHeaders(init?: RequestInit): RequestInit {
+  const session = typeof window !== 'undefined' ? (getAdminSession() ?? getManagerSession()) : null
+  const headers = new Headers(init?.headers)
+
+  if (session) {
+    headers.set('x-session-token', session.token)
+  }
+
+  return {
+    ...init,
+    headers,
+  }
+}
+
 function withOperatorHeaders(init?: RequestInit): RequestInit {
   const session = typeof window !== 'undefined' ? getOperatorSession() : null
   const headers = new Headers(init?.headers)
@@ -105,7 +120,7 @@ function withDriverHeaders(init?: RequestInit): RequestInit {
 }
 
 export async function fetchDashboardSummary(accessMode: 'internal' | 'operator' = 'internal') {
-  const response = await fetch('/api/dashboard', accessMode === 'operator' ? withOperatorHeaders() : withAdminHeaders())
+  const response = await fetch('/api/dashboard', accessMode === 'operator' ? withOperatorHeaders() : withInternalHeaders())
   return parseJson<DashboardSummary>(response)
 }
 
@@ -141,7 +156,7 @@ export async function fetchRequests(filters: RequestQueryFilters = {}, accessMod
   }
 
   const suffix = search.toString() ? `?${search.toString()}` : ''
-  const response = await fetch(`/api/requests${suffix}`, accessMode === 'operator' ? withOperatorHeaders() : withAdminHeaders())
+  const response = await fetch(`/api/requests${suffix}`, accessMode === 'operator' ? withOperatorHeaders() : withInternalHeaders())
   return parseJson<TravelRequest[]>(response)
 }
 
@@ -149,7 +164,7 @@ export async function fetchRequestDetails(requestId: number, accessMode: 'intern
   const search = new URLSearchParams({ id: String(requestId) })
   const response = await fetch(
     `/api/admin/request-detail?${search.toString()}`,
-    accessMode === 'operator' ? withOperatorHeaders() : withAdminHeaders(),
+    accessMode === 'operator' ? withOperatorHeaders() : withInternalHeaders(),
   )
   return parseJson<TravelRequestDetails & { history: StatusHistoryEntry[] }>(response)
 }
@@ -195,7 +210,7 @@ export async function activateAdminPassword(cpf: string, newPassword: string) {
 }
 
 export async function createTravelRequest(input: CreateTravelRequestInput, accessMode: 'internal' | 'operator' = 'internal') {
-  const response = await fetch('/api/admin/requests', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
+  const response = await fetch('/api/admin/requests', (accessMode === 'operator' ? withOperatorHeaders : withInternalHeaders)({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -205,17 +220,17 @@ export async function createTravelRequest(input: CreateTravelRequestInput, acces
 }
 
 export async function fetchDrivers() {
-  const response = await fetch('/api/admin/drivers', withAdminHeaders())
+  const response = await fetch('/api/admin/drivers', withInternalHeaders())
   return parseJson<DriverRecord[]>(response)
 }
 
 export async function fetchVehicles() {
-  const response = await fetch('/api/admin/vehicles', withAdminHeaders())
+  const response = await fetch('/api/admin/vehicles', withInternalHeaders())
   return parseJson<VehicleRecord[]>(response)
 }
 
 export async function createDriver(input: CreateDriverInput) {
-  const response = await fetch('/api/admin/drivers', withAdminHeaders({
+  const response = await fetch('/api/admin/drivers', withInternalHeaders({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -268,7 +283,7 @@ export async function deleteManager(id: number) {
 }
 
 export async function createOperator(input: CreateOperatorInput) {
-  const response = await fetch('/api/admin/operators', withAdminHeaders({
+  const response = await fetch('/api/admin/operators', withInternalHeaders({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -282,7 +297,7 @@ export async function resetAccess(
   id: number,
   accessMode: 'internal' | 'operator' = 'internal',
 ) {
-  const response = await fetch('/api/admin/access-reset', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
+  const response = await fetch('/api/admin/access-reset', (accessMode === 'operator' ? withOperatorHeaders : withInternalHeaders)({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ targetType, id }),
@@ -292,12 +307,12 @@ export async function resetAccess(
 }
 
 export async function fetchOperators() {
-  const response = await fetch('/api/admin/operators', withAdminHeaders())
+  const response = await fetch('/api/admin/operators', withInternalHeaders())
   return parseJson<OperatorRecord[]>(response)
 }
 
 export async function updateOperator(input: UpdateOperatorInput) {
-  const response = await fetch('/api/admin/operators', withAdminHeaders({
+  const response = await fetch('/api/admin/operators', withInternalHeaders({
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -307,7 +322,7 @@ export async function updateOperator(input: UpdateOperatorInput) {
 }
 
 export async function deleteOperator(id: number) {
-  const response = await fetch(`/api/admin/operators?id=${id}`, withAdminHeaders({
+  const response = await fetch(`/api/admin/operators?id=${id}`, withInternalHeaders({
     method: 'DELETE',
   }))
 
@@ -315,7 +330,7 @@ export async function deleteOperator(id: number) {
 }
 
 export async function assignDriver(input: AssignDriverInput) {
-  const response = await fetch('/api/admin/assignments', withAdminHeaders({
+  const response = await fetch('/api/admin/assignments', withInternalHeaders({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -325,7 +340,7 @@ export async function assignDriver(input: AssignDriverInput) {
 }
 
 export async function updateRequestStatus(input: UpdateRequestStatusInput, accessMode: 'internal' | 'operator' = 'internal') {
-  const response = await fetch('/api/admin/request-status', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
+  const response = await fetch('/api/admin/request-status', (accessMode === 'operator' ? withOperatorHeaders : withInternalHeaders)({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -335,7 +350,7 @@ export async function updateRequestStatus(input: UpdateRequestStatusInput, acces
 }
 
 export async function updateRequestSchedule(input: UpdateRequestScheduleInput, accessMode: 'internal' | 'operator' = 'internal') {
-  const response = await fetch('/api/admin/request-schedule', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
+  const response = await fetch('/api/admin/request-schedule', (accessMode === 'operator' ? withOperatorHeaders : withInternalHeaders)({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -348,7 +363,7 @@ export async function createRequestMessage(
   input: CreateRequestMessageInput,
   accessMode: 'internal' | 'operator' = 'internal',
 ) {
-  const response = await fetch('/api/admin/request-messages', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
+  const response = await fetch('/api/admin/request-messages', (accessMode === 'operator' ? withOperatorHeaders : withInternalHeaders)({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -391,13 +406,13 @@ export async function logoutSession(token: string) {
 
 export async function fetchDriverTrips(driverId: number, accessMode: 'driver' | 'internal' = 'driver') {
   const search = new URLSearchParams({ driverId: String(driverId) })
-  const init = accessMode === 'internal' ? withAdminHeaders() : withDriverHeaders()
+  const init = accessMode === 'internal' ? withInternalHeaders() : withDriverHeaders()
   const response = await fetch(`/api/driver/trips?${search.toString()}`, init)
   return parseJson<TravelRequest[]>(response)
 }
 
 export async function updateDriver(input: UpdateDriverInput) {
-  const response = await fetch('/api/admin/drivers', withAdminHeaders({
+  const response = await fetch('/api/admin/drivers', withInternalHeaders({
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -407,7 +422,7 @@ export async function updateDriver(input: UpdateDriverInput) {
 }
 
 export async function deleteDriver(id: number) {
-  const response = await fetch(`/api/admin/drivers?id=${id}`, withAdminHeaders({
+  const response = await fetch(`/api/admin/drivers?id=${id}`, withInternalHeaders({
     method: 'DELETE',
   }))
 
@@ -415,7 +430,7 @@ export async function deleteDriver(id: number) {
 }
 
 export async function updateVehicle(input: UpdateVehicleInput) {
-  const response = await fetch('/api/admin/vehicles', withAdminHeaders({
+  const response = await fetch('/api/admin/vehicles', withInternalHeaders({
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -425,7 +440,7 @@ export async function updateVehicle(input: UpdateVehicleInput) {
 }
 
 export async function deleteVehicle(id: number) {
-  const response = await fetch(`/api/admin/vehicles?id=${id}`, withAdminHeaders({
+  const response = await fetch(`/api/admin/vehicles?id=${id}`, withInternalHeaders({
     method: 'DELETE',
   }))
 
@@ -433,12 +448,12 @@ export async function deleteVehicle(id: number) {
 }
 
 export async function fetchPatients() {
-  const response = await fetch('/api/admin/patients', withAdminHeaders())
+  const response = await fetch('/api/admin/patients', withInternalHeaders())
   return parseJson<PatientRecord[]>(response)
 }
 
 export async function updatePatient(input: UpdatePatientInput) {
-  const response = await fetch('/api/admin/patients', withAdminHeaders({
+  const response = await fetch('/api/admin/patients', withInternalHeaders({
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
@@ -448,7 +463,7 @@ export async function updatePatient(input: UpdatePatientInput) {
 }
 
 export async function deletePatient(id: number) {
-  const response = await fetch(`/api/admin/patients?id=${id}`, withAdminHeaders({
+  const response = await fetch(`/api/admin/patients?id=${id}`, withInternalHeaders({
     method: 'DELETE',
   }))
 
