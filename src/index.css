@@ -736,6 +736,14 @@ th {
   gap: 12px;
 }
 
+.request-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .request-list-item {
   display: grid;
   gap: 6px;
@@ -751,6 +759,17 @@ th {
 .request-list-item.active {
   border-color: rgba(22, 133, 83, 0.28);
   background: rgba(22, 133, 83, 0.08);
+}
+
+.update-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  background: rgba(212, 171, 24, 0.2);
+  color: var(--accent-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .form-grid {
@@ -832,6 +851,22 @@ th {
   background:
     linear-gradient(135deg, rgba(22, 133, 83, 0.15), rgba(212, 171, 24, 0.14)),
     var(--surface-strong);
+}
+
+.update-highlight {
+  background:
+    linear-gradient(135deg, rgba(212, 171, 24, 0.22), rgba(22, 133, 83, 0.08)),
+    var(--surface-strong);
+  border: 1px solid rgba(212, 171, 24, 0.3);
+}
+
+.update-highlight h2 {
+  margin: 0;
+}
+
+.update-highlight p {
+  margin: 10px 0 0;
+  color: var(--text);
 }
 
 .departure-highlight h2 {

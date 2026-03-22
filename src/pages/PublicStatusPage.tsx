@@ -1,7 +1,7 @@
 import { KeyRound, Search, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { activateCitizenPin, loginCitizen } from '../lib/api'
-import type { CitizenAccessResponse } from '../types'
+import type { CitizenAccessResponse, PublicRequestDetails } from '../types'
 
 function formatCpf(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -10,6 +10,48 @@ function formatCpf(value: string) {
     .replace(/^(\d{3})(\d)/, '$1.$2')
     .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
     .replace(/\.(\d{3})(\d)/, '.$1-$2')
+}
+
+function hasVisibleUpdate(request: PublicRequestDetails) {
+  if (request.messages.length > 0) {
+    return true
+  }
+
+  return request.history.some((entry) => {
+    const text = `${entry.label} ${entry.note ?? ''}`.toLowerCase()
+    return (
+      text.includes('reagendada') ||
+      text.includes('direcionada para') ||
+      text.includes('saída prevista') ||
+      text.includes('embarque') ||
+      text.includes('alter')
+    )
+  })
+}
+
+function getUpdateSummary(request: PublicRequestDetails) {
+  const latestMessage = request.messages[0]
+
+  if (latestMessage) {
+    return latestMessage.title || latestMessage.body
+  }
+
+  const latestHistory = [...request.history].reverse().find((entry) => {
+    const text = `${entry.label} ${entry.note ?? ''}`.toLowerCase()
+    return (
+      text.includes('reagendada') ||
+      text.includes('direcionada para') ||
+      text.includes('saída prevista') ||
+      text.includes('embarque') ||
+      text.includes('alter')
+    )
+  })
+
+  if (!latestHistory) {
+    return ''
+  }
+
+  return latestHistory.note || latestHistory.label
 }
 
 export function PublicStatusPage() {
@@ -180,7 +222,10 @@ export function PublicStatusPage() {
                       onClick={() => setSelectedRequestId(entry.id)}
                       type="button"
                     >
-                      <span className={`status-badge ${entry.status}`}>{entry.statusLabel}</span>
+                      <div className="request-list-header">
+                        <span className={`status-badge ${entry.status}`}>{entry.statusLabel}</span>
+                        {hasVisibleUpdate(entry) ? <span className="update-badge">Atualizada</span> : null}
+                      </div>
                       <strong>{entry.protocol}</strong>
                       <span>
                         {entry.travelDate}
@@ -192,6 +237,17 @@ export function PublicStatusPage() {
                     </button>
                   ))}
                 </div>
+              </article>
+            ) : null}
+
+            {hasVisibleUpdate(request) ? (
+              <article className="public-card update-highlight">
+                <div className="eyebrow">
+                  <ShieldCheck size={16} />
+                  Atualização da solicitação
+                </div>
+                <h2>Há uma atualização importante neste agendamento</h2>
+                <p>{getUpdateSummary(request)}</p>
               </article>
             ) : null}
 
