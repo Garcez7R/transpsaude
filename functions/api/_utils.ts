@@ -18,7 +18,6 @@ export interface RequestFilters {
 }
 
 const textEncoder = new TextEncoder()
-const PBKDF2_ITERATIONS = 100_000
 const INTERNAL_SESSION_DURATION_MS = 12 * 60 * 60 * 1000
 const DRIVER_SESSION_DURATION_MS = 24 * 60 * 60 * 1000
 export const DEFAULT_FIRST_ACCESS_PASSWORD = '0000'
@@ -170,29 +169,48 @@ async function deriveSecretHash(secret: string, saltBase64: string, iterations: 
   return toBase64(new Uint8Array(bits))
 }
 
+async function deriveFastSecretHash(secret: string, saltBase64: string) {
+  const payload = textEncoder.encode(`${saltBase64}:${secret}`)
+  const digest = await crypto.subtle.digest('SHA-256', payload)
+  return toBase64(new Uint8Array(digest))
+}
+
 export async function createSecretHash(secret: string) {
   const salt = crypto.getRandomValues(new Uint8Array(16))
   const saltBase64 = toBase64(salt)
-  const digest = await deriveSecretHash(secret, saltBase64, PBKDF2_ITERATIONS)
+  const digest = await deriveFastSecretHash(secret, saltBase64)
 
-  return `pbkdf2$${PBKDF2_ITERATIONS}$${saltBase64}$${digest}`
+  return `sha256$${saltBase64}$${digest}`
 }
 
 export async function verifySecretHash(secret: string, storedHash: string) {
-  const [algorithm, iterationsValue, saltBase64, digest] = storedHash.split('$')
+  const [algorithm, part2, part3, part4] = storedHash.split('$')
 
-  if (algorithm !== 'pbkdf2' || !iterationsValue || !saltBase64 || !digest) {
-    return false
+  if (algorithm === 'sha256') {
+    if (!part2 || !part3) {
+      return false
+    }
+
+    const calculated = await deriveFastSecretHash(secret, part2)
+    return timingSafeEqual(calculated, part3)
   }
 
-  const iterations = Number(iterationsValue)
+  if (algorithm === 'pbkdf2') {
+    if (!part2 || !part3 || !part4) {
+      return false
+    }
 
-  if (!Number.isFinite(iterations) || iterations <= 0) {
-    return false
+    const iterations = Number(part2)
+
+    if (!Number.isFinite(iterations) || iterations <= 0) {
+      return false
+    }
+
+    const calculated = await deriveSecretHash(secret, part3, iterations)
+    return timingSafeEqual(calculated, part4)
   }
 
-  const calculated = await deriveSecretHash(secret, saltBase64, iterations)
-  return timingSafeEqual(calculated, digest)
+  return false
 }
 
 async function verifySecretWithFallback(options: {
@@ -202,7 +220,8 @@ async function verifySecretWithFallback(options: {
 }) {
   if (options.storedHash) {
     const matchesHash = await verifySecretHash(options.secret, options.storedHash)
-    return { matches: matchesHash, shouldUpgrade: false }
+    const shouldUpgrade = matchesHash && options.storedHash.startsWith('pbkdf2$')
+    return { matches: matchesHash, shouldUpgrade }
   }
 
   const legacySecret = String(options.legacySecret ?? '')

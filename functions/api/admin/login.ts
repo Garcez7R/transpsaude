@@ -92,13 +92,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     const passwordHash = String(operator.passwordHash ?? '')
     const legacyPassword = String(operator.password ?? '')
     const matchesHash = passwordHash ? await verifySecretHash(password, passwordHash) : false
+    const shouldUpgradeHash = matchesHash && passwordHash.startsWith('pbkdf2$')
     const matchesLegacy = !passwordHash && legacyPassword !== '' && legacyPassword === password
 
     if (!matchesHash && !matchesLegacy) {
       return notFound('Acesso administrativo não encontrado.')
     }
 
-    if (matchesLegacy) {
+    if (matchesLegacy || shouldUpgradeHash) {
       try {
         await env.DB.prepare(
           `
