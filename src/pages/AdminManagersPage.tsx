@@ -306,7 +306,12 @@ export function AdminManagersPage() {
       setMessage(result.message)
       setForm(initialForm)
       setEditingManagerId(null)
-      setManagers(await fetchManagers())
+      try {
+        setManagers(await fetchManagers())
+      } catch (reloadError) {
+        setMessage(`${result.message} Cadastro salvo, mas a lista de gerentes não pôde ser recarregada agora.`)
+        setError(reloadError instanceof Error ? reloadError.message : 'Não foi possível recarregar os gerentes.')
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Não foi possível salvar esse gerente.')
     } finally {
@@ -334,7 +339,12 @@ export function AdminManagersPage() {
         email: '',
       })
       setEditingOperatorId(null)
-      setOperators(await fetchOperators())
+      try {
+        setOperators(await fetchOperators())
+      } catch (reloadError) {
+        setMessage(`${result.message} Cadastro salvo, mas a lista de operadores não pôde ser recarregada agora.`)
+        setError(reloadError instanceof Error ? reloadError.message : 'Não foi possível recarregar os operadores.')
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Não foi possível salvar esse operador.')
     } finally {
@@ -359,7 +369,13 @@ export function AdminManagersPage() {
       setMessage('message' in result ? result.message : `Motorista ${result.name} cadastrado com sucesso.`)
       setDriverForm(initialDriverForm)
       setEditingDriverId(null)
-      setDrivers(await fetchDrivers())
+      try {
+        setDrivers(await fetchDrivers())
+      } catch (reloadError) {
+        const baseMessage = 'message' in result ? result.message : `Motorista ${result.name} cadastrado com sucesso.`
+        setMessage(`${baseMessage} Cadastro salvo, mas a lista de motoristas não pôde ser recarregada agora.`)
+        setError(reloadError instanceof Error ? reloadError.message : 'Não foi possível recarregar os motoristas.')
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Não foi possível salvar esse motorista.')
     } finally {

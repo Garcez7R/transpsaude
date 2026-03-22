@@ -24,15 +24,99 @@ function maskCpf(value: string) {
     .replace(/\.(\d{3})(\d)/, '.$1-$2')
 }
 
-export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
-  const session = await requireInternalRole(env, request, ['manager', 'admin'])
+async function insertDriverWithFallback(
+  env: Env,
+  name: string,
+  cpf: string,
+  phone: string,
+  isWhatsapp: boolean,
+  vehicleId: unknown,
+  vehicleName: unknown,
+  secretHash: string,
+) {
+  const attempts = [
+    `
+      insert into drivers (
+        name,
+        cpf,
+        phone,
+        is_whatsapp,
+        vehicle_id,
+        vehicle_name,
+        password,
+        password_hash,
+        must_change_password,
+        active
+      )
+      values (?1, ?2, ?3, ?4, ?5, ?6, '', ?7, 1, 1)
+    `,
+    `
+      insert into drivers (
+        name,
+        cpf,
+        phone,
+        is_whatsapp,
+        vehicle_id,
+        vehicle_name,
+        password,
+        password_hash,
+        active
+      )
+      values (?1, ?2, ?3, ?4, ?5, ?6, '', ?7, 1)
+    `,
+    `
+      insert into drivers (
+        name,
+        cpf,
+        phone,
+        is_whatsapp,
+        vehicle_id,
+        vehicle_name,
+        password,
+        active
+      )
+      values (?1, ?2, ?3, ?4, ?5, ?6, '0000', 1)
+    `,
+  ]
 
-  if (!session) {
-    return forbidden('Somente gerente ou administrador podem consultar motoristas.')
+  let lastError: unknown = null
+
+  for (const query of attempts) {
+    try {
+      await env.DB.prepare(query)
+        .bind(name, cpf, phone, isWhatsapp ? 1 : 0, vehicleId, vehicleName, secretHash)
+        .run()
+      return
+    } catch (error) {
+      lastError = error
+      const message = error instanceof Error ? error.message : ''
+
+      if (
+        message.includes('UNIQUE constraint failed') ||
+        message.includes('CHECK constraint failed') ||
+        message.includes('NOT NULL constraint failed')
+      ) {
+        throw error
+      }
+    }
   }
 
-  const drivers = await listDrivers(env)
-  return ok(drivers)
+  throw lastError
+}
+
+export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
+  try {
+    const session = await requireInternalRole(env, request, ['manager', 'admin'])
+
+    if (!session) {
+      return forbidden('Somente gerente ou administrador podem consultar motoristas.')
+    }
+
+    const drivers = await listDrivers(env)
+    return ok(drivers)
+  } catch (error) {
+    return serverError(error instanceof Error ? error.message : 'Não foi possível consultar motoristas.')
+  }
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
@@ -74,52 +158,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
 
     const secretHash = await createSecretHash(DEFAULT_FIRST_ACCESS_PASSWORD)
 
-    try {
-      await env.DB.prepare(
-        `
-          insert into drivers (
-            name,
-            cpf,
-            phone,
-            is_whatsapp,
-            vehicle_id,
-            vehicle_name,
-            password,
-            password_hash,
-            must_change_password,
-            active
-          )
-          values (?1, ?2, ?3, ?4, ?5, ?6, '', ?7, 1, 1)
-        `,
-      )
-        .bind(body.name, cpf, body.phone, body.isWhatsapp ? 1 : 0, vehicle.id, vehicle.name, secretHash)
-        .run()
-    } catch (error) {
-      const message = error instanceof Error ? error.message : ''
-
-      if (!message.includes('no such column: must_change_password')) {
-        throw error
-      }
-
-      await env.DB.prepare(
-        `
-          insert into drivers (
-            name,
-            cpf,
-            phone,
-            is_whatsapp,
-            vehicle_id,
-            vehicle_name,
-            password,
-            password_hash,
-            active
-          )
-          values (?1, ?2, ?3, ?4, ?5, ?6, '', ?7, 1)
-        `,
-      )
-        .bind(body.name, cpf, body.phone, body.isWhatsapp ? 1 : 0, vehicle.id, vehicle.name, secretHash)
-        .run()
-    }
+    await insertDriverWithFallback(
+      env,
+      body.name,
+      cpf,
+      body.phone,
+      Boolean(body.isWhatsapp),
+      vehicle.id,
+      vehicle.name,
+      secretHash,
+    )
 
     const created = await env.DB.prepare(
       `

@@ -16,6 +16,105 @@ function normalizeCpf(value: string) {
   return value.replace(/\D/g, '')
 }
 
+async function insertManagerWithFallback(
+  env: Env,
+  name: string,
+  cpf: string,
+  email: string,
+  secretHash: string,
+  createdByOperatorId: number,
+) {
+  const attempts = [
+    `
+      insert into operators (
+        name,
+        cpf,
+        email,
+        password,
+        password_hash,
+        must_change_password,
+        role,
+        active,
+        created_by_operator_id,
+        updated_at
+      )
+      values (?1, ?2, ?3, '', ?4, 1, 'manager', 1, ?5, current_timestamp)
+    `,
+    `
+      insert into operators (
+        name,
+        cpf,
+        email,
+        password,
+        password_hash,
+        role,
+        active,
+        created_by_operator_id,
+        updated_at
+      )
+      values (?1, ?2, ?3, '', ?4, 'manager', 1, ?5, current_timestamp)
+    `,
+    `
+      insert into operators (
+        name,
+        cpf,
+        email,
+        password,
+        password_hash,
+        role,
+        active,
+        updated_at
+      )
+      values (?1, ?2, ?3, '', ?4, 'manager', 1, current_timestamp)
+    `,
+    `
+      insert into operators (
+        name,
+        cpf,
+        email,
+        password,
+        role,
+        active,
+        updated_at
+      )
+      values (?1, ?2, ?3, '0000', 'manager', 1, current_timestamp)
+    `,
+    `
+      insert into operators (
+        name,
+        cpf,
+        email,
+        password,
+        role,
+        active
+      )
+      values (?1, ?2, ?3, '0000', 'manager', 1)
+    `,
+  ]
+
+  let lastError: unknown = null
+
+  for (const query of attempts) {
+    try {
+      await env.DB.prepare(query).bind(name, cpf, email, secretHash, createdByOperatorId).run()
+      return
+    } catch (error) {
+      lastError = error
+      const message = error instanceof Error ? error.message : ''
+
+      if (
+        message.includes('UNIQUE constraint failed') ||
+        message.includes('CHECK constraint failed') ||
+        message.includes('NOT NULL constraint failed')
+      ) {
+        throw error
+      }
+    }
+  }
+
+  throw lastError
+}
+
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   try {
     const session = await requireInternalRole(env, request, ['admin'])
@@ -38,52 +137,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
 
     const secretHash = await createSecretHash(DEFAULT_FIRST_ACCESS_PASSWORD)
 
-    try {
-      await env.DB.prepare(
-        `
-          insert into operators (
-            name,
-            cpf,
-            email,
-            password,
-            password_hash,
-            must_change_password,
-            role,
-            active,
-            created_by_operator_id,
-            updated_at
-          )
-          values (?1, ?2, ?3, '', ?4, 1, 'manager', 1, ?5, current_timestamp)
-        `,
-      )
-        .bind(body.name, cpf, body.email, secretHash, session.operatorId)
-        .run()
-    } catch (error) {
-      const message = error instanceof Error ? error.message : ''
-
-      if (!message.includes('no such column: must_change_password')) {
-        throw error
-      }
-
-      await env.DB.prepare(
-        `
-          insert into operators (
-            name,
-            cpf,
-            email,
-            password,
-            password_hash,
-            role,
-            active,
-            created_by_operator_id,
-            updated_at
-          )
-          values (?1, ?2, ?3, '', ?4, 'manager', 1, ?5, current_timestamp)
-        `,
-      )
-        .bind(body.name, cpf, body.email, secretHash, session.operatorId)
-        .run()
-    }
+    await insertManagerWithFallback(env, body.name, cpf, body.email, secretHash, session.operatorId)
 
     await writeAuditLog(env, session.operatorId, 'create', 'manager', cpf, {
       name: body.name,
@@ -103,13 +157,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
-  const session = await requireInternalRole(env, request, ['admin'])
+  try {
+    const session = await requireInternalRole(env, request, ['admin'])
 
-  if (!session) {
-    return forbidden('Somente o administrador pode consultar gerentes.')
+    if (!session) {
+      return forbidden('Somente o administrador pode consultar gerentes.')
+    }
+
+    return ok(await listManagers(env))
+  } catch (error) {
+    return serverError(error instanceof Error ? error.message : 'Não foi possível consultar gerentes.')
   }
-
-  return ok(await listManagers(env))
 }
 
 export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
