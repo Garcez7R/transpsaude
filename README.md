@@ -1,200 +1,295 @@
 # TranspSaude
 
-Aplicação web e PWA para apoio ao transporte de pacientes da **Prefeitura Municipal de Capão do Leão**, com foco no cadastro interno de solicitações e no acompanhamento público pelo cidadão.
+<p align="center">
+  <img src="./cp.jpeg" alt="Prefeitura Municipal de Capão do Leão" width="140" />
+</p>
 
-O projeto foi desenhado para funcionar com uma arquitetura simples, enxuta e econômica usando **Cloudflare Pages + Functions + D1**, mantendo o MVP acessível e fácil de operar.
+<p align="center">
+  <strong>Plataforma institucional para gestão do transporte em saúde</strong><br />
+  Prefeitura Municipal de Capão do Leão
+</p>
 
-## Visão Geral
+## Apresentação
 
-O fluxo principal do sistema é:
+O **TranspSaude** é uma aplicação web com suporte a **PWA** desenvolvida para apoiar a operação do transporte em saúde da **Prefeitura Municipal de Capão do Leão**.
 
-1. o operador atende o paciente no balcão da prefeitura;
-2. cadastra a solicitação de viagem para tratamento;
-3. o sistema libera o primeiro acesso do cidadão com **CPF + senha temporária `0000`**;
-4. no primeiro acesso, o cidadão cria um **PIN numérico de 4 dígitos**;
-5. a equipe interna atualiza o status da solicitação;
-6. o cidadão acompanha tudo pelo celular, em formato PWA.
+O sistema organiza o fluxo de atendimento desde o cadastro presencial da solicitação até o acompanhamento do cidadão, passando pela análise da gerência, distribuição para motoristas, registro de orientações e controle operacional da agenda.
 
-## Módulos Atuais
+O projeto foi estruturado para operar com uma arquitetura simples, econômica e compatível com o ecossistema **Cloudflare Pages + Functions + D1**, com foco em:
 
-### Painel Interno
+- rastreabilidade do processo;
+- clareza operacional;
+- acesso móvel pelo cidadão;
+- governança de perfis internos;
+- implantação enxuta no plano free da Cloudflare.
 
-- login administrativo inicial;
-- visão geral das solicitações;
-- filtros por status;
-- base para gestão operacional;
-- tela inicial de cadastro de nova solicitação.
+## Objetivo institucional
 
-### Área do Cidadão
+O sistema foi concebido para atender às necessidades conjuntas da:
 
-- acesso com CPF;
-- senha temporária inicial `0000`;
-- troca obrigatória para PIN de 4 dígitos;
+- **Secretaria Municipal de Saúde**, no controle das solicitações de transporte para tratamento;
+- **Secretaria Municipal de Transportes**, na organização de rotas, distribuição de motoristas, veículos e horários;
+- **equipe administrativa**, na governança de acessos, cadastros, histórico e acompanhamento das demandas.
+
+## Perfis de acesso
+
+### Cidadão
+
+- consulta pública com `CPF + PIN`;
+- primeiro acesso com senha temporária `0000`;
+- troca obrigatória para PIN numérico de 4 dígitos;
 - visualização do status da solicitação;
-- histórico básico de andamento;
-- botão de instalação do app no mobile quando o navegador permitir.
+- data, horário e local de embarque;
+- mensagens e orientações liberadas pela equipe interna;
+- histórico da solicitação.
 
-## Status do MVP
+### Operador
 
-Escopo já implementado:
+- cadastro presencial da solicitação;
+- registro de paciente, responsável e acompanhante;
+- definição do CPF de acesso do cidadão;
+- visualização do painel operacional;
+- atualização de status;
+- registro de mensagens e avisos na solicitação;
+- reset de acesso do paciente quando necessário.
 
-- identidade visual institucional da Prefeitura Municipal de Capão do Leão;
-- painel administrativo inicial;
-- fluxo público de primeiro acesso do cidadão;
-- estrutura base da API em Cloudflare Pages Functions;
-- estrutura inicial do banco D1;
-- PWA com manifesto, service worker e CTA de instalação mobile.
+### Gerente
 
-Escopo sugerido para próxima etapa:
+- análise das solicitações;
+- atribuição de motorista;
+- definição de horário de saída;
+- definição de local oficial de embarque;
+- visualização operacional por período;
+- gestão de motoristas, operadores, pacientes e veículos;
+- relatórios operacionais.
 
-- edição de status da solicitação;
-- autenticação persistente real no backend;
-- cadastro completo com gravação definitiva no D1;
-- histórico administrativo;
-- trilha de auditoria operacional;
-- recuperação de acesso controlada pela prefeitura.
+### Administrador
 
-## Stack Técnica
+- acesso completo ao ambiente interno;
+- criação e gestão de gerentes;
+- governança de acessos internos;
+- visão administrativa dos agendamentos;
+- apoio à operação e à gestão da base cadastral.
 
-- **Frontend:** React 19 + TypeScript + Vite
+### Motorista
+
+- acesso próprio com `CPF + PIN`;
+- visualização das viagens atribuídas;
+- dados do paciente;
+- local de embarque;
+- horário de saída;
+- destino, observações e orientações aplicáveis.
+
+## Fluxo operacional
+
+1. O cidadão é atendido presencialmente pela equipe da prefeitura.
+2. O operador registra a solicitação de transporte no sistema.
+3. O sistema gera o protocolo e libera o acesso inicial do cidadão.
+4. A gerência analisa a fila de solicitações.
+5. A gerência define motorista, horário e, quando necessário, ponto oficial de embarque.
+6. O motorista acessa sua agenda e consulta as viagens atribuídas.
+7. O cidadão acompanha a solicitação pelo celular ou navegador.
+8. A equipe interna registra status, mensagens e histórico operacional.
+
+## Recursos já implementados
+
+### Gestão de solicitações
+
+- cadastro completo de solicitações de transporte em saúde;
+- identificação de paciente, responsável e acompanhante;
+- controle de CPF de acesso para consulta pública;
+- protocolo de solicitação;
+- detalhe completo da solicitação;
+- histórico de movimentações;
+- reagendamento com registro histórico;
+- mensagens internas e mensagens visíveis ao paciente.
+
+### Gestão operacional
+
+- atribuição de motorista por solicitação;
+- vínculo de veículo ao motorista;
+- definição de horário de saída;
+- definição de local oficial de embarque;
+- visualização por status, data e período;
+- filtros por destino, motorista, paciente e protocolo;
+- relatórios de apoio à gerência.
+
+### Governança de acessos
+
+- perfis separados para operador, gerente, administrador e motorista;
+- sessões internas com token em banco;
+- primeiro acesso obrigatório com troca de PIN;
+- redefinição de acesso controlada por perfil;
+- trilha de auditoria para eventos internos relevantes.
+
+### Consulta pública
+
+- área institucional do cidadão;
+- acompanhamento do agendamento;
+- visualização de data, horário e embarque;
+- mensagens e orientações liberadas para consulta pública;
+- PWA instalável em dispositivos compatíveis.
+
+## Arquitetura técnica
+
+- **Frontend:** React + TypeScript + Vite
 - **Roteamento:** React Router
-- **Ícones:** Lucide React
+- **UI:** CSS próprio + Lucide React
 - **Backend:** Cloudflare Pages Functions
-- **Banco:** Cloudflare D1
-- **PWA:** `manifest.webmanifest` + `service worker`
+- **Banco de dados:** Cloudflare D1
+- **Sessões:** tabela `auth_sessions` no D1
+- **PWA:** manifesto + service worker
 
-## Estrutura do Projeto
+## Compatibilidade com Cloudflare Free
+
+O projeto foi mantido dentro de um conjunto de serviços compatíveis com o plano free da Cloudflare:
+
+- Cloudflare Pages
+- Cloudflare Pages Functions
+- Cloudflare D1
+
+Não há dependência operacional de:
+
+- R2
+- Durable Objects
+- Queues
+- KV
+- Hyperdrive
+- AI
+- Browser Rendering
+
+Também foi ajustado o mecanismo de hash de credenciais para um formato mais leve e compatível com as restrições práticas do runtime do plano free.
+
+## Estrutura do projeto
 
 - [src/](/home/rgarcez/Documentos/transp-saude/src) - aplicação React
 - [src/pages/](/home/rgarcez/Documentos/transp-saude/src/pages) - telas principais
-- [src/components/](/home/rgarcez/Documentos/transp-saude/src/components) - componentes reutilizáveis
-- [functions/api/](/home/rgarcez/Documentos/transp-saude/functions/api) - endpoints da API
-- [db/schema.sql](/home/rgarcez/Documentos/transp-saude/db/schema.sql) - schema inicial do D1
-- [public/manifest.webmanifest](/home/rgarcez/Documentos/transp-saude/public/manifest.webmanifest) - manifesto do PWA
+- [functions/api/](/home/rgarcez/Documentos/transp-saude/functions/api) - API da aplicação
+- [db/schema.sql](/home/rgarcez/Documentos/transp-saude/db/schema.sql) - schema consolidado do banco
+- [db/migrations/](/home/rgarcez/Documentos/transp-saude/db/migrations) - migrações incrementais
+- [public/manifest.webmanifest](/home/rgarcez/Documentos/transp-saude/public/manifest.webmanifest) - manifesto PWA
 - [public/sw.js](/home/rgarcez/Documentos/transp-saude/public/sw.js) - service worker
-- [wrangler.toml](/home/rgarcez/Documentos/transp-saude/wrangler.toml) - configuração do projeto Cloudflare
+- [wrangler.toml](/home/rgarcez/Documentos/transp-saude/wrangler.toml) - configuração Cloudflare
 
-## Banco de Dados
+## Estrutura de dados principal
 
-O schema inicial contempla as seguintes entidades:
+Entidades centrais já previstas no banco:
 
 - `operators`
 - `patients`
 - `travel_requests`
+- `drivers`
+- `vehicles`
 - `request_status_history`
+- `request_messages`
 - `audit_logs`
+- `auth_sessions`
 
-Campos já previstos para acesso do cidadão:
+## Segurança e controle
 
-- `cpf`
-- `cpf_masked`
-- `temporary_password`
-- `citizen_pin`
-- `must_change_pin`
-- `access_activated_at`
-- `last_login_at`
+O sistema já contempla:
 
-## Acesso Inicial do MVP
+- separação de perfis internos;
+- sessões em banco;
+- controle de acesso por função;
+- reset controlado de credenciais;
+- primeiro acesso obrigatório;
+- histórico e auditoria de operações internas;
+- compatibilidade progressiva com credenciais legadas.
 
-### Admin
+Para ambiente público definitivo, seguem como boas práticas permanentes:
 
-Acesso administrativo inicial configurado para validação do MVP:
+- revisão periódica das permissões por perfil;
+- revisão de políticas de backup e retenção;
+- monitoramento dos logs do Cloudflare;
+- revisão contínua de LGPD, segurança e governança.
 
-- **CPF:** `968.203.730-15`
-- **Senha:** `1978`
+## Implantação
 
-### Cidadão
-
-Fluxo inicial previsto:
-
-- login com CPF cadastrado no atendimento;
-- senha temporária padrão: `0000`;
-- obrigatoriedade de troca para PIN de 4 dígitos no primeiro acesso.
-
-## Scripts
-
-- `npm run dev` - inicia o ambiente local com Vite
-- `npm run build` - gera o build de produção
-- `npm run lint` - executa a análise estática do projeto
-- `npm run preview` - abre o build localmente para revisão
-
-## Rodando Localmente
-
-1. Instale as dependências:
+### 1. Instalar dependências
 
 ```bash
 npm install
 ```
 
-2. Suba o ambiente local:
+### 2. Executar localmente
 
 ```bash
 npm run dev
 ```
 
-3. Acesse a aplicação no navegador no endereço informado pelo Vite.
+### 3. Validar build e lint
 
-## Deploy na Cloudflare
+```bash
+npm run lint
+npm run build
+```
 
-### 1. Criar o banco D1
+### 4. Criar o banco D1
 
 ```bash
 npx wrangler d1 create transpsaude-db
 ```
 
-### 2. Atualizar o `database_id`
+### 5. Atualizar o `database_id`
 
-Edite [wrangler.toml](/home/rgarcez/Documentos/transp-saude/wrangler.toml) com o ID real do banco.
+Editar [wrangler.toml](/home/rgarcez/Documentos/transp-saude/wrangler.toml) com o identificador real do banco.
 
-### 3. Aplicar o schema
+### 6. Aplicar schema e migrações
 
 ```bash
 npx wrangler d1 execute transpsaude-db --file=db/schema.sql
 ```
 
-### 4. Subir o repositório
+Quando necessário, aplicar também as migrações incrementais em [db/migrations/](/home/rgarcez/Documentos/transp-saude/db/migrations).
 
-```bash
-git push -u origin main
-```
+### 7. Publicar no Cloudflare Pages
 
-### 5. Criar o projeto no Pages
+Configuração recomendada:
 
-No Cloudflare Pages, use:
-
-- **Production branch:** `main`
+- **Branch de produção:** `main`
 - **Build command:** `npm run build`
-- **Build output directory:** `dist`
+- **Output directory:** `dist`
 
-### 6. Configurar o binding do banco
+### 8. Configurar binding do banco
 
 No projeto Pages:
 
-- tipo: `D1 database`
-- nome: `DB`
-- valor: `transpsaude-db`
+- **Type:** `D1 database`
+- **Name:** `DB`
+- **Value:** `transpsaude-db`
 
-## Observações Operacionais
+## Operação inicial
 
-- enquanto o D1 não estiver configurado, a aplicação usa dados de exemplo para facilitar a validação;
-- parte do fluxo atual ainda está em modo MVP e poderá ser endurecida nas próximas etapas;
-- para produção real, o ideal é migrar senhas e PINs para armazenamento com hash;
-- se o schema do banco mudar depois do primeiro deploy, pode ser necessário aplicar migrações incrementais no D1.
+O sistema trabalha com credencial temporária padrão `0000` para primeiro acesso, seguida de troca obrigatória para PIN numérico de 4 dígitos.
 
-## Qualidade Atual
+Esse padrão se aplica a:
 
-Validações locais usadas no projeto:
+- administrador;
+- gerente;
+- operador;
+- motorista;
+- cidadão.
+
+## Qualidade e validação
+
+Validações locais utilizadas no projeto:
 
 ```bash
-npm run build
 npm run lint
+npm run build
 ```
 
-## Próximos Passos Recomendados
+## Evolução recomendada
 
-1. editar status da solicitação pelo painel;
-2. gravar novas solicitações diretamente no D1;
-3. melhorar o fluxo de autenticação administrativa;
-4. registrar histórico operacional completo;
-5. preparar relatórios e filtros adicionais;
-6. revisar segurança para uso público real.
+Próximas frentes possíveis de evolução:
+
+- exportação e impressão de relatórios operacionais;
+- painéis executivos por período;
+- indicadores de demanda por destino e por motorista;
+- notificações adicionais no app;
+- rotinas formais de observabilidade e suporte institucional.
+
+## Licença e uso institucional
+
+Este repositório foi estruturado para uso institucional no contexto do transporte em saúde da **Prefeitura Municipal de Capão do Leão**, podendo ser evoluído conforme as necessidades administrativas e operacionais do município.
