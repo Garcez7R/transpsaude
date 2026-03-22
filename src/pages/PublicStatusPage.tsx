@@ -1,7 +1,7 @@
 import { KeyRound, Search, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { activateCitizenPin, loginCitizen } from '../lib/api'
-import type { CitizenAccessResponse, PublicRequestDetails } from '../types'
+import type { CitizenAccessResponse } from '../types'
 
 function formatCpf(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -17,9 +17,15 @@ export function PublicStatusPage() {
   const [password, setPassword] = useState('')
   const [newPin, setNewPin] = useState('')
   const [access, setAccess] = useState<CitizenAccessResponse | null>(null)
-  const [request, setRequest] = useState<PublicRequestDetails | null>(null)
+  const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const requests = access?.requests ?? []
+  const request =
+    requests.find((entry) => entry.id === selectedRequestId) ??
+    access?.request ??
+    null
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -29,10 +35,10 @@ export function PublicStatusPage() {
     try {
       const data = await loginCitizen(cpf, password)
       setAccess(data)
-      setRequest(data.request)
+      setSelectedRequestId(data.request?.id ?? data.requests[0]?.id ?? null)
     } catch {
       setAccess(null)
-      setRequest(null)
+      setSelectedRequestId(null)
       setError('Não foi possível localizar um acesso válido com o CPF e o PIN informados.')
     } finally {
       setLoading(false)
@@ -47,7 +53,7 @@ export function PublicStatusPage() {
     try {
       const data = await activateCitizenPin(cpf, newPin)
       setAccess(data)
-      setRequest(data.request)
+      setSelectedRequestId(data.request?.id ?? data.requests[0]?.id ?? null)
       setPassword(newPin)
       setNewPin('')
     } catch {
@@ -163,6 +169,32 @@ export function PublicStatusPage() {
 
         {request ? (
           <>
+            {requests.length > 1 ? (
+              <article className="public-card">
+                <h2>Solicitações vinculadas a este acesso</h2>
+                <div className="request-list">
+                  {requests.map((entry) => (
+                    <button
+                      key={entry.id}
+                      className={`request-list-item ${entry.id === request.id ? 'active' : ''}`}
+                      onClick={() => setSelectedRequestId(entry.id)}
+                      type="button"
+                    >
+                      <span className={`status-badge ${entry.status}`}>{entry.statusLabel}</span>
+                      <strong>{entry.protocol}</strong>
+                      <span>
+                        {entry.travelDate}
+                        {entry.departureTime ? ` às ${entry.departureTime}` : ''}
+                      </span>
+                      <span>
+                        {entry.destinationCity}/{entry.destinationState}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </article>
+            ) : null}
+
             <article className="public-card departure-highlight">
               <div className="eyebrow">
                 <ShieldCheck size={16} />

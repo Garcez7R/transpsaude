@@ -91,6 +91,7 @@ export interface CitizenAccessResponse {
   cpfMasked: string
   temporaryPasswordLabel: string
   request: PublicRequestDetails | null
+  requests: PublicRequestDetails[]
 }
 
 export interface AdminSession {

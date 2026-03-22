@@ -253,7 +253,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         ?14,
         date('now'),
         ?15,
-        'recebida',
+        'agendada',
         ?16,
         ?17,
         ?18
@@ -311,10 +311,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
           label,
           note,
           updated_by_operator_id,
-          updated_at,
-          sort_order
-        )
-        values (?1, ?2, 'recebida', 'Recebida', 'Solicitação cadastrada pelo painel interno.', ?3, datetime('now'), 1)
+        updated_at,
+        sort_order
+      )
+        values (?1, ?2, 'agendada', 'Agendada', 'Solicitação cadastrada e confirmada pelo painel interno.', ?3, datetime('now'), 1)
       `,
     )
       .bind(createdRequest.id, protocol, session.operatorId)
@@ -324,7 +324,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   return ok({
     protocol,
     temporaryPassword: '0000',
-    status: 'recebida',
+    status: 'agendada',
     message: `Solicitação salva. O acesso inicial fica no CPF ${accessCpfMasked} com senha 0000.`,
   })
 }

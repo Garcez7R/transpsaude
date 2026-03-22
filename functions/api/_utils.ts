@@ -672,7 +672,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       .run()
   }
 
-  const requestResult = await db.prepare(
+  const requestRows = await db.prepare(
     `
       select
         tr.id,
@@ -704,41 +704,59 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       from travel_requests tr
       inner join patients p on p.id = tr.patient_id
       where tr.patient_id = ?1
-      order by created_at desc
-      limit 1
+      order by tr.travel_date desc, tr.created_at desc, tr.id desc
     `,
   )
     .bind(patientAccess.id)
-    .first<Record<string, unknown>>()
+    .all<Record<string, unknown>>()
 
-  if (!requestResult) {
+  const requestResults = requestRows.results ?? []
+
+  if (requestResults.length === 0) {
     return {
       mustChangePin: mustChangePin && temporaryMatch.matches,
       patientName: String(patientAccess.patientName ?? ''),
       cpfMasked: String(patientAccess.cpfMasked ?? ''),
       temporaryPasswordLabel: DEFAULT_FIRST_ACCESS_PASSWORD,
       request: null,
+      requests: [],
     }
   }
 
-  const historyResult = await db.prepare(
-    `
-      select
-        status,
-        label,
-        updated_at as updatedAt,
-        note
-      from request_status_history
-      where protocol = ?1
-      order by sort_order asc, updated_at asc
-    `,
+  const requests = await Promise.all(
+    requestResults.map(async (requestResult) => {
+      const historyResult = await db.prepare(
+        `
+          select
+            status,
+            label,
+            updated_at as updatedAt,
+            note
+          from request_status_history
+          where protocol = ?1
+          order by sort_order asc, updated_at asc
+        `,
+      )
+        .bind(requestResult.protocol)
+        .all()
+
+      const requestMessages = await listRequestMessages(env, Number(requestResult.id), true)
+      const status = String(requestResult.status)
+
+      return {
+        ...requestResult,
+        companionRequired: toBoolean(requestResult.companionRequired),
+        useCustomBoardingLocation: toBoolean(requestResult.useCustomBoardingLocation),
+        statusLabel: statusLabels[status as keyof typeof statusLabels] ?? status,
+        loginHint:
+          typeof requestResult.notes === 'string'
+            ? requestResult.notes
+            : 'Guarde seu CPF e seu PIN para consultas futuras.',
+        history: historyResult.results ?? [],
+        messages: requestMessages,
+      }
+    }),
   )
-    .bind(requestResult.protocol)
-    .all()
-
-  const requestMessages = await listRequestMessages(env, Number(requestResult.id), true)
-
-  const status = String(requestResult.status)
 
   await db.prepare(
     `
@@ -756,18 +774,8 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
     patientName: String(patientAccess.patientName ?? ''),
     cpfMasked: String(patientAccess.cpfMasked ?? ''),
     temporaryPasswordLabel: DEFAULT_FIRST_ACCESS_PASSWORD,
-    request: {
-      ...requestResult,
-      companionRequired: toBoolean(requestResult.companionRequired),
-      useCustomBoardingLocation: toBoolean(requestResult.useCustomBoardingLocation),
-      statusLabel: statusLabels[status as keyof typeof statusLabels] ?? status,
-      loginHint:
-        typeof requestResult.notes === 'string'
-          ? requestResult.notes
-          : 'Guarde seu CPF e seu PIN para consultas futuras.',
-      history: historyResult.results ?? [],
-      messages: requestMessages,
-    },
+    request: requests[0] ?? null,
+    requests,
   }
 }
 

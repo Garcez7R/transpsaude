@@ -15,6 +15,8 @@ O **TranspSaude** é uma aplicação web com suporte a **PWA** desenvolvida para
 
 O sistema organiza o fluxo de atendimento desde o cadastro presencial da solicitação até o acompanhamento do cidadão, passando pela análise da gerência, distribuição para motoristas, registro de orientações e controle operacional da agenda.
 
+O projeto foi idealizado e desenvolvido integralmente por **Rafael Garcez**, responsável pela concepção funcional, arquitetura técnica, modelagem de dados, implementação do frontend, backend, integrações e governança operacional do sistema.
+
 O projeto foi estruturado para operar com uma arquitetura simples, econômica e compatível com o ecossistema **Cloudflare Pages + Functions + D1**, com foco em:
 
 - rastreabilidade do processo;
@@ -140,6 +142,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 
 - área institucional do cidadão;
 - acompanhamento do agendamento;
+- visualização de múltiplas solicitações vinculadas ao mesmo acesso, com separação por protocolo, data e destino;
 - visualização de data, horário e embarque;
 - mensagens e orientações liberadas para consulta pública;
 - PWA instalável em dispositivos compatíveis.
@@ -217,6 +220,23 @@ Para ambiente público definitivo, seguem como boas práticas permanentes:
 - revisão de políticas de backup e retenção;
 - monitoramento dos logs do Cloudflare;
 - revisão contínua de LGPD, segurança e governança.
+
+## Titularidade e uso do código
+
+Este projeto possui **código proprietário**.
+
+O uso do código-fonte, da modelagem funcional, da identidade visual e da estrutura operacional fica restrito ao titular do projeto e ao uso institucional autorizado.
+
+Sem autorização expressa e por escrito do titular, é vedado:
+
+- reutilizar o código em ambiente institucional ou comercial;
+- redistribuir o projeto total ou parcialmente;
+- publicar cópias, versões derivadas ou adaptações para terceiros;
+- utilizar a solução como base de produto, serviço ou implantação em outros entes públicos ou privados.
+
+É admitido apenas o uso **pessoal** e **para estudos**, sem finalidade comercial, institucional, operacional ou de redistribuição.
+
+As condições formais constam em [LICENSE](/home/rgarcez/Documentos/transp-saude/LICENSE).
 
 ## Implantação
 

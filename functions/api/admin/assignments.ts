@@ -1,4 +1,5 @@
 import { badRequest, forbidden, notFound, ok, requireInternalRole, type Env, writeAuditLog } from '../_utils'
+import { statusLabels } from '../_data'
 
 export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   const session = await requireInternalRole(env, request, ['manager', 'admin'])
@@ -46,7 +47,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     `
       select
         id,
-        protocol
+        protocol,
+        status
       from travel_requests
       where id = ?1
       limit 1
@@ -69,7 +71,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
           use_custom_boarding_location = ?5,
           boarding_location_name = ?6,
           scheduled_at = current_timestamp,
-          status = 'agendada',
           updated_at = current_timestamp
       where id = ?7
     `,
@@ -97,12 +98,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         updated_at,
         sort_order
       )
-      values (?1, ?2, 'agendada', 'Agendada', ?3, ?4, datetime('now'), 99)
+      values (?1, ?2, ?3, ?4, ?5, ?6, datetime('now'), 99)
     `,
   )
     .bind(
       travelRequest.id,
       travelRequest.protocol,
+      String(travelRequest.status),
+      statusLabels[String(travelRequest.status) as keyof typeof statusLabels] ?? String(travelRequest.status),
       `Viagem direcionada para ${String(driver.name)} com saída prevista às ${body.departureTime}. ${body.managerNotes ?? ''}`.trim(),
       session.operatorId,
     )

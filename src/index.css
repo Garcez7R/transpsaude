@@ -731,6 +731,28 @@ th {
   gap: 18px;
 }
 
+.request-list {
+  display: grid;
+  gap: 12px;
+}
+
+.request-list-item {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(18, 48, 58, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text);
+}
+
+.request-list-item.active {
+  border-color: rgba(22, 133, 83, 0.28);
+  background: rgba(22, 133, 83, 0.08);
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
