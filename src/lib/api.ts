@@ -381,6 +381,20 @@ export async function createRequestMessage(
   return parseJson<{ message: string }>(response)
 }
 
+export async function updateDriverPhoneVisibility(
+  requestId: number,
+  showDriverPhoneToPatient: boolean,
+  accessMode: 'internal' | 'operator' = 'internal',
+) {
+  const response = await fetch('/api/admin/request-driver-visibility', (accessMode === 'operator' ? withOperatorHeaders : withInternalHeaders)({
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ requestId, showDriverPhoneToPatient }),
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
 export async function loginDriver(cpf: string, password: string) {
   const response = await fetch('/api/driver/login', {
     method: 'POST',

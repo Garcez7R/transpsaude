@@ -2,7 +2,7 @@ import { ArrowLeft, CheckCircle2, Printer, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { canAccessManager, canAccessOperator } from '../lib/access'
-import { createRequestMessage, fetchRequestDetails, resetAccess, updateRequestSchedule, updateRequestStatus } from '../lib/api'
+import { createRequestMessage, fetchRequestDetails, resetAccess, updateDriverPhoneVisibility, updateRequestSchedule, updateRequestStatus } from '../lib/api'
 import { getOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText } from '../lib/text-format'
 import type { RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '../types'
@@ -32,10 +32,12 @@ export function RequestDetailsPage() {
   const [messageTitle, setMessageTitle] = useState('')
   const [messageBody, setMessageBody] = useState('')
   const [visibleToCitizen, setVisibleToCitizen] = useState(true)
+  const [showDriverPhoneToPatient, setShowDriverPhoneToPatient] = useState(true)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingSchedule, setSavingSchedule] = useState(false)
   const [savingMessage, setSavingMessage] = useState(false)
+  const [savingDriverPhoneVisibility, setSavingDriverPhoneVisibility] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
@@ -77,6 +79,7 @@ export function RequestDetailsPage() {
         setStatus(requestData.status)
         setScheduleDate(requestData.travelDate)
         setScheduleTime(requestData.departureTime ?? '')
+        setShowDriverPhoneToPatient(requestData.showDriverPhoneToPatient ?? true)
       } catch {
         if (active) {
           setError('Não foi possível carregar os detalhes da solicitação.')
@@ -193,6 +196,32 @@ export function RequestDetailsPage() {
       setError('Não foi possível registrar a mensagem desta solicitação.')
     } finally {
       setSavingMessage(false)
+    }
+  }
+
+  async function handleDriverPhoneVisibilitySubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!details) {
+      return
+    }
+
+    setSavingDriverPhoneVisibility(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const result = await updateDriverPhoneVisibility(details.id, showDriverPhoneToPatient, 'operator')
+      const refreshed = await fetchRequestDetails(details.id, 'operator')
+      const { history: historyData, ...requestData } = refreshed
+      setDetails(requestData)
+      setHistory(historyData)
+      setShowDriverPhoneToPatient(requestData.showDriverPhoneToPatient ?? true)
+      setMessage(result.message)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível atualizar a visibilidade do telefone do motorista.')
+    } finally {
+      setSavingDriverPhoneVisibility(false)
     }
   }
 
@@ -341,6 +370,18 @@ export function RequestDetailsPage() {
                 <dd>{details.assignedDriverName || 'Não atribuído'}</dd>
               </div>
               <div>
+                <dt>Telefone do motorista para o paciente</dt>
+                <dd>
+                  {details.showDriverPhoneToPatient
+                    ? details.assignedDriverPhone || 'Não informado'
+                    : 'Oculto na consulta pública'}
+                </dd>
+              </div>
+              <div>
+                <dt>Veículo da viagem</dt>
+                <dd>{details.assignedVehicleName || 'Não definido'}</dd>
+              </div>
+              <div>
                 <dt>Horário de saída</dt>
                 <dd>{details.departureTime || 'Não definido'}</dd>
               </div>
@@ -408,6 +449,18 @@ export function RequestDetailsPage() {
                 <dd>{details.assignedDriverName || 'A definir'}</dd>
               </div>
               <div>
+                <dt>Telefone do motorista</dt>
+                <dd>
+                  {details.showDriverPhoneToPatient
+                    ? details.assignedDriverPhone || 'A definir'
+                    : 'Oculto na consulta pública'}
+                </dd>
+              </div>
+              <div>
+                <dt>Veículo da viagem</dt>
+                <dd>{details.assignedVehicleName || 'A definir'}</dd>
+              </div>
+              <div>
                 <dt>Telefone</dt>
                 <dd>{details.phone || 'Não informado'}</dd>
               </div>
@@ -415,6 +468,31 @@ export function RequestDetailsPage() {
           </article>
 
           <aside className="dashboard-side">
+            <article className="content-card">
+              <h2>Contato do motorista</h2>
+              <form onSubmit={handleDriverPhoneVisibilitySubmit}>
+                <div className="form-grid">
+                  <div className="field full checkbox-field">
+                    <label className="checkbox-row" htmlFor="request-driver-phone-visibility">
+                      <input
+                        id="request-driver-phone-visibility"
+                        type="checkbox"
+                        checked={showDriverPhoneToPatient}
+                        onChange={(event) => setShowDriverPhoneToPatient(event.target.checked)}
+                      />
+                      <span>Exibir telefone do motorista na consulta do paciente</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button className="action-button primary" disabled={savingDriverPhoneVisibility} type="submit">
+                    <Save size={16} />
+                    {savingDriverPhoneVisibility ? 'Salvando...' : 'Salvar visibilidade'}
+                  </button>
+                </div>
+              </form>
+            </article>
+
             <article className="content-card">
               <h2>Atualizar status</h2>
               <form onSubmit={handleSubmit}>
