@@ -80,6 +80,14 @@ function toBoolean(value: unknown) {
   return value === true || value === 1 || value === '1'
 }
 
+function hasMissingBoardingColumns(error: unknown) {
+  const message = error instanceof Error ? error.message : ''
+  return (
+    message.includes('no such column: tr.use_custom_boarding_location') ||
+    message.includes('no such column: tr.boarding_location_name')
+  )
+}
+
 export async function listRequestMessages(env: Env, requestId: number, visibleToCitizenOnly = false) {
   const db = requireDb(env)
   let query = `
@@ -514,6 +522,41 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
     inner join patients p on p.id = tr.patient_id
   `
 
+  const legacyQuery = `
+    select
+      tr.id,
+      tr.protocol,
+      tr.patient_name as patientName,
+      tr.cpf_masked as cpfMasked,
+      p.phone,
+      p.address_line as addressLine,
+      0 as useCustomBoardingLocation,
+      '' as boardingLocationName,
+      p.address_line as boardingLocationLabel,
+      tr.access_cpf_masked as accessCpfMasked,
+      tr.destination_city as destinationCity,
+      tr.destination_state as destinationState,
+      tr.treatment_unit as treatmentUnit,
+      tr.specialty,
+      tr.travel_date as travelDate,
+      tr.requested_at as requestedAt,
+      tr.status,
+      tr.companion_required as companionRequired,
+      tr.companion_name as companionName,
+      tr.companion_cpf_masked as companionCpfMasked,
+      tr.companion_phone as companionPhone,
+      tr.companion_is_whatsapp as companionIsWhatsapp,
+      tr.companion_address_line as companionAddressLine,
+      tr.assigned_driver_id as assignedDriverId,
+      tr.assigned_driver_name as assignedDriverName,
+      tr.departure_time as departureTime,
+      tr.manager_notes as managerNotes,
+      tr.scheduled_at as scheduledAt,
+      tr.notes
+    from travel_requests tr
+    inner join patients p on p.id = tr.patient_id
+  `
+
   const whereClauses: string[] = []
   const params: Array<string | number> = []
 
@@ -579,9 +622,29 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
 
   query += ' order by tr.created_at desc'
 
-  const prepared = db.prepare(query)
-  const statement = params.length > 0 ? prepared.bind(...params) : prepared
-  const result = await statement.all()
+  let result: D1Result<Record<string, unknown>>
+
+  try {
+    const prepared = db.prepare(query)
+    const statement = params.length > 0 ? prepared.bind(...params) : prepared
+    result = await statement.all()
+  } catch (error) {
+    if (!hasMissingBoardingColumns(error)) {
+      throw error
+    }
+
+    let fallback = legacyQuery
+
+    if (whereClauses.length > 0) {
+      fallback += ` where ${whereClauses.join(' and ')}`
+    }
+
+    fallback += ' order by tr.created_at desc'
+
+    const prepared = db.prepare(fallback)
+    const statement = params.length > 0 ? prepared.bind(...params) : prepared
+    result = await statement.all()
+  }
 
   return (result.results ?? []).map((item) => ({
     ...item,
@@ -688,8 +751,11 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       .run()
   }
 
-  const requestRows = await db.prepare(
-    `
+  let requestRows: D1Result<Record<string, unknown>>
+
+  try {
+    requestRows = await db.prepare(
+      `
       select
         tr.id,
         tr.protocol,
@@ -722,9 +788,48 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       where tr.patient_id = ?1
       order by tr.travel_date desc, tr.created_at desc, tr.id desc
     `,
-  )
-    .bind(patientAccess.id)
-    .all<Record<string, unknown>>()
+    )
+      .bind(patientAccess.id)
+      .all<Record<string, unknown>>()
+  } catch (error) {
+    if (!hasMissingBoardingColumns(error)) {
+      throw error
+    }
+
+    requestRows = await db.prepare(
+      `
+        select
+          tr.id,
+          tr.protocol,
+          tr.patient_id as patientId,
+          tr.patient_name as patientName,
+          tr.cpf_masked as cpfMasked,
+          tr.access_cpf_masked as accessCpfMasked,
+          p.address_line as addressLine,
+          0 as useCustomBoardingLocation,
+          '' as boardingLocationName,
+          p.address_line as boardingLocationLabel,
+          tr.destination_city as destinationCity,
+          tr.destination_state as destinationState,
+          tr.treatment_unit as treatmentUnit,
+          tr.specialty,
+          tr.travel_date as travelDate,
+          tr.requested_at as requestedAt,
+          tr.status,
+          tr.companion_required as companionRequired,
+          tr.companion_name as companionName,
+          tr.assigned_driver_name as assignedDriverName,
+          tr.departure_time as departureTime,
+          tr.notes
+        from travel_requests tr
+        inner join patients p on p.id = tr.patient_id
+        where tr.patient_id = ?1
+        order by tr.travel_date desc, tr.created_at desc, tr.id desc
+      `,
+    )
+      .bind(patientAccess.id)
+      .all<Record<string, unknown>>()
+  }
 
   const requestResults = requestRows.results ?? []
 
@@ -1067,8 +1172,11 @@ export async function listVehicles(env: Env) {
 
 export async function listDriverTrips(env: Env, driverId: number) {
   const db = requireDb(env)
-  const result = await db.prepare(
-    `
+  let result: D1Result<Record<string, unknown>>
+
+  try {
+    result = await db.prepare(
+      `
       select
         tr.id,
         tr.protocol,
@@ -1108,9 +1216,55 @@ export async function listDriverTrips(env: Env, driverId: number) {
       where tr.assigned_driver_id = ?1
       order by travel_date asc, departure_time asc, created_at desc
     `,
-  )
-    .bind(driverId)
-    .all()
+    )
+      .bind(driverId)
+      .all()
+  } catch (error) {
+    if (!hasMissingBoardingColumns(error)) {
+      throw error
+    }
+
+    result = await db.prepare(
+      `
+        select
+          tr.id,
+          tr.protocol,
+          tr.patient_name as patientName,
+          tr.cpf_masked as cpfMasked,
+          p.phone,
+          p.address_line as addressLine,
+          0 as useCustomBoardingLocation,
+          '' as boardingLocationName,
+          p.address_line as boardingLocationLabel,
+          tr.access_cpf_masked as accessCpfMasked,
+          tr.destination_city as destinationCity,
+          tr.destination_state as destinationState,
+          tr.treatment_unit as treatmentUnit,
+          tr.specialty,
+          tr.travel_date as travelDate,
+          tr.requested_at as requestedAt,
+          tr.status,
+          tr.companion_required as companionRequired,
+          tr.companion_name as companionName,
+          tr.companion_cpf_masked as companionCpfMasked,
+          tr.companion_phone as companionPhone,
+          tr.companion_is_whatsapp as companionIsWhatsapp,
+          tr.companion_address_line as companionAddressLine,
+          tr.assigned_driver_id as assignedDriverId,
+          tr.assigned_driver_name as assignedDriverName,
+          tr.departure_time as departureTime,
+          tr.manager_notes as managerNotes,
+          tr.scheduled_at as scheduledAt,
+          tr.notes
+        from travel_requests tr
+        inner join patients p on p.id = tr.patient_id
+        where tr.assigned_driver_id = ?1
+        order by travel_date asc, departure_time asc, created_at desc
+      `,
+    )
+      .bind(driverId)
+      .all()
+  }
 
   return (result.results ?? []).map((item) => ({
     ...item,
@@ -1122,8 +1276,11 @@ export async function listDriverTrips(env: Env, driverId: number) {
 
 export async function getRequestDetails(env: Env, requestId: number) {
   const db = requireDb(env)
-  const request = await db.prepare(
-    `
+  let request: Record<string, unknown> | null
+
+  try {
+    request = await db.prepare(
+      `
       select
         tr.id,
         tr.protocol,
@@ -1169,9 +1326,61 @@ export async function getRequestDetails(env: Env, requestId: number) {
       where tr.id = ?1
       limit 1
     `,
-  )
-    .bind(requestId)
-    .first<Record<string, unknown>>()
+    )
+      .bind(requestId)
+      .first<Record<string, unknown>>()
+  } catch (error) {
+    if (!hasMissingBoardingColumns(error)) {
+      throw error
+    }
+
+    request = await db.prepare(
+      `
+        select
+          tr.id,
+          tr.protocol,
+          tr.patient_name as patientName,
+          tr.cpf_masked as cpfMasked,
+          tr.access_cpf_masked as accessCpfMasked,
+          p.cpf_masked as patientCpf,
+          p.phone,
+          p.is_whatsapp as isWhatsapp,
+          p.address_line as addressLine,
+          0 as useCustomBoardingLocation,
+          '' as boardingLocationName,
+          p.address_line as boardingLocationLabel,
+          p.cns,
+          p.responsible_name as responsibleName,
+          p.responsible_cpf_masked as responsibleCpfMasked,
+          p.use_responsible_cpf_for_access as useResponsibleCpfForAccess,
+          tr.destination_city as destinationCity,
+          tr.destination_state as destinationState,
+          tr.treatment_unit as treatmentUnit,
+          tr.specialty,
+          tr.travel_date as travelDate,
+          tr.requested_at as requestedAt,
+          tr.status,
+          tr.companion_required as companionRequired,
+          tr.companion_name as companionName,
+          tr.companion_cpf_masked as companionCpfMasked,
+          tr.companion_phone as companionPhone,
+          tr.companion_is_whatsapp as companionIsWhatsapp,
+          tr.companion_address_line as companionAddressLine,
+          tr.assigned_driver_id as assignedDriverId,
+          tr.assigned_driver_name as assignedDriverName,
+          tr.departure_time as departureTime,
+          tr.manager_notes as managerNotes,
+          tr.scheduled_at as scheduledAt,
+          tr.notes
+        from travel_requests tr
+        inner join patients p on p.id = tr.patient_id
+        where tr.id = ?1
+        limit 1
+      `,
+    )
+      .bind(requestId)
+      .first<Record<string, unknown>>()
+  }
 
   if (!request) {
     return null
