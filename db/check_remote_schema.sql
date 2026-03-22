@@ -12,6 +12,7 @@ where type = 'table'
     'vehicles',
     'drivers',
     'request_status_history',
+    'request_messages',
     'audit_logs',
     'auth_sessions'
   )
@@ -24,6 +25,7 @@ pragma table_info(travel_requests);
 pragma table_info(vehicles);
 pragma table_info(drivers);
 pragma table_info(request_status_history);
+pragma table_info(request_messages);
 pragma table_info(audit_logs);
 pragma table_info(auth_sessions);
 
@@ -72,6 +74,18 @@ from request_status_history
 order by id desc
 limit 20;
 
+select
+  id,
+  travel_request_id,
+  message_type,
+  title,
+  visible_to_citizen,
+  created_by_name,
+  created_at
+from request_messages
+order by id desc
+limit 20;
+
 /***** Contagens úteis *****/
 select 'operators' as entity, count(*) as total from operators
 union all
@@ -84,6 +98,8 @@ union all
 select 'drivers', count(*) from drivers
 union all
 select 'request_status_history', count(*) from request_status_history
+union all
+select 'request_messages', count(*) from request_messages
 union all
 select 'audit_logs', count(*) from audit_logs
 union all

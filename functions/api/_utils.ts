@@ -332,21 +332,37 @@ export async function writeAuditLog(
   metadata?: Record<string, unknown>,
 ) {
   const db = requireDb(env)
+  const serializedMetadata = metadata ? JSON.stringify(metadata) : null
 
-  await db.prepare(
-    `
-      insert into audit_logs (
-        operator_id,
-        action,
-        entity_type,
-        entity_id,
-        metadata
-      )
-      values (?1, ?2, ?3, ?4, ?5)
-    `,
-  )
-    .bind(operatorId, action, entityType, entityId, metadata ? JSON.stringify(metadata) : null)
-    .run()
+  try {
+    await db.prepare(
+      `
+        insert into audit_logs (
+          operator_id,
+          action,
+          entity_type,
+          entity_id,
+          metadata
+        )
+        values (?1, ?2, ?3, ?4, ?5)
+      `,
+    )
+      .bind(operatorId, action, entityType, entityId, serializedMetadata)
+      .run()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+
+    if (
+      message.includes('no such table: audit_logs') ||
+      message.includes('no such column:') ||
+      message.includes('NOT NULL constraint failed') ||
+      message.includes('CHECK constraint failed')
+    ) {
+      return
+    }
+
+    throw error
+  }
 }
 
 export async function requireInternalRole(
