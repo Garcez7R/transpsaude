@@ -35,50 +35,78 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 
 ### Cidadão
 
-- consulta pública com `CPF + PIN`;
-- primeiro acesso com senha temporária `0000`;
-- troca obrigatória para PIN numérico de 4 dígitos;
-- visualização do status da solicitação;
-- data, horário e local de embarque;
-- mensagens e orientações liberadas pela equipe interna;
-- histórico da solicitação.
+- acesso à consulta pública do agendamento;
+- autenticação por identificador pessoal e PIN de acesso;
+- primeiro acesso com troca obrigatória de PIN;
+- visualização de status, data, horário e local de embarque;
+- leitura de mensagens e orientações liberadas pela equipe interna;
+- acompanhamento do histórico da solicitação.
+
+**Particularidades do perfil**
+
+- não acessa áreas internas do sistema;
+- visualiza apenas informações vinculadas ao seu acesso;
+- utiliza o sistema como canal de consulta e acompanhamento.
 
 ### Operador
 
-- cadastro presencial da solicitação;
+- atendimento presencial e abertura da solicitação;
 - registro de paciente, responsável e acompanhante;
-- definição do CPF de acesso do cidadão;
+- definição do acesso do cidadão para consulta posterior;
 - visualização do painel operacional;
-- atualização de status;
-- registro de mensagens e avisos na solicitação;
-- reset de acesso do paciente quando necessário.
+- atualização de status da solicitação;
+- registro de mensagens e avisos vinculados ao agendamento;
+- redefinição do acesso do paciente, quando necessário.
+
+**Particularidades do perfil**
+
+- atua no ponto inicial do fluxo;
+- não realiza governança de usuários internos;
+- não administra motoristas, veículos ou gerentes.
 
 ### Gerente
 
-- análise das solicitações;
-- atribuição de motorista;
+- análise e organização da fila de solicitações;
+- atribuição de motorista por viagem;
 - definição de horário de saída;
 - definição de local oficial de embarque;
-- visualização operacional por período;
+- visualização operacional por data e por período;
 - gestão de motoristas, operadores, pacientes e veículos;
-- relatórios operacionais.
+- acompanhamento e leitura de relatórios operacionais.
+
+**Particularidades do perfil**
+
+- concentra a gestão operacional do transporte;
+- pode reorganizar viagens e distribuir a agenda dos motoristas;
+- pode atuar sobre a base operacional, sem substituir a governança administrativa plena.
 
 ### Administrador
 
-- acesso completo ao ambiente interno;
+- acesso completo às áreas internas;
 - criação e gestão de gerentes;
 - governança de acessos internos;
-- visão administrativa dos agendamentos;
-- apoio à operação e à gestão da base cadastral.
+- visão administrativa dos agendamentos e da base operacional;
+- apoio à operação, supervisão e manutenção da base cadastral.
+
+**Particularidades do perfil**
+
+- possui alcance transversal sobre o ambiente interno;
+- pode apoiar a operação sem depender da área de gerência;
+- concentra a administração dos acessos mais sensíveis do sistema.
 
 ### Motorista
 
-- acesso próprio com `CPF + PIN`;
-- visualização das viagens atribuídas;
-- dados do paciente;
-- local de embarque;
-- horário de saída;
-- destino, observações e orientações aplicáveis.
+- acesso próprio ao portal funcional do motorista;
+- visualização das viagens atribuídas ao seu nome;
+- consulta de paciente, acompanhante e destino;
+- consulta de local de embarque e horário de saída;
+- leitura das observações e orientações aplicáveis à viagem.
+
+**Particularidades do perfil**
+
+- não acessa painéis de gestão interna;
+- consulta apenas a própria agenda operacional;
+- atua na etapa final de execução da viagem.
 
 ## Fluxo operacional
 
@@ -97,7 +125,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 
 - cadastro completo de solicitações de transporte em saúde;
 - identificação de paciente, responsável e acompanhante;
-- controle de CPF de acesso para consulta pública;
+- controle de acesso do cidadão para consulta pública;
 - protocolo de solicitação;
 - detalhe completo da solicitação;
 - histórico de movimentações;
@@ -261,15 +289,7 @@ No projeto Pages:
 
 ## Operação inicial
 
-O sistema trabalha com credencial temporária padrão `0000` para primeiro acesso, seguida de troca obrigatória para PIN numérico de 4 dígitos.
-
-Esse padrão se aplica a:
-
-- administrador;
-- gerente;
-- operador;
-- motorista;
-- cidadão.
+O sistema foi estruturado com fluxo de primeiro acesso controlado, exigindo atualização de credencial no uso inicial, conforme a política operacional definida pela administração municipal.
 
 ## Qualidade e validação
 
