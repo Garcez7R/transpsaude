@@ -41,7 +41,6 @@ const initialDriverForm: CreateDriverInput = {
   phone: '',
   isWhatsapp: false,
   vehicleId: null,
-  password: '',
 }
 
 const initialVehicleForm: CreateVehicleInput = {
@@ -99,7 +98,6 @@ export function DriversPage() {
     name: '',
     cpf: '',
     email: '',
-    password: '',
   })
   const [vehicleForm, setVehicleForm] = useState(initialVehicleForm)
   const [patientForm, setPatientForm] = useState(initialPatientForm)
@@ -218,7 +216,6 @@ export function DriversPage() {
         const result = await updateDriver({
           id: editingDriverId,
           ...driverForm,
-          password: driverForm.password || undefined,
         })
         setMessage(result.message)
       } else {
@@ -279,14 +276,12 @@ export function DriversPage() {
         ? await updateOperator({
             id: editingOperatorId,
             ...operatorForm,
-            password: operatorForm.password || undefined,
           })
         : await createOperator(operatorForm)
       setOperatorForm({
         name: '',
         cpf: '',
         email: '',
-        password: '',
       })
       setEditingOperatorId(null)
       const refreshed = await fetchOperators()
@@ -325,7 +320,7 @@ export function DriversPage() {
       setOperators(await fetchOperators())
       if (editingOperatorId === id) {
         setEditingOperatorId(null)
-        setOperatorForm({ name: '', cpf: '', email: '', password: '' })
+        setOperatorForm({ name: '', cpf: '', email: '' })
       }
       setMessage(result.message)
       setError('')
@@ -664,7 +659,6 @@ export function DriversPage() {
                         name: '',
                         cpf: '',
                         email: '',
-                        password: '',
                       })
                     }}
                   >
@@ -751,7 +745,6 @@ export function DriversPage() {
                             phone: driver.phone,
                             isWhatsapp: driver.isWhatsapp,
                             vehicleId: driver.vehicleId ?? null,
-                            password: '',
                           })
                         }}
                       >
@@ -898,7 +891,6 @@ export function DriversPage() {
                           name: operator.name,
                           cpf: operator.cpfMasked,
                           email: operator.email,
-                          password: '',
                         })
                       }}
                     >

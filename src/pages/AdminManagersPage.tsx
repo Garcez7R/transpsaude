@@ -39,7 +39,6 @@ const initialForm: CreateManagerInput = {
   name: '',
   cpf: '',
   email: '',
-  password: '',
 }
 
 const initialDriverForm: CreateDriverInput = {
@@ -48,7 +47,6 @@ const initialDriverForm: CreateDriverInput = {
   phone: '',
   isWhatsapp: false,
   vehicleId: null,
-  password: '',
 }
 
 function formatCpf(value: string) {
@@ -82,7 +80,6 @@ export function AdminManagersPage() {
     name: '',
     cpf: '',
     email: '',
-    password: '',
   })
   const [driverForm, setDriverForm] = useState<CreateDriverInput>(initialDriverForm)
   const [managers, setManagers] = useState<ManagerRecord[]>([])
@@ -225,13 +222,7 @@ export function AdminManagersPage() {
     setMessage('')
 
     try {
-      const result = editingManagerId
-        ? await updateManager({
-            id: editingManagerId,
-            ...form,
-            password: form.password || undefined,
-          })
-        : await createManager(form)
+      const result = editingManagerId ? await updateManager({ id: editingManagerId, ...form }) : await createManager(form)
       setMessage(result.message)
       setForm(initialForm)
       setEditingManagerId(null)
@@ -254,7 +245,6 @@ export function AdminManagersPage() {
         ? await updateOperator({
             id: editingOperatorId,
             ...operatorForm,
-            password: operatorForm.password || undefined,
           })
         : await createOperator(operatorForm)
       setMessage(result.message)
@@ -262,7 +252,6 @@ export function AdminManagersPage() {
         name: '',
         cpf: '',
         email: '',
-        password: '',
       })
       setEditingOperatorId(null)
       setOperators(await fetchOperators())
@@ -282,10 +271,9 @@ export function AdminManagersPage() {
     try {
       const result = editingDriverId
         ? await updateDriver({
-            id: editingDriverId,
-            ...driverForm,
-            password: driverForm.password || undefined,
-          })
+          id: editingDriverId,
+          ...driverForm,
+        })
         : await createDriver(driverForm)
 
       setMessage('message' in result ? result.message : `Motorista ${result.name} cadastrado com sucesso.`)
@@ -320,7 +308,7 @@ export function AdminManagersPage() {
       setOperators(await fetchOperators())
       if (editingOperatorId === id) {
         setEditingOperatorId(null)
-        setOperatorForm({ name: '', cpf: '', email: '', password: '' })
+        setOperatorForm({ name: '', cpf: '', email: '' })
       }
       setMessage(result.message)
       setError('')
@@ -620,7 +608,6 @@ export function AdminManagersPage() {
                       name: '',
                       cpf: '',
                       email: '',
-                      password: '',
                     })
                   }}
                 >
@@ -757,7 +744,6 @@ export function AdminManagersPage() {
                           name: manager.name,
                           cpf: manager.cpfMasked,
                           email: manager.email,
-                          password: '',
                         })
                       }}
                     >
@@ -797,7 +783,6 @@ export function AdminManagersPage() {
                           name: operator.name,
                           cpf: operator.cpfMasked,
                           email: operator.email,
-                          password: '',
                         })
                       }}
                     >
@@ -843,7 +828,6 @@ export function AdminManagersPage() {
                           phone: driver.phone,
                           isWhatsapp: driver.isWhatsapp,
                           vehicleId: driver.vehicleId ?? null,
-                          password: '',
                         })
                       }}
                     >

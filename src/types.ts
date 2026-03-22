@@ -187,7 +187,6 @@ export interface CreateDriverInput {
   phone: string
   isWhatsapp: boolean
   vehicleId: number | null
-  password: string
 }
 
 export interface VehicleRecord {
@@ -208,14 +207,12 @@ export interface CreateManagerInput {
   name: string
   cpf: string
   email: string
-  password: string
 }
 
 export interface CreateOperatorInput {
   name: string
   cpf: string
   email: string
-  password: string
 }
 
 export interface UpdateOperatorInput {
