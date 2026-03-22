@@ -12,6 +12,7 @@ import {
   fetchDrivers,
   fetchManagers,
   fetchOperators,
+  fetchRequests,
   fetchVehicles,
   loginAdmin,
   resetAccess,
@@ -32,6 +33,8 @@ import type {
   DriverRecord,
   ManagerRecord,
   OperatorRecord,
+  RequestStatus,
+  TravelRequest,
   VehicleRecord,
 } from '../types'
 
@@ -86,15 +89,23 @@ export function AdminManagersPage() {
   const [operators, setOperators] = useState<OperatorRecord[]>([])
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
   const [vehicles, setVehicles] = useState<VehicleRecord[]>([])
+  const [requests, setRequests] = useState<TravelRequest[]>([])
   const [editingManagerId, setEditingManagerId] = useState<number | null>(null)
   const [editingOperatorId, setEditingOperatorId] = useState<number | null>(null)
   const [editingDriverId, setEditingDriverId] = useState<number | null>(null)
   const [loadingData, setLoadingData] = useState(false)
+  const [loadingRequests, setLoadingRequests] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingOperator, setSavingOperator] = useState(false)
   const [savingDriver, setSavingDriver] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [requestSearch, setRequestSearch] = useState('')
+  const [requestStatus, setRequestStatus] = useState<RequestStatus | 'todos'>('todos')
+  const [travelDate, setTravelDate] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [destination, setDestination] = useState('')
 
   function updateField<K extends keyof CreateManagerInput>(key: K, value: CreateManagerInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -151,6 +162,75 @@ export function AdminManagersPage() {
       active = false
     }
   }, [session])
+
+  useEffect(() => {
+    if (!session || !canAccessAdmin(session)) {
+      return
+    }
+
+    let active = true
+
+    async function loadRequests() {
+      setLoadingRequests(true)
+
+      try {
+        const data = await fetchRequests({
+          status: requestStatus,
+          search: requestSearch,
+          travelDate,
+          dateFrom,
+          dateTo,
+          destination,
+        })
+
+        if (active) {
+          setRequests(data)
+        }
+      } catch (loadError) {
+        if (active) {
+          setError(loadError instanceof Error ? loadError.message : 'Não foi possível carregar os agendamentos.')
+        }
+      } finally {
+        if (active) {
+          setLoadingRequests(false)
+        }
+      }
+    }
+
+    void loadRequests()
+
+    return () => {
+      active = false
+    }
+  }, [dateFrom, dateTo, destination, requestSearch, requestStatus, session, travelDate])
+
+  function applyQuickPeriod(mode: 'today' | 'tomorrow' | 'week') {
+    const now = new Date()
+    const today = now.toISOString().slice(0, 10)
+
+    if (mode === 'today') {
+      setTravelDate('')
+      setDateFrom(today)
+      setDateTo(today)
+      return
+    }
+
+    if (mode === 'tomorrow') {
+      const tomorrow = new Date(now)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const value = tomorrow.toISOString().slice(0, 10)
+      setTravelDate('')
+      setDateFrom(value)
+      setDateTo(value)
+      return
+    }
+
+    const weekEnd = new Date(now)
+    weekEnd.setDate(weekEnd.getDate() + 7)
+    setTravelDate('')
+    setDateFrom(today)
+    setDateTo(weekEnd.toISOString().slice(0, 10))
+  }
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -488,6 +568,128 @@ export function AdminManagersPage() {
           </button>
         </div>
       </header>
+
+      <section className="content-card">
+        <h2>Agendamentos e solicitações</h2>
+        <div className="filter-stack">
+          <div className="field">
+            <label htmlFor="admin-request-search">Buscar</label>
+            <input
+              id="admin-request-search"
+              value={requestSearch}
+              onChange={(event) => setRequestSearch(event.target.value)}
+              placeholder="Paciente, protocolo, CPF, unidade..."
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="admin-request-date">Data da viagem</label>
+            <input
+              id="admin-request-date"
+              type="date"
+              value={travelDate}
+              onChange={(event) => setTravelDate(event.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="admin-request-date-from">Período inicial</label>
+            <input
+              id="admin-request-date-from"
+              type="date"
+              value={dateFrom}
+              onChange={(event) => setDateFrom(event.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="admin-request-date-to">Período final</label>
+            <input
+              id="admin-request-date-to"
+              type="date"
+              value={dateTo}
+              onChange={(event) => setDateTo(event.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="admin-request-destination">Destino</label>
+            <input
+              id="admin-request-destination"
+              value={destination}
+              onChange={(event) => setDestination(event.target.value)}
+              placeholder="Cidade de destino"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="admin-request-status">Status</label>
+            <select
+              id="admin-request-status"
+              value={requestStatus}
+              onChange={(event) => setRequestStatus(event.target.value as RequestStatus | 'todos')}
+            >
+              <option value="todos">Todos os status</option>
+              <option value="recebida">Recebida</option>
+              <option value="em_analise">Em análise</option>
+              <option value="aguardando_documentos">Aguardando documentos</option>
+              <option value="aprovada">Aprovada</option>
+              <option value="agendada">Agendada</option>
+              <option value="cancelada">Cancelada</option>
+              <option value="concluida">Concluída</option>
+            </select>
+          </div>
+        </div>
+        <div className="filter-actions">
+          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('today')}>
+            Hoje
+          </button>
+          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
+            Amanhã
+          </button>
+          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('week')}>
+            Esta semana
+          </button>
+          <button
+            className="action-button secondary"
+            type="button"
+            onClick={() => {
+              setRequestSearch('')
+              setRequestStatus('todos')
+              setTravelDate('')
+              setDateFrom('')
+              setDateTo('')
+              setDestination('')
+            }}
+          >
+            Limpar filtros
+          </button>
+        </div>
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Protocolo</th>
+                <th>Paciente</th>
+                <th>Destino</th>
+                <th>Data</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {requests.map((request) => (
+                <tr key={request.id}>
+                  <td>{request.protocol}</td>
+                  <td>{request.patientName}</td>
+                  <td>{request.destinationCity}/{request.destinationState}</td>
+                  <td>{request.travelDate}</td>
+                  <td>{request.status}</td>
+                </tr>
+              ))}
+              {!loadingRequests && requests.length === 0 ? (
+                <tr>
+                  <td colSpan={5}>Nenhuma solicitação encontrada para esse recorte.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <section className="dashboard-grid">
         <article className="content-card">

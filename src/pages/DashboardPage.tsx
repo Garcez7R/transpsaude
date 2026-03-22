@@ -49,6 +49,8 @@ export function DashboardPage() {
   const [selectedStatus, setSelectedStatus] = useState<RequestStatus | 'todos'>('todos')
   const [search, setSearch] = useState('')
   const [travelDate, setTravelDate] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [destination, setDestination] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -75,6 +77,8 @@ export function DashboardPage() {
             status: selectedStatus,
             search,
             travelDate,
+            dateFrom,
+            dateTo,
             destination,
           }, 'operator'),
         ])
@@ -103,7 +107,35 @@ export function DashboardPage() {
     return () => {
       active = false
     }
-  }, [destination, search, selectedStatus, session, travelDate])
+  }, [dateFrom, dateTo, destination, search, selectedStatus, session, travelDate])
+
+  function applyQuickPeriod(mode: 'today' | 'tomorrow' | 'week') {
+    const now = new Date()
+    const today = now.toISOString().slice(0, 10)
+
+    if (mode === 'today') {
+      setTravelDate('')
+      setDateFrom(today)
+      setDateTo(today)
+      return
+    }
+
+    if (mode === 'tomorrow') {
+      const tomorrow = new Date(now)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const value = tomorrow.toISOString().slice(0, 10)
+      setTravelDate('')
+      setDateFrom(value)
+      setDateTo(value)
+      return
+    }
+
+    const weekEnd = new Date(now)
+    weekEnd.setDate(weekEnd.getDate() + 7)
+    setTravelDate('')
+    setDateFrom(today)
+    setDateTo(weekEnd.toISOString().slice(0, 10))
+  }
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -406,6 +438,24 @@ export function DashboardPage() {
               />
             </div>
             <div className="field">
+              <label htmlFor="request-date-from">Período inicial</label>
+              <input
+                id="request-date-from"
+                type="date"
+                value={dateFrom}
+                onChange={(event) => setDateFrom(event.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="request-date-to">Período final</label>
+              <input
+                id="request-date-to"
+                type="date"
+                value={dateTo}
+                onChange={(event) => setDateTo(event.target.value)}
+              />
+            </div>
+            <div className="field">
               <label htmlFor="destination-filter">Destino</label>
               <input
                 id="destination-filter"
@@ -430,6 +480,15 @@ export function DashboardPage() {
             </div>
           </div>
           <div className="filter-actions">
+            <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('today')}>
+              Hoje
+            </button>
+            <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
+              Amanhã
+            </button>
+            <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('week')}>
+              Esta semana
+            </button>
             <button
               className="ghost-button"
               type="button"
@@ -437,6 +496,8 @@ export function DashboardPage() {
                 setSelectedStatus('todos')
                 setSearch('')
                 setTravelDate('')
+                setDateFrom('')
+                setDateTo('')
                 setDestination('')
               }}
             >
@@ -447,7 +508,7 @@ export function DashboardPage() {
 
           <div className="status-line">
             <span className="subtle-label">
-              {search || travelDate || destination ? <Search size={14} /> : <RefreshCcw size={14} />}
+              {search || travelDate || dateFrom || dateTo || destination ? <Search size={14} /> : <RefreshCcw size={14} />}
               {visibleCountLabel}
             </span>
             {error ? <span className="status-pill">{error}</span> : null}

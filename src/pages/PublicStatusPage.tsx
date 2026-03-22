@@ -228,6 +228,23 @@ export function PublicStatusPage() {
             </article>
 
             <article className="public-card">
+              <h2>Mensagens e orientações</h2>
+              {request.messages.length > 0 ? (
+                <ol className="status-history">
+                  {request.messages.map((entry) => (
+                    <li key={`public-message-${entry.id}`}>
+                      <strong>{entry.title || 'Atualização da solicitação'}</strong> em {entry.createdAt}
+                      <br />
+                      {entry.body}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="table-note">Não há novas orientações registradas para esta solicitação.</p>
+              )}
+            </article>
+
+            <article className="public-card">
               <h2>Histórico da solicitação</h2>
               <ol className="status-history">
                 {request.history.map((entry) => (

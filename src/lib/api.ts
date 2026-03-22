@@ -5,6 +5,7 @@ import type {
   CreateDriverInput,
   CreateManagerInput,
   CreateOperatorInput,
+  CreateRequestMessageInput,
   CreateTravelRequestInput,
   CreateTravelRequestResponse,
   CreateVehicleInput,
@@ -121,6 +122,14 @@ export async function fetchRequests(filters: RequestQueryFilters = {}, accessMod
 
   if (filters.travelDate) {
     search.set('travelDate', filters.travelDate)
+  }
+
+  if (filters.dateFrom) {
+    search.set('dateFrom', filters.dateFrom)
+  }
+
+  if (filters.dateTo) {
+    search.set('dateTo', filters.dateTo)
   }
 
   if (filters.driverId && filters.driverId > 0) {
@@ -327,6 +336,19 @@ export async function updateRequestStatus(input: UpdateRequestStatusInput, acces
 
 export async function updateRequestSchedule(input: UpdateRequestScheduleInput, accessMode: 'internal' | 'operator' = 'internal') {
   const response = await fetch('/api/admin/request-schedule', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  }))
+
+  return parseJson<{ message: string }>(response)
+}
+
+export async function createRequestMessage(
+  input: CreateRequestMessageInput,
+  accessMode: 'internal' | 'operator' = 'internal',
+) {
+  const response = await fetch('/api/admin/request-messages', (accessMode === 'operator' ? withOperatorHeaders : withAdminHeaders)({
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),

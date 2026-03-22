@@ -11,6 +11,8 @@ export interface RequestFilters {
   status?: string
   search?: string
   travelDate?: string
+  dateFrom?: string
+  dateTo?: string
   driverId?: number
   destination?: string
 }
@@ -77,6 +79,45 @@ export function maskCpf(value: string) {
 
 function toBoolean(value: unknown) {
   return value === true || value === 1 || value === '1'
+}
+
+export async function listRequestMessages(env: Env, requestId: number, visibleToCitizenOnly = false) {
+  const db = requireDb(env)
+  let query = `
+    select
+      id,
+      message_type as messageType,
+      title,
+      body,
+      visible_to_citizen as visibleToCitizen,
+      created_by_name as createdByName,
+      created_at as createdAt
+    from request_messages
+    where travel_request_id = ?1
+  `
+
+  if (visibleToCitizenOnly) {
+    query += ` and visible_to_citizen = 1`
+  }
+
+  query += ' order by created_at desc, id desc'
+
+  try {
+    const result = await db.prepare(query).bind(requestId).all()
+
+    return (result.results ?? []).map((item) => ({
+      ...item,
+      visibleToCitizen: toBoolean(item.visibleToCitizen),
+    }))
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+
+    if (message.includes('no such table: request_messages')) {
+      return []
+    }
+
+    throw error
+  }
 }
 
 function isInternalRole(value: string): value is InternalRole {
@@ -451,6 +492,16 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
     params.push(filters.travelDate)
   }
 
+  if (filters.dateFrom) {
+    whereClauses.push(`tr.travel_date >= ?${params.length + 1}`)
+    params.push(filters.dateFrom)
+  }
+
+  if (filters.dateTo) {
+    whereClauses.push(`tr.travel_date <= ?${params.length + 1}`)
+    params.push(filters.dateTo)
+  }
+
   if (filters.driverId && Number.isFinite(filters.driverId) && filters.driverId > 0) {
     whereClauses.push(`tr.assigned_driver_id = ?${params.length + 1}`)
     params.push(filters.driverId)
@@ -666,6 +717,8 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
     .bind(requestResult.protocol)
     .all()
 
+  const requestMessages = await listRequestMessages(env, Number(requestResult.id), true)
+
   const status = String(requestResult.status)
 
   await db.prepare(
@@ -694,6 +747,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
           ? requestResult.notes
           : 'Guarde seu CPF e seu PIN para consultas futuras.',
       history: historyResult.results ?? [],
+      messages: requestMessages,
     },
   }
 }
@@ -1095,6 +1149,8 @@ export async function getRequestDetails(env: Env, requestId: number) {
     .bind(requestId)
     .all()
 
+  const messages = await listRequestMessages(env, requestId)
+
   return {
     ...request,
     isWhatsapp: toBoolean(request.isWhatsapp),
@@ -1103,6 +1159,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
     companionIsWhatsapp: toBoolean(request.companionIsWhatsapp),
     useCustomBoardingLocation: toBoolean(request.useCustomBoardingLocation),
     history: historyResult.results ?? [],
+    messages,
   }
 }
 
@@ -1231,5 +1288,65 @@ export async function updateRequestSchedule(
 
   return {
     message: `Viagem reagendada para ${travelDate} as ${departureTime}.`,
+  }
+}
+
+export async function createRequestMessage(
+  env: Env,
+  requestId: number,
+  input: {
+    messageType: string
+    title: string
+    body: string
+    visibleToCitizen: boolean
+    createdByOperatorId: number
+    createdByName: string
+  },
+) {
+  const db = requireDb(env)
+  const request = await db.prepare(
+    `
+      select id
+      from travel_requests
+      where id = ?1
+      limit 1
+    `,
+  )
+    .bind(requestId)
+    .first<Record<string, unknown>>()
+
+  if (!request) {
+    return null
+  }
+
+  await db.prepare(
+    `
+      insert into request_messages (
+        travel_request_id,
+        message_type,
+        title,
+        body,
+        visible_to_citizen,
+        created_by_operator_id,
+        created_by_name
+      )
+      values (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+    `,
+  )
+    .bind(
+      requestId,
+      input.messageType || 'general',
+      input.title.trim() || null,
+      input.body.trim(),
+      input.visibleToCitizen ? 1 : 0,
+      input.createdByOperatorId,
+      input.createdByName,
+    )
+    .run()
+
+  return {
+    message: input.visibleToCitizen
+      ? 'Aviso registrado e liberado para a consulta do paciente.'
+      : 'Mensagem interna registrada com sucesso.',
   }
 }

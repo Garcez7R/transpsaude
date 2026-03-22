@@ -2,8 +2,9 @@ import { ArrowLeft, CheckCircle2, Printer, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { canAccessManager, canAccessOperator } from '../lib/access'
-import { fetchRequestDetails, resetAccess, updateRequestSchedule, updateRequestStatus } from '../lib/api'
+import { createRequestMessage, fetchRequestDetails, resetAccess, updateRequestSchedule, updateRequestStatus } from '../lib/api'
 import { getOperatorSession } from '../lib/operator-session'
+import { toInstitutionalText } from '../lib/text-format'
 import type { RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '../types'
 
 const statusOptions: Array<{ value: RequestStatus; label: string }> = [
@@ -27,9 +28,14 @@ export function RequestDetailsPage() {
   const [scheduleDate, setScheduleDate] = useState('')
   const [scheduleTime, setScheduleTime] = useState('')
   const [scheduleNote, setScheduleNote] = useState('')
+  const [messageType, setMessageType] = useState('general')
+  const [messageTitle, setMessageTitle] = useState('')
+  const [messageBody, setMessageBody] = useState('')
+  const [visibleToCitizen, setVisibleToCitizen] = useState(true)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingSchedule, setSavingSchedule] = useState(false)
+  const [savingMessage, setSavingMessage] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
@@ -151,6 +157,42 @@ export function RequestDetailsPage() {
       setError('Não foi possível reagendar a viagem.')
     } finally {
       setSavingSchedule(false)
+    }
+  }
+
+  async function handleMessageSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!details) {
+      return
+    }
+
+    setSavingMessage(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const result = await createRequestMessage({
+        requestId: details.id,
+        messageType,
+        title: messageTitle,
+        body: messageBody,
+        visibleToCitizen,
+      }, 'operator')
+
+      const refreshed = await fetchRequestDetails(details.id, 'operator')
+      const { history: historyData, ...requestData } = refreshed
+      setDetails(requestData)
+      setHistory(historyData)
+      setMessage(result.message)
+      setMessageTitle('')
+      setMessageBody('')
+      setMessageType('general')
+      setVisibleToCitizen(true)
+    } catch {
+      setError('Não foi possível registrar a mensagem desta solicitação.')
+    } finally {
+      setSavingMessage(false)
     }
   }
 
@@ -456,6 +498,75 @@ export function RequestDetailsPage() {
                 </form>
               </article>
             ) : null}
+
+            <article className="content-card">
+              <h2>Mensagens e avisos</h2>
+              <form onSubmit={handleMessageSubmit}>
+                <div className="form-grid">
+                  <div className="field">
+                    <label htmlFor="request-message-type">Tipo</label>
+                    <select id="request-message-type" value={messageType} onChange={(event) => setMessageType(event.target.value)}>
+                      <option value="general">Aviso geral</option>
+                      <option value="schedule">Mudança de horário</option>
+                      <option value="documents">Documentos</option>
+                      <option value="boarding">Embarque</option>
+                    </select>
+                  </div>
+                  <div className="field full">
+                    <label htmlFor="request-message-title">Título</label>
+                    <input
+                      id="request-message-title"
+                      value={messageTitle}
+                      onChange={(event) => setMessageTitle(toInstitutionalText(event.target.value))}
+                      placeholder="Ex.: Comparecer com antecedência"
+                    />
+                  </div>
+                  <div className="field full">
+                    <label htmlFor="request-message-body">Mensagem</label>
+                    <textarea
+                      id="request-message-body"
+                      rows={4}
+                      value={messageBody}
+                      onChange={(event) => setMessageBody(toInstitutionalText(event.target.value))}
+                      placeholder="Escreva a orientação que deve ficar registrada nesta solicitação."
+                      required
+                    />
+                  </div>
+                  <div className="field full checkbox-field">
+                    <label className="checkbox-row" htmlFor="request-message-visible">
+                      <input
+                        id="request-message-visible"
+                        type="checkbox"
+                        checked={visibleToCitizen}
+                        onChange={(event) => setVisibleToCitizen(event.target.checked)}
+                      />
+                      <span>Exibir esta mensagem na consulta do paciente</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button className="action-button primary" disabled={savingMessage || !messageBody.trim()} type="submit">
+                    <Save size={16} />
+                    {savingMessage ? 'Registrando...' : 'Registrar mensagem'}
+                  </button>
+                </div>
+              </form>
+
+              {details.messages.length > 0 ? (
+                <ol className="status-history">
+                  {details.messages.map((entry) => (
+                    <li key={`message-${entry.id}`}>
+                      <strong>{entry.title || 'Mensagem registrada'}</strong> em {entry.createdAt} por {entry.createdByName}
+                      {entry.visibleToCitizen ? ' • Visível ao paciente' : ' • Uso interno'}
+                      <br />
+                      {entry.body}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="table-note">Nenhuma mensagem registrada até o momento.</p>
+              )}
+            </article>
 
             <article className="content-card">
               <h2>Histórico da solicitação</h2>

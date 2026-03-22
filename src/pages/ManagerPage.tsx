@@ -60,6 +60,8 @@ export function ManagerPage() {
   const [selectedStatus, setSelectedStatus] = useState<'todos' | TravelRequest['status']>('todos')
   const [search, setSearch] = useState('')
   const [travelDate, setTravelDate] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [destination, setDestination] = useState('')
   const [driverFilterId, setDriverFilterId] = useState('')
   const [assignment, setAssignment] = useState<AssignmentState>({})
@@ -141,6 +143,8 @@ export function ManagerPage() {
             status: selectedStatus,
             search,
             travelDate,
+            dateFrom,
+            dateTo,
             destination,
             driverId: driverFilterId ? Number(driverFilterId) : null,
           }),
@@ -183,7 +187,35 @@ export function ManagerPage() {
     return () => {
       active = false
     }
-  }, [destination, driverFilterId, search, selectedStatus, session, travelDate])
+  }, [dateFrom, dateTo, destination, driverFilterId, search, selectedStatus, session, travelDate])
+
+  function applyQuickPeriod(mode: 'today' | 'tomorrow' | 'week') {
+    const now = new Date()
+    const today = now.toISOString().slice(0, 10)
+
+    if (mode === 'today') {
+      setTravelDate('')
+      setDateFrom(today)
+      setDateTo(today)
+      return
+    }
+
+    if (mode === 'tomorrow') {
+      const tomorrow = new Date(now)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const value = tomorrow.toISOString().slice(0, 10)
+      setTravelDate('')
+      setDateFrom(value)
+      setDateTo(value)
+      return
+    }
+
+    const weekEnd = new Date(now)
+    weekEnd.setDate(weekEnd.getDate() + 7)
+    setTravelDate('')
+    setDateFrom(today)
+    setDateTo(weekEnd.toISOString().slice(0, 10))
+  }
 
   function updateAssignment(
     requestId: number,
@@ -314,6 +346,8 @@ export function ManagerPage() {
         status: selectedStatus,
         search,
         travelDate,
+        dateFrom,
+        dateTo,
         destination,
         driverId: driverFilterId ? Number(driverFilterId) : null,
       })
@@ -520,6 +554,24 @@ export function ManagerPage() {
             />
           </div>
           <div className="field">
+            <label htmlFor="manager-date-from">Período inicial</label>
+            <input
+              id="manager-date-from"
+              type="date"
+              value={dateFrom}
+              onChange={(event) => setDateFrom(event.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="manager-date-to">Período final</label>
+            <input
+              id="manager-date-to"
+              type="date"
+              value={dateTo}
+              onChange={(event) => setDateTo(event.target.value)}
+            />
+          </div>
+          <div className="field">
             <label htmlFor="manager-destination">Destino</label>
             <input
               id="manager-destination"
@@ -562,6 +614,15 @@ export function ManagerPage() {
           </div>
         </div>
         <div className="filter-actions">
+          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('today')}>
+            Hoje
+          </button>
+          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
+            Amanhã
+          </button>
+          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('week')}>
+            Esta semana
+          </button>
           <button
             className="action-button secondary"
             type="button"
@@ -569,6 +630,8 @@ export function ManagerPage() {
               setSelectedStatus('todos')
               setSearch('')
               setTravelDate('')
+              setDateFrom('')
+              setDateTo('')
               setDestination('')
               setDriverFilterId('')
             }}

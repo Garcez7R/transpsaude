@@ -55,6 +55,16 @@ export interface StatusHistoryEntry {
   note?: string
 }
 
+export interface RequestMessage {
+  id: number
+  messageType: string
+  title?: string
+  body: string
+  visibleToCitizen: boolean
+  createdByName: string
+  createdAt: string
+}
+
 export interface TravelRequestDetails extends TravelRequest {
   patientId: number
   patientCpf: string
@@ -65,12 +75,14 @@ export interface TravelRequestDetails extends TravelRequest {
   responsibleName?: string
   responsibleCpfMasked?: string
   useResponsibleCpfForAccess: boolean
+  messages: RequestMessage[]
 }
 
 export interface PublicRequestDetails extends TravelRequest {
   statusLabel: string
   loginHint: string
   history: StatusHistoryEntry[]
+  messages: RequestMessage[]
 }
 
 export interface CitizenAccessResponse {
@@ -169,6 +181,8 @@ export interface RequestQueryFilters {
   status?: RequestStatus | 'todos'
   search?: string
   travelDate?: string
+  dateFrom?: string
+  dateTo?: string
   driverId?: number | null
   destination?: string
 }
@@ -282,6 +296,14 @@ export interface UpdateRequestScheduleInput {
   travelDate: string
   departureTime: string
   note: string
+}
+
+export interface CreateRequestMessageInput {
+  requestId: number
+  messageType: string
+  title: string
+  body: string
+  visibleToCitizen: boolean
 }
 
 export interface CreateTravelRequestInput {
