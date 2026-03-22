@@ -149,24 +149,24 @@ create table if not exists auth_sessions (
   foreign key (driver_id) references drivers(id)
 );
 
-insert into operators (name, cpf, email, password, role)
-select 'Operador Demo', '11111111111', 'operador@prefeitura.local', '1234', 'operator'
+insert into operators (name, cpf, email, password, must_change_password, role)
+select 'Operador Demo', '11111111111', 'operador@prefeitura.local', '0000', 1, 'operator'
 where not exists (select 1 from operators where email = 'operador@prefeitura.local');
 
-insert into operators (name, cpf, email, password, role)
-select 'Administrador Geral', '96820373015', 'admin@capaodoleao.rs.gov.br', '1978', 'admin'
+insert into operators (name, cpf, email, password, must_change_password, role)
+select 'Administrador Geral', '96820373015', 'admin@capaodoleao.rs.gov.br', '0000', 1, 'admin'
 where not exists (select 1 from operators where cpf = '96820373015');
 
-insert into operators (name, cpf, email, password, role)
-select 'Gerente Demo', '22233344455', 'gerencia@capaodoleao.rs.gov.br', '2468', 'manager'
+insert into operators (name, cpf, email, password, must_change_password, role)
+select 'Gerente Demo', '22233344455', 'gerencia@capaodoleao.rs.gov.br', '0000', 1, 'manager'
 where not exists (select 1 from operators where cpf = '22233344455');
 
 insert into vehicles (name, plate, category, active)
 select 'Van 01', 'IZA1A23', 'Van', 1
 where not exists (select 1 from vehicles where plate = 'IZA1A23');
 
-insert into drivers (name, cpf, phone, is_whatsapp, vehicle_id, vehicle_name, password, active)
-select 'Motorista Demo', '33322211100', '(53) 99999-0202', 1, (select id from vehicles where plate = 'IZA1A23' limit 1), 'Van 01', '0000', 1
+insert into drivers (name, cpf, phone, is_whatsapp, vehicle_id, vehicle_name, password, must_change_password, active)
+select 'Motorista Demo', '33322211100', '(53) 99999-0202', 1, (select id from vehicles where plate = 'IZA1A23' limit 1), 'Van 01', '0000', 1, 1
 where not exists (select 1 from drivers where cpf = '33322211100');
 
 insert into patients (

@@ -858,25 +858,55 @@ export async function loginDriver(env: Env, cpf: string, password: string) {
   const normalizedCpf = normalizeCpf(cpf)
   const db = requireDb(env)
 
-  const driver = await db.prepare(
-    `
-      select
-        d.id,
-        d.name,
-        d.cpf,
-        d.password,
-        d.password_hash as passwordHash,
-        d.must_change_password as mustChangePassword,
-        coalesce(v.name, d.vehicle_name) as vehicleName
-      from drivers d
-      left join vehicles v on v.id = d.vehicle_id
-      where d.cpf = ?1
-        and d.active = 1
-      limit 1
-    `,
-  )
-    .bind(normalizedCpf)
-    .first<Record<string, unknown>>()
+  let driver: Record<string, unknown> | null = null
+
+  try {
+    driver = await db.prepare(
+      `
+        select
+          d.id,
+          d.name,
+          d.cpf,
+          d.password,
+          d.password_hash as passwordHash,
+          d.must_change_password as mustChangePassword,
+          coalesce(v.name, d.vehicle_name) as vehicleName
+        from drivers d
+        left join vehicles v on v.id = d.vehicle_id
+        where d.cpf = ?1
+          and d.active = 1
+        limit 1
+      `,
+    )
+      .bind(normalizedCpf)
+      .first<Record<string, unknown>>()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+
+    if (!message.includes('no such column: d.must_change_password')) {
+      throw error
+    }
+
+    driver = await db.prepare(
+      `
+        select
+          d.id,
+          d.name,
+          d.cpf,
+          d.password,
+          d.password_hash as passwordHash,
+          0 as mustChangePassword,
+          coalesce(v.name, d.vehicle_name) as vehicleName
+        from drivers d
+        left join vehicles v on v.id = d.vehicle_id
+        where d.cpf = ?1
+          and d.active = 1
+        limit 1
+      `,
+    )
+      .bind(normalizedCpf)
+      .first<Record<string, unknown>>()
+  }
 
   if (!driver) {
     return null

@@ -98,18 +98,38 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       return notFound('Motorista não encontrado.')
     }
 
-    await env.DB.prepare(
-      `
-        update drivers
-        set password = '',
-            password_hash = ?1,
-            must_change_password = 1,
-            updated_at = current_timestamp
-        where id = ?2
-      `,
-    )
-      .bind(defaultHash, id)
-      .run()
+    try {
+      await env.DB.prepare(
+        `
+          update drivers
+          set password = '',
+              password_hash = ?1,
+              must_change_password = 1,
+              updated_at = current_timestamp
+          where id = ?2
+        `,
+      )
+        .bind(defaultHash, id)
+        .run()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : ''
+
+      if (!message.includes('no such column: must_change_password')) {
+        throw error
+      }
+
+      await env.DB.prepare(
+        `
+          update drivers
+          set password = '',
+              password_hash = ?1,
+              updated_at = current_timestamp
+          where id = ?2
+        `,
+      )
+        .bind(defaultHash, id)
+        .run()
+    }
 
     await writeAuditLog(env, session.operatorId, 'reset', 'driver_access', String(id), {
       temporaryPassword: DEFAULT_FIRST_ACCESS_PASSWORD,
@@ -137,18 +157,38 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     return notFound(targetType === 'manager' ? 'Gerente não encontrado.' : 'Operador não encontrado.')
   }
 
-  await env.DB.prepare(
-    `
-      update operators
-      set password = '',
-          password_hash = ?1,
-          must_change_password = 1,
-          updated_at = current_timestamp
-      where id = ?2
-    `,
-  )
-    .bind(defaultHash, id)
-    .run()
+  try {
+    await env.DB.prepare(
+      `
+        update operators
+        set password = '',
+            password_hash = ?1,
+            must_change_password = 1,
+            updated_at = current_timestamp
+        where id = ?2
+      `,
+    )
+      .bind(defaultHash, id)
+      .run()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+
+    if (!message.includes('no such column: must_change_password')) {
+      throw error
+    }
+
+    await env.DB.prepare(
+      `
+        update operators
+        set password = '',
+            password_hash = ?1,
+            updated_at = current_timestamp
+        where id = ?2
+      `,
+    )
+      .bind(defaultHash, id)
+      .run()
+  }
 
   await writeAuditLog(env, session.operatorId, 'reset', `${targetType}_access`, String(id), {
     temporaryPassword: DEFAULT_FIRST_ACCESS_PASSWORD,

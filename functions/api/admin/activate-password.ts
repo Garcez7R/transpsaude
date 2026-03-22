@@ -31,18 +31,40 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     return notFound('Acesso interno não encontrado.')
   }
 
-  await env.DB.prepare(
-    `
-      update operators
-      set password = '',
-          password_hash = ?1,
-          must_change_password = 0,
-          updated_at = current_timestamp
-      where id = ?2
-    `,
-  )
-    .bind(await createSecretHash(newPassword), operator.id)
-    .run()
+  const secretHash = await createSecretHash(newPassword)
+
+  try {
+    await env.DB.prepare(
+      `
+        update operators
+        set password = '',
+            password_hash = ?1,
+            must_change_password = 0,
+            updated_at = current_timestamp
+        where id = ?2
+      `,
+    )
+      .bind(secretHash, operator.id)
+      .run()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+
+    if (!message.includes('no such column: must_change_password')) {
+      throw error
+    }
+
+    await env.DB.prepare(
+      `
+        update operators
+        set password = '',
+            password_hash = ?1,
+            updated_at = current_timestamp
+        where id = ?2
+      `,
+    )
+      .bind(secretHash, operator.id)
+      .run()
+  }
 
   return ok({ message: 'PIN redefinido com sucesso.' })
 }

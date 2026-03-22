@@ -36,25 +36,54 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
 
     const cpf = normalizeCpf(body.cpf)
 
-    await env.DB.prepare(
-      `
-        insert into operators (
-          name,
-          cpf,
-          email,
-          password,
-          password_hash,
-          must_change_password,
-          role,
-          active,
-          created_by_operator_id,
-          updated_at
-        )
-        values (?1, ?2, ?3, '', ?4, 1, 'operator', 1, ?5, current_timestamp)
-      `,
-    )
-      .bind(body.name, cpf, body.email, await createSecretHash(DEFAULT_FIRST_ACCESS_PASSWORD), session.operatorId)
-      .run()
+    const secretHash = await createSecretHash(DEFAULT_FIRST_ACCESS_PASSWORD)
+
+    try {
+      await env.DB.prepare(
+        `
+          insert into operators (
+            name,
+            cpf,
+            email,
+            password,
+            password_hash,
+            must_change_password,
+            role,
+            active,
+            created_by_operator_id,
+            updated_at
+          )
+          values (?1, ?2, ?3, '', ?4, 1, 'operator', 1, ?5, current_timestamp)
+        `,
+      )
+        .bind(body.name, cpf, body.email, secretHash, session.operatorId)
+        .run()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : ''
+
+      if (!message.includes('no such column: must_change_password')) {
+        throw error
+      }
+
+      await env.DB.prepare(
+        `
+          insert into operators (
+            name,
+            cpf,
+            email,
+            password,
+            password_hash,
+            role,
+            active,
+            created_by_operator_id,
+            updated_at
+          )
+          values (?1, ?2, ?3, '', ?4, 'operator', 1, ?5, current_timestamp)
+        `,
+      )
+        .bind(body.name, cpf, body.email, secretHash, session.operatorId)
+        .run()
+    }
 
     await writeAuditLog(env, session.operatorId, 'create', 'operator', cpf, {
       name: body.name,
