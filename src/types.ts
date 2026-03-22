@@ -42,6 +42,10 @@ export interface TravelRequest {
   companionAddressLine?: string
   assignedDriverId?: number | null
   assignedDriverName?: string
+  assignedDriverPhone?: string
+  showDriverPhoneToPatient?: boolean
+  assignedVehicleId?: number | null
+  assignedVehicleName?: string
   departureTime?: string
   managerNotes?: string
   scheduledAt?: string
@@ -280,10 +284,12 @@ export interface UpdatePatientInput {
 export interface AssignDriverInput {
   requestId: number
   driverId: number
+  vehicleId: number
   departureTime: string
   managerNotes: string
   useCustomBoardingLocation: boolean
   boardingLocationName: string
+  showDriverPhoneToPatient: boolean
 }
 
 export interface UpdateRequestStatusInput {

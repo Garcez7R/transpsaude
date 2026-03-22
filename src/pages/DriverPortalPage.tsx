@@ -239,7 +239,7 @@ export function DriverPortalPage() {
         <p>
           Sessão ativa para <strong>{session.name}</strong> com perfil <strong>motorista</strong>.
         </p>
-        <p>Veículo designado: <strong>{session.vehicleName}</strong></p>
+        <p>Veículo preferencial: <strong>{session.vehicleName || 'Não definido'}</strong></p>
         <div className="form-actions">
           <button className="action-button secondary" type="button" onClick={handleLogout}>
             <LogOut size={16} />
@@ -273,6 +273,10 @@ export function DriverPortalPage() {
                   <dd>
                     {trip.destinationCity}/{trip.destinationState}
                   </dd>
+                </div>
+                <div>
+                  <dt>Veículo da viagem</dt>
+                  <dd>{trip.assignedVehicleName || session.vehicleName || 'Não definido'}</dd>
                 </div>
                 <div>
                   <dt>Horário de saída</dt>

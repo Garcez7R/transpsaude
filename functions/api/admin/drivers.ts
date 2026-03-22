@@ -132,27 +132,29 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       cpf?: string
       phone?: string
       isWhatsapp?: boolean
-      vehicleId?: number
+      vehicleId?: number | null
     }
 
-    if (!body.name || !body.cpf || !body.phone || !body.vehicleId) {
-      return badRequest('Preencha nome, CPF, telefone e veículo do motorista.')
+    if (!body.name || !body.cpf || !body.phone) {
+      return badRequest('Preencha nome, CPF e telefone do motorista.')
     }
 
     const cpf = normalizeCpf(body.cpf)
-    const vehicle = await env.DB.prepare(
-      `
-        select id, name
-        from vehicles
-        where id = ?1
-          and active = 1
-        limit 1
-      `,
-    )
-      .bind(body.vehicleId)
-      .first<Record<string, unknown>>()
+    const vehicle = body.vehicleId
+      ? await env.DB.prepare(
+          `
+            select id, name
+            from vehicles
+            where id = ?1
+              and active = 1
+            limit 1
+          `,
+        )
+          .bind(body.vehicleId)
+          .first<Record<string, unknown>>()
+      : null
 
-    if (!vehicle) {
+    if (body.vehicleId && !vehicle) {
       return badRequest('Veículo não encontrado.')
     }
 
@@ -164,8 +166,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       cpf,
       body.phone,
       Boolean(body.isWhatsapp),
-      vehicle.id,
-      vehicle.name,
+      vehicle?.id ?? null,
+      vehicle?.name ?? '',
       secretHash,
     )
 
@@ -191,7 +193,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
 
     await writeAuditLog(env, session.operatorId, 'create', 'driver', cpf, {
       name: body.name,
-      vehicleName: String(vehicle.name),
+      vehicleName: String(vehicle?.name ?? ''),
       temporaryPassword: DEFAULT_FIRST_ACCESS_PASSWORD,
     })
 
@@ -222,12 +224,12 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
     cpf?: string
     phone?: string
     isWhatsapp?: boolean
-    vehicleId?: number
+    vehicleId?: number | null
     password?: string
   }
 
-  if (!body.id || !body.name || !body.cpf || !body.phone || !body.vehicleId) {
-    return badRequest('Informe id, nome, CPF, telefone e veículo do motorista.')
+  if (!body.id || !body.name || !body.cpf || !body.phone) {
+    return badRequest('Informe id, nome, CPF e telefone do motorista.')
   }
 
   const existing = await env.DB.prepare(
@@ -246,19 +248,21 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
     return notFound('Motorista não encontrado.')
   }
 
-  const vehicle = await env.DB.prepare(
-    `
-      select id, name
-      from vehicles
-      where id = ?1
-        and active = 1
-      limit 1
-    `,
-  )
-    .bind(body.vehicleId)
-    .first<Record<string, unknown>>()
+  const vehicle = body.vehicleId
+    ? await env.DB.prepare(
+        `
+          select id, name
+          from vehicles
+          where id = ?1
+            and active = 1
+          limit 1
+        `,
+      )
+        .bind(body.vehicleId)
+        .first<Record<string, unknown>>()
+    : null
 
-  if (!vehicle) {
+  if (body.vehicleId && !vehicle) {
     return badRequest('Veículo não encontrado.')
   }
 
@@ -284,8 +288,8 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
       cpf,
       body.phone,
       body.isWhatsapp ? 1 : 0,
-      vehicle.id,
-      vehicle.name,
+      vehicle?.id ?? null,
+      vehicle?.name ?? '',
       body.password ?? '',
       body.password ? await createSecretHash(body.password) : '',
       body.id,
@@ -294,7 +298,7 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
 
   await writeAuditLog(env, session.operatorId, 'update', 'driver', String(body.id), {
     name: body.name,
-    vehicleName: String(vehicle.name),
+    vehicleName: String(vehicle?.name ?? ''),
   })
 
   return ok({ message: `Motorista ${body.name} atualizado com sucesso.` })

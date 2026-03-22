@@ -88,6 +88,16 @@ function hasMissingBoardingColumns(error: unknown) {
   )
 }
 
+function hasMissingAssignmentColumns(error: unknown) {
+  const message = error instanceof Error ? error.message : ''
+  return (
+    message.includes('no such column: tr.assigned_driver_phone') ||
+    message.includes('no such column: tr.show_driver_phone_to_patient') ||
+    message.includes('no such column: tr.assigned_vehicle_id') ||
+    message.includes('no such column: tr.assigned_vehicle_name')
+  )
+}
+
 export async function listRequestMessages(env: Env, requestId: number, visibleToCitizenOnly = false) {
   const db = requireDb(env)
   let query = `
@@ -514,6 +524,10 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       tr.companion_address_line as companionAddressLine,
       tr.assigned_driver_id as assignedDriverId,
       tr.assigned_driver_name as assignedDriverName,
+      tr.assigned_driver_phone as assignedDriverPhone,
+      tr.show_driver_phone_to_patient as showDriverPhoneToPatient,
+      tr.assigned_vehicle_id as assignedVehicleId,
+      tr.assigned_vehicle_name as assignedVehicleName,
       tr.departure_time as departureTime,
       tr.manager_notes as managerNotes,
       tr.scheduled_at as scheduledAt,
@@ -549,6 +563,10 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       tr.companion_address_line as companionAddressLine,
       tr.assigned_driver_id as assignedDriverId,
       tr.assigned_driver_name as assignedDriverName,
+      '' as assignedDriverPhone,
+      1 as showDriverPhoneToPatient,
+      null as assignedVehicleId,
+      '' as assignedVehicleName,
       tr.departure_time as departureTime,
       tr.manager_notes as managerNotes,
       tr.scheduled_at as scheduledAt,
@@ -629,7 +647,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
     const statement = params.length > 0 ? prepared.bind(...params) : prepared
     result = await statement.all()
   } catch (error) {
-    if (!hasMissingBoardingColumns(error)) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error))) {
       throw error
     }
 
@@ -651,6 +669,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
     companionRequired: toBoolean(item.companionRequired),
     companionIsWhatsapp: toBoolean(item.companionIsWhatsapp),
     useCustomBoardingLocation: toBoolean(item.useCustomBoardingLocation),
+    showDriverPhoneToPatient: toBoolean(item.showDriverPhoneToPatient),
   })) as Array<Record<string, unknown>>
 }
 
@@ -781,6 +800,10 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
         tr.companion_required as companionRequired,
         tr.companion_name as companionName,
         tr.assigned_driver_name as assignedDriverName,
+        tr.assigned_driver_phone as assignedDriverPhone,
+        tr.show_driver_phone_to_patient as showDriverPhoneToPatient,
+        tr.assigned_vehicle_id as assignedVehicleId,
+        tr.assigned_vehicle_name as assignedVehicleName,
         tr.departure_time as departureTime,
         tr.notes
       from travel_requests tr
@@ -792,7 +815,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       .bind(patientAccess.id)
       .all<Record<string, unknown>>()
   } catch (error) {
-    if (!hasMissingBoardingColumns(error)) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error))) {
       throw error
     }
 
@@ -819,6 +842,10 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
           tr.companion_required as companionRequired,
           tr.companion_name as companionName,
           tr.assigned_driver_name as assignedDriverName,
+          '' as assignedDriverPhone,
+          1 as showDriverPhoneToPatient,
+          null as assignedVehicleId,
+          '' as assignedVehicleName,
           tr.departure_time as departureTime,
           tr.notes
         from travel_requests tr
@@ -868,6 +895,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
         ...requestResult,
         companionRequired: toBoolean(requestResult.companionRequired),
         useCustomBoardingLocation: toBoolean(requestResult.useCustomBoardingLocation),
+        showDriverPhoneToPatient: toBoolean(requestResult.showDriverPhoneToPatient),
         statusLabel: statusLabels[status as keyof typeof statusLabels] ?? status,
         loginHint:
           typeof requestResult.notes === 'string'
@@ -1207,6 +1235,10 @@ export async function listDriverTrips(env: Env, driverId: number) {
         tr.companion_address_line as companionAddressLine,
         tr.assigned_driver_id as assignedDriverId,
         tr.assigned_driver_name as assignedDriverName,
+        tr.assigned_driver_phone as assignedDriverPhone,
+        tr.show_driver_phone_to_patient as showDriverPhoneToPatient,
+        tr.assigned_vehicle_id as assignedVehicleId,
+        tr.assigned_vehicle_name as assignedVehicleName,
         tr.departure_time as departureTime,
         tr.manager_notes as managerNotes,
         tr.scheduled_at as scheduledAt,
@@ -1220,7 +1252,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
       .bind(driverId)
       .all()
   } catch (error) {
-    if (!hasMissingBoardingColumns(error)) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error))) {
       throw error
     }
 
@@ -1252,6 +1284,10 @@ export async function listDriverTrips(env: Env, driverId: number) {
           tr.companion_address_line as companionAddressLine,
           tr.assigned_driver_id as assignedDriverId,
           tr.assigned_driver_name as assignedDriverName,
+          '' as assignedDriverPhone,
+          1 as showDriverPhoneToPatient,
+          null as assignedVehicleId,
+          '' as assignedVehicleName,
           tr.departure_time as departureTime,
           tr.manager_notes as managerNotes,
           tr.scheduled_at as scheduledAt,
@@ -1271,6 +1307,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
     companionRequired: toBoolean(item.companionRequired),
     companionIsWhatsapp: toBoolean(item.companionIsWhatsapp),
     useCustomBoardingLocation: toBoolean(item.useCustomBoardingLocation),
+    showDriverPhoneToPatient: toBoolean(item.showDriverPhoneToPatient),
   }))
 }
 
@@ -1317,6 +1354,10 @@ export async function getRequestDetails(env: Env, requestId: number) {
         tr.companion_address_line as companionAddressLine,
         tr.assigned_driver_id as assignedDriverId,
         tr.assigned_driver_name as assignedDriverName,
+        tr.assigned_driver_phone as assignedDriverPhone,
+        tr.show_driver_phone_to_patient as showDriverPhoneToPatient,
+        tr.assigned_vehicle_id as assignedVehicleId,
+        tr.assigned_vehicle_name as assignedVehicleName,
         tr.departure_time as departureTime,
         tr.manager_notes as managerNotes,
         tr.scheduled_at as scheduledAt,
@@ -1330,7 +1371,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
       .bind(requestId)
       .first<Record<string, unknown>>()
   } catch (error) {
-    if (!hasMissingBoardingColumns(error)) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error))) {
       throw error
     }
 
@@ -1368,6 +1409,10 @@ export async function getRequestDetails(env: Env, requestId: number) {
           tr.companion_address_line as companionAddressLine,
           tr.assigned_driver_id as assignedDriverId,
           tr.assigned_driver_name as assignedDriverName,
+          '' as assignedDriverPhone,
+          1 as showDriverPhoneToPatient,
+          null as assignedVehicleId,
+          '' as assignedVehicleName,
           tr.departure_time as departureTime,
           tr.manager_notes as managerNotes,
           tr.scheduled_at as scheduledAt,
@@ -1410,6 +1455,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
     companionRequired: toBoolean(request.companionRequired),
     companionIsWhatsapp: toBoolean(request.companionIsWhatsapp),
     useCustomBoardingLocation: toBoolean(request.useCustomBoardingLocation),
+    showDriverPhoneToPatient: toBoolean(request.showDriverPhoneToPatient),
     history: historyResult.results ?? [],
     messages,
   }

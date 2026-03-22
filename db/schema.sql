@@ -67,6 +67,10 @@ create table if not exists travel_requests (
   companion_required integer not null default 0,
   assigned_driver_id integer,
   assigned_driver_name text,
+  assigned_driver_phone text,
+  show_driver_phone_to_patient integer not null default 1,
+  assigned_vehicle_id integer,
+  assigned_vehicle_name text,
   departure_time text,
   manager_notes text,
   use_custom_boarding_location integer not null default 0,
@@ -78,6 +82,7 @@ create table if not exists travel_requests (
   updated_at text not null default current_timestamp,
   foreign key (patient_id) references patients(id),
   foreign key (assigned_driver_id) references drivers(id),
+  foreign key (assigned_vehicle_id) references vehicles(id),
   foreign key (created_by_operator_id) references operators(id)
 );
 

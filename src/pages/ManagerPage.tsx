@@ -3,29 +3,33 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
-import { activateAdminPassword, assignDriver, fetchDrivers, fetchRequests, loginAdmin, logoutSession } from '../lib/api'
+import { activateAdminPassword, assignDriver, fetchDrivers, fetchRequests, fetchVehicles, loginAdmin, logoutSession } from '../lib/api'
 import { clearAdminSession, saveAdminSession } from '../lib/admin-session'
 import { clearAdminAreaSession } from '../lib/admin-area-session'
 import { clearManagerSession, getManagerSession, saveManagerSession } from '../lib/manager-session'
-import type { AdminSession, DriverRecord, TravelRequest } from '../types'
+import type { AdminSession, DriverRecord, TravelRequest, VehicleRecord } from '../types'
 
 type AssignmentState = Record<
   number,
   {
     driverId: string
+    vehicleId: string
     departureTime: string
     managerNotes: string
     useCustomBoardingLocation: boolean
     boardingLocationName: string
+    showDriverPhoneToPatient: boolean
   }
 >
 
 const emptyAssignment = {
   driverId: '',
+  vehicleId: '',
   departureTime: '',
   managerNotes: '',
   useCustomBoardingLocation: false,
   boardingLocationName: '',
+  showDriverPhoneToPatient: true,
 }
 
 const statusLabels: Record<TravelRequest['status'], string> = {
@@ -57,6 +61,7 @@ export function ManagerPage() {
 
   const [requests, setRequests] = useState<TravelRequest[]>([])
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
+  const [vehicles, setVehicles] = useState<VehicleRecord[]>([])
   const [selectedStatus, setSelectedStatus] = useState<'todos' | TravelRequest['status']>('todos')
   const [search, setSearch] = useState('')
   const [travelDate, setTravelDate] = useState('')
@@ -138,7 +143,7 @@ export function ManagerPage() {
       setError('')
 
       try {
-        const [requestData, driverData] = await Promise.all([
+        const [requestData, driverData, vehicleData] = await Promise.all([
           fetchRequests({
             status: selectedStatus,
             search,
@@ -149,6 +154,7 @@ export function ManagerPage() {
             driverId: driverFilterId ? Number(driverFilterId) : null,
           }),
           fetchDrivers(),
+          fetchVehicles(),
         ])
 
         if (!active) {
@@ -157,16 +163,19 @@ export function ManagerPage() {
 
         setRequests(requestData)
         setDrivers(driverData)
+        setVehicles(vehicleData)
         setAssignment(
           Object.fromEntries(
             requestData.map((request) => [
               request.id,
               {
                 driverId: request.assignedDriverId ? String(request.assignedDriverId) : '',
+                vehicleId: request.assignedVehicleId ? String(request.assignedVehicleId) : '',
                 departureTime: request.departureTime ?? '',
                 managerNotes: request.managerNotes ?? '',
                 useCustomBoardingLocation: request.useCustomBoardingLocation ?? false,
                 boardingLocationName: request.boardingLocationName ?? '',
+                showDriverPhoneToPatient: request.showDriverPhoneToPatient ?? true,
               },
             ]),
           ),
@@ -221,10 +230,12 @@ export function ManagerPage() {
     requestId: number,
     key:
       | 'driverId'
+      | 'vehicleId'
       | 'departureTime'
       | 'managerNotes'
       | 'boardingLocationName'
-      | 'useCustomBoardingLocation',
+      | 'useCustomBoardingLocation'
+      | 'showDriverPhoneToPatient',
     value: string | boolean,
   ) {
     setAssignment((current) => ({
@@ -312,13 +323,14 @@ export function ManagerPage() {
     setSession(null)
     setRequests([])
     setDrivers([])
+    setVehicles([])
   }
 
   async function handleAssign(requestId: number) {
     const data = assignment[requestId]
 
-    if (!data?.driverId || !data.departureTime) {
-      setError('Selecione um motorista e informe o horário de saída.')
+    if (!data?.driverId || !data.vehicleId || !data.departureTime) {
+      setError('Selecione um motorista, um veículo e informe o horário de saída.')
       return
     }
 
@@ -335,10 +347,12 @@ export function ManagerPage() {
       const result = await assignDriver({
         requestId,
         driverId: Number(data.driverId),
+        vehicleId: Number(data.vehicleId),
         departureTime: data.departureTime,
         managerNotes: data.managerNotes,
         useCustomBoardingLocation: data.useCustomBoardingLocation,
         boardingLocationName: data.boardingLocationName,
+        showDriverPhoneToPatient: data.showDriverPhoneToPatient,
       })
 
       setMessage(result.message)
@@ -734,8 +748,10 @@ export function ManagerPage() {
                       <span>CPF de acesso: {request.accessCpfMasked ?? request.cpfMasked}</span>
                       <span>Unidade: {request.treatmentUnit}</span>
                       <span>Motorista designado: {request.assignedDriverName || 'Não atribuído'}</span>
+                      <span>Veículo da viagem: {request.assignedVehicleName || 'Não definido'}</span>
                       <span>Horário de saída: {request.departureTime || 'Não definido'}</span>
                       <span>Embarque: {request.boardingLocationLabel || request.addressLine || 'Não informado'}</span>
+                      <span>Telefone do motorista ao paciente: {request.showDriverPhoneToPatient ? 'Visível' : 'Oculto'}</span>
                       <span>Acompanhante: {request.companionRequired ? 'Sim' : 'Não'}</span>
                       {request.companionRequired && request.companionName ? (
                         <span>
@@ -750,12 +766,35 @@ export function ManagerPage() {
                         <select
                           id={`driver-${request.id}`}
                           value={data.driverId}
-                          onChange={(event) => updateAssignment(request.id, 'driverId', event.target.value)}
+                          onChange={(event) => {
+                            const nextDriverId = event.target.value
+                            const selectedDriver = drivers.find((driver) => String(driver.id) === nextDriverId)
+                            updateAssignment(request.id, 'driverId', nextDriverId)
+
+                            if (selectedDriver?.vehicleId) {
+                              updateAssignment(request.id, 'vehicleId', String(selectedDriver.vehicleId))
+                            }
+                          }}
                         >
                           <option value="">Selecione</option>
                           {drivers.map((driver) => (
                             <option key={driver.id} value={driver.id}>
-                              {driver.name} • {driver.vehicleName}
+                              {driver.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`vehicle-${request.id}`}>Veículo da viagem</label>
+                        <select
+                          id={`vehicle-${request.id}`}
+                          value={data.vehicleId}
+                          onChange={(event) => updateAssignment(request.id, 'vehicleId', event.target.value)}
+                        >
+                          <option value="">Selecione</option>
+                          {vehicles.map((vehicle) => (
+                            <option key={vehicle.id} value={vehicle.id}>
+                              {vehicle.name} • {vehicle.plate}
                             </option>
                           ))}
                         </select>
@@ -778,6 +817,19 @@ export function ManagerPage() {
                           onChange={(event) => updateAssignment(request.id, 'managerNotes', event.target.value)}
                           placeholder="Ponto de saída, observações de rota, documentos ou orientações para o motorista."
                         />
+                      </div>
+                      <div className="field full checkbox-field">
+                        <label className="checkbox-row" htmlFor={`show-driver-phone-${request.id}`}>
+                          <input
+                            id={`show-driver-phone-${request.id}`}
+                            type="checkbox"
+                            checked={data.showDriverPhoneToPatient}
+                            onChange={(event) =>
+                              updateAssignment(request.id, 'showDriverPhoneToPatient', event.target.checked)
+                            }
+                          />
+                          <span>Exibir telefone do motorista para o paciente</span>
+                        </label>
                       </div>
                       <div className="field full checkbox-field">
                         <label className="checkbox-row" htmlFor={`boarding-flag-${request.id}`}>

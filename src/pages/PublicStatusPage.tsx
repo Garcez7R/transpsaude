@@ -309,6 +309,18 @@ export function PublicStatusPage() {
                   <dd>{request.assignedDriverName || 'A definir'}</dd>
                 </div>
                 <div>
+                  <dt>Telefone do motorista</dt>
+                  <dd>
+                    {request.showDriverPhoneToPatient && request.assignedDriverPhone
+                      ? request.assignedDriverPhone
+                      : 'Não disponível para esta solicitação'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Veículo da viagem</dt>
+                  <dd>{request.assignedVehicleName || 'A definir'}</dd>
+                </div>
+                <div>
                   <dt>Orientações</dt>
                   <dd>{request.loginHint}</dd>
                 </div>

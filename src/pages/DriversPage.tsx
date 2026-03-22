@@ -548,14 +548,13 @@ export function DriversPage() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="driver-vehicle">Veículo vinculado</label>
+                <label htmlFor="driver-vehicle">Veículo preferencial</label>
                 <select
                   id="driver-vehicle"
                   value={driverForm.vehicleId ?? ''}
                   onChange={(event) => updateDriverField('vehicleId', event.target.value ? Number(event.target.value) : null)}
-                  required
                 >
-                  <option value="">Selecione um veículo</option>
+                  <option value="">Sem vínculo fixo</option>
                   {vehicles.map((vehicle) => (
                     <option key={vehicle.id} value={vehicle.id}>
                       {vehicle.name} • {vehicle.plate}
@@ -677,7 +676,7 @@ export function DriversPage() {
               <li>Gerente e admin criam motoristas</li>
               <li>Gerente e admin criam operadores</li>
               <li>Somente admin cria gerentes</li>
-              <li>Veículos ficam vinculados aos motoristas cadastrados</li>
+              <li>O veículo no cadastro do motorista é apenas preferencial</li>
             </ul>
           </article>
         </aside>
@@ -732,7 +731,7 @@ export function DriversPage() {
                     <p className="table-note">
                       {driver.cpfMasked} • {driver.phone}
                     </p>
-                    <p className="table-note">Veículo: {driver.vehicleName}</p>
+                    <p className="table-note">Veículo preferencial: {driver.vehicleName || 'Sem vínculo fixo'}</p>
                     <div className="form-actions">
                       <button
                         className="action-button secondary"
