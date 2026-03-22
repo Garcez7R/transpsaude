@@ -37,24 +37,53 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
 
     const normalizedCpf = normalizeCpf(cpf)
 
-    const operator = await env.DB.prepare(
-      `
-        select
-          id,
-          name,
-          role,
-          cpf,
-          password,
-          password_hash as passwordHash,
-          must_change_password as mustChangePassword
-        from operators
-        where cpf = ?1
-          and active = 1
-        limit 1
-      `,
-    )
-      .bind(normalizedCpf)
-      .first<Record<string, unknown>>()
+    let operator: Record<string, unknown> | null = null
+
+    try {
+      operator = await env.DB.prepare(
+        `
+          select
+            id,
+            name,
+            role,
+            cpf,
+            password,
+            password_hash as passwordHash,
+            must_change_password as mustChangePassword
+          from operators
+          where cpf = ?1
+            and active = 1
+          limit 1
+        `,
+      )
+        .bind(normalizedCpf)
+        .first<Record<string, unknown>>()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : ''
+
+      if (!message.includes('no such column: must_change_password')) {
+        throw error
+      }
+
+      operator = await env.DB.prepare(
+        `
+          select
+            id,
+            name,
+            role,
+            cpf,
+            password,
+            password_hash as passwordHash,
+            0 as mustChangePassword
+          from operators
+          where cpf = ?1
+            and active = 1
+          limit 1
+        `,
+      )
+        .bind(normalizedCpf)
+        .first<Record<string, unknown>>()
+    }
 
     if (!operator) {
       return notFound('Acesso administrativo não encontrado.')
