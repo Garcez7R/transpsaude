@@ -18,7 +18,7 @@ export interface RequestFilters {
 }
 
 const textEncoder = new TextEncoder()
-const PBKDF2_ITERATIONS = 210_000
+const PBKDF2_ITERATIONS = 100_000
 const INTERNAL_SESSION_DURATION_MS = 12 * 60 * 60 * 1000
 const DRIVER_SESSION_DURATION_MS = 24 * 60 * 60 * 1000
 export const DEFAULT_FIRST_ACCESS_PASSWORD = '0000'
