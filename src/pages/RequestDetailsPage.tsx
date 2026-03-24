@@ -17,6 +17,21 @@ const statusOptions: Array<{ value: RequestStatus; label: string }> = [
   { value: 'concluida', label: 'Concluída' },
 ]
 
+function formatDisplayTimestamp(value?: string | null) {
+  if (!value) {
+    return ''
+  }
+
+  const normalized = value.replace('T', ' ')
+  const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
+
+  if (!match) {
+    return value
+  }
+
+  return `${match[3]}/${match[2]}/${match[1]} às ${match[4]}:${match[5]}`
+}
+
 export function RequestDetailsPage() {
   const session = typeof window !== 'undefined' ? getOperatorSession() : null
   const params = useParams()
@@ -306,6 +321,24 @@ export function RequestDetailsPage() {
         <section className="dashboard-grid">
           <article className="content-card">
             <h2>Dados da solicitação</h2>
+            <div className="travel-overview-grid">
+              <article className="travel-overview-card">
+                <span>Consulta</span>
+                <strong>{details.appointmentTime || 'Não definido'}</strong>
+              </article>
+              <article className="travel-overview-card">
+                <span>Saída</span>
+                <strong>{details.departureTime || 'Não definido'}</strong>
+              </article>
+              <article className="travel-overview-card">
+                <span>Embarque</span>
+                <strong>{details.boardingLocationLabel || details.addressLine || 'Não informado'}</strong>
+              </article>
+              <article className="travel-overview-card">
+                <span>Motorista</span>
+                <strong>{details.assignedDriverName || 'Não atribuído'}</strong>
+              </article>
+            </div>
             <dl className="request-summary">
               <div>
                 <dt>Protocolo</dt>
@@ -397,15 +430,15 @@ export function RequestDetailsPage() {
               </div>
               <div>
                 <dt>Confirmação do paciente</dt>
-                <dd>{details.patientConfirmedAt || 'Ainda não confirmada na consulta pública'}</dd>
+                <dd>{details.patientConfirmedAt ? formatDisplayTimestamp(details.patientConfirmedAt) : 'Ainda não confirmada na consulta pública'}</dd>
               </div>
               <div>
                 <dt>Último acesso do paciente</dt>
-                <dd>{details.patientLastViewedAt || 'Ainda não registrado'}</dd>
+                <dd>{details.patientLastViewedAt ? formatDisplayTimestamp(details.patientLastViewedAt) : 'Ainda não registrado'}</dd>
               </div>
               <div>
                 <dt>Última leitura de mensagens</dt>
-                <dd>{details.patientLastMessageSeenAt || 'Ainda não registrada'}</dd>
+                <dd>{details.patientLastMessageSeenAt ? formatDisplayTimestamp(details.patientLastMessageSeenAt) : 'Ainda não registrada'}</dd>
               </div>
               <div>
                 <dt>Acompanhante</dt>
@@ -674,7 +707,7 @@ export function RequestDetailsPage() {
                 <ol className="status-history">
                   {teamMessages.map((entry) => (
                     <li key={`team-message-${entry.id}`}>
-                      <strong>{entry.title || 'Mensagem registrada'}</strong> em {entry.createdAt} por {entry.createdByName}
+                      <strong>{entry.title || 'Mensagem registrada'}</strong> em {formatDisplayTimestamp(entry.createdAt)} por {entry.createdByName}
                       {entry.visibleToCitizen ? ' • Visível ao paciente' : ' • Uso interno'}
                       <br />
                       {entry.body}
@@ -692,7 +725,7 @@ export function RequestDetailsPage() {
                 <ol className="status-history">
                   {patientMessages.map((entry) => (
                     <li key={`patient-message-${entry.id}`}>
-                      <strong>{entry.title || 'Mensagem enviada pelo paciente'}</strong> em {entry.createdAt}
+                      <strong>{entry.title || 'Mensagem enviada pelo paciente'}</strong> em {formatDisplayTimestamp(entry.createdAt)}
                       <br />
                       {entry.body}
                     </li>
@@ -708,7 +741,7 @@ export function RequestDetailsPage() {
               <ol className="status-history">
                 {history.map((entry) => (
                   <li key={`${entry.status}-${entry.updatedAt}`}>
-                    <strong>{entry.label}</strong> em {entry.updatedAt}
+                    <strong>{entry.label}</strong> em {formatDisplayTimestamp(entry.updatedAt)}
                     {entry.note ? ` - ${entry.note}` : ''}
                   </li>
                 ))}

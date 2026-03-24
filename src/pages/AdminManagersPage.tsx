@@ -701,7 +701,10 @@ export function AdminManagersPage() {
               {requests.map((request) => (
                 <tr key={request.id}>
                   <td>{request.protocol}</td>
-                  <td>{request.patientName}</td>
+                  <td>
+                    <strong>{request.patientName}</strong>
+                    <div className="table-note">{request.appointmentTime ? `Consulta às ${request.appointmentTime}` : 'Consulta a definir'}</div>
+                  </td>
                   <td>{request.destinationCity}/{request.destinationState}</td>
                   <td>{formatDisplayDate(request.travelDate)}</td>
                   <td>{request.appointmentTime || 'A definir'}</td>

@@ -605,6 +605,7 @@ export function DashboardPage() {
                     <td>
                       <strong>{request.patientName}</strong>
                       <div className="table-note">{request.cpfMasked}</div>
+                      <div className="table-note">{request.appointmentTime ? `Consulta às ${request.appointmentTime}` : 'Consulta a definir'}</div>
                       <div className="status-pill-row" style={{ marginTop: '8px' }}>
                         {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada</span> : null}
                         {request.patientLastViewedAt ? <span className="status-pill-live">Lida</span> : null}
@@ -619,6 +620,7 @@ export function DashboardPage() {
                     <td>
                       <div>{request.appointmentTime || 'A definir'}</div>
                       {request.departureTime ? <div className="table-note">Saída {request.departureTime}</div> : null}
+                      {request.boardingLocationLabel || request.addressLine ? <div className="table-note">Embarque {request.boardingLocationLabel || request.addressLine}</div> : null}
                     </td>
                     <td>
                       <span className={`status-badge ${request.status}`}>

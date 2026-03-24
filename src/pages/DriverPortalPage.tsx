@@ -306,6 +306,24 @@ export function DriverPortalPage() {
                 <span className="status-pill">{trip.protocol}</span>
               </div>
               <h2>{trip.patientName}</h2>
+              <div className="travel-overview-grid">
+                <article className="travel-overview-card">
+                  <span>Consulta</span>
+                  <strong>{trip.appointmentTime || 'A definir'}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Saída</span>
+                  <strong>{trip.departureTime || 'A definir'}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Embarque</span>
+                  <strong>{trip.boardingLocationLabel || trip.addressLine || 'Não informado'}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Veículo</span>
+                  <strong>{trip.assignedVehicleName || session.vehicleName || 'Não definido'}</strong>
+                </article>
+              </div>
               <dl className="request-summary">
                 <div>
                   <dt>Paciente</dt>

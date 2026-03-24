@@ -749,6 +749,25 @@ export function ManagerPage() {
                       <span className={`status-badge ${request.status}`}>{request.status}</span>
                     </div>
 
+                    <div className="travel-overview-grid">
+                      <article className="travel-overview-card">
+                        <span>Consulta</span>
+                        <strong>{request.appointmentTime || 'Não definido'}</strong>
+                      </article>
+                      <article className="travel-overview-card">
+                        <span>Saída</span>
+                        <strong>{request.departureTime || 'Não definido'}</strong>
+                      </article>
+                      <article className="travel-overview-card">
+                        <span>Motorista</span>
+                        <strong>{request.assignedDriverName || 'Não atribuído'}</strong>
+                      </article>
+                      <article className="travel-overview-card">
+                        <span>Embarque</span>
+                        <strong>{request.boardingLocationLabel || request.addressLine || 'Não informado'}</strong>
+                      </article>
+                    </div>
+
                     <div className="assignment-meta">
                       <span>CPF de acesso: {request.accessCpfMasked ?? request.cpfMasked}</span>
                       <span>Unidade: {request.treatmentUnit}</span>
@@ -756,7 +775,6 @@ export function ManagerPage() {
                       <span>Veículo da viagem: {request.assignedVehicleName || 'Não definido'}</span>
                       <span>Horário da consulta: {request.appointmentTime || 'Não definido'}</span>
                       <span>Horário de saída: {request.departureTime || 'Não definido'}</span>
-                      <span>Embarque: {request.boardingLocationLabel || request.addressLine || 'Não informado'}</span>
                       <span>Telefone do motorista ao paciente: {request.showDriverPhoneToPatient ? 'Visível' : 'Oculto'}</span>
                       <span>Acompanhante: {request.companionRequired ? 'Sim' : 'Não'}</span>
                       {request.companionRequired && request.companionName ? (
