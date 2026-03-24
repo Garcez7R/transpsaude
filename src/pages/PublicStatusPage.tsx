@@ -120,19 +120,18 @@ export function PublicStatusPage() {
       <header className="public-header">
         <div className="eyebrow">
           <ShieldCheck size={16} />
-          Área do cidadão
+          Transporte em saúde
         </div>
-        <h1>Consultar solicitação de transporte</h1>
-        <p>
-          Informe seu CPF e o PIN de acesso. No primeiro acesso, utilize a senha temporária
-          <strong> 0000 </strong>
-          e cadastre, em seguida, um PIN numérico de 4 dígitos para consultas futuras.
-        </p>
+        <h1>Consultar minha solicitação</h1>
+        <p>Informe CPF e PIN para acompanhar data, horário, local de embarque e eventuais atualizações.</p>
       </header>
 
       <div className="public-layout">
-        <article className="public-card">
-          <h2>Entrar para acompanhar</h2>
+        <article className="public-card public-access-card">
+          <div className="public-access-copy">
+            <h2>Acesso ao acompanhamento</h2>
+            <p>Use o CPF informado no atendimento e o PIN de acesso para consultar suas solicitações registradas.</p>
+          </div>
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
               <div className="field">
@@ -161,22 +160,28 @@ export function PublicStatusPage() {
             <div className="form-actions">
               <button className="action-button primary" disabled={loading} type="submit">
                 <Search size={16} />
-                {loading ? 'Validando acesso...' : 'Consultar solicitação'}
+                {loading ? 'Validando acesso...' : 'Consultar'}
               </button>
             </div>
           </form>
-          <p className="table-note">
-            Recomendamos consultar esta tela algumas horas antes da viagem para confirmar horário,
-            local de embarque e eventuais atualizações.
-          </p>
+          <p className="public-helper-text">Primeiro acesso: utilize a senha temporária 0000 e depois cadastre um novo PIN numérico de 4 dígitos.</p>
           {error ? <p className="table-note">{error}</p> : null}
         </article>
 
+        <article className="public-card public-info-card">
+          <div className="eyebrow">
+            <ShieldCheck size={16} />
+            Aviso importante
+          </div>
+          <h2>Confirme os dados antes da viagem</h2>
+          <p>Consulte novamente esta tela algumas horas antes da saída para verificar horário, local de embarque e novas orientações.</p>
+        </article>
+
         {access?.mustChangePin ? (
-          <article className="public-card">
+          <article className="public-card public-activation-card">
             <div className="eyebrow">
               <KeyRound size={16} />
-              Ativação de acesso
+              Primeiro acesso
             </div>
             <h2>Cadastrar novo PIN</h2>
             <p>
@@ -214,6 +219,7 @@ export function PublicStatusPage() {
             {requests.length > 1 ? (
               <article className="public-card">
                 <h2>Solicitações vinculadas a este acesso</h2>
+                <p className="table-note">Selecione abaixo a agenda que deseja consultar.</p>
                 <div className="request-list">
                   {requests.map((entry) => (
                     <button
@@ -363,15 +369,12 @@ export function PublicStatusPage() {
         ) : (
           <article className="empty-state">
             <Search size={28} />
-            <h2>Nenhuma consulta realizada</h2>
-            <p>
-              Após o atendimento presencial e o registro da solicitação pela equipe da prefeitura,
-              utilize esta área para acompanhar o andamento do transporte em saúde.
-            </p>
+            <h2>Nenhuma consulta realizada ainda</h2>
+            <p>Após o atendimento presencial, utilize esta área para acompanhar suas solicitações de transporte em saúde.</p>
           </article>
         )}
 
-        <article className="public-card">
+        <article className="public-card public-privacy-card">
           <h2>Privacidade e uso das informações</h2>
           <p>
             Os dados informados nesta consulta são utilizados exclusivamente para o acompanhamento

@@ -695,6 +695,66 @@ th {
   margin-bottom: 20px;
 }
 
+.public-header {
+  display: grid;
+  gap: 10px;
+}
+
+.public-header h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.public-access-card,
+.public-info-card,
+.public-activation-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.public-access-card {
+  background:
+    linear-gradient(135deg, rgba(22, 133, 83, 0.09), rgba(255, 255, 255, 0.98) 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 248, 248, 0.94) 100%);
+}
+
+.public-access-copy {
+  margin-bottom: 16px;
+}
+
+.public-access-copy p,
+.public-info-card p,
+.public-activation-card p,
+.public-helper-text {
+  max-width: 62ch;
+}
+
+.public-helper-text {
+  margin: 14px 0 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.public-info-card {
+  border-color: rgba(22, 133, 83, 0.18);
+  background:
+    linear-gradient(135deg, rgba(22, 133, 83, 0.08), rgba(212, 171, 24, 0.08)),
+    var(--surface-strong);
+}
+
+.public-info-card h2,
+.public-activation-card h2,
+.public-privacy-card h2 {
+  margin-bottom: 8px;
+}
+
+.public-activation-card {
+  border-color: rgba(212, 171, 24, 0.2);
+}
+
+.public-privacy-card {
+  background: rgba(248, 249, 248, 0.82);
+}
+
 .request-summary {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
