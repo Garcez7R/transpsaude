@@ -209,6 +209,16 @@ export async function confirmCitizenRequest(cpf: string, password: string, reque
   return parseJson<ConfirmCitizenRequestResponse>(response)
 }
 
+export async function markCitizenRequestViewed(cpf: string, password: string, requestId: number) {
+  const response = await fetch('/api/public/request-view', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ cpf, password, requestId }),
+  })
+
+  return parseJson<{ requestId: number; viewedAt: string; messageSeenAt: string }>(response)
+}
+
 export async function loginAdmin(cpf: string, password: string) {
   const response = await fetch('/api/admin/login', {
     method: 'POST',
@@ -443,6 +453,22 @@ export async function fetchDriverTrips(driverId: number, accessMode: 'driver' | 
   const init = accessMode === 'internal' ? withInternalHeaders() : withDriverHeaders()
   const response = await fetch(`/api/driver/trips?${search.toString()}`, init)
   return parseJson<TravelRequest[]>(response)
+}
+
+export async function createDriverRequestMessage(input: {
+  requestId: number
+  messageType?: string
+  title?: string
+  body: string
+  visibleToCitizen?: boolean
+}) {
+  const response = await fetch('/api/driver/request-messages', withDriverHeaders({
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  }))
+
+  return parseJson<{ message: string }>(response)
 }
 
 export async function updateDriver(input: UpdateDriverInput) {

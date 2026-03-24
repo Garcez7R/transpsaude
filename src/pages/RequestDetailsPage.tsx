@@ -390,6 +390,14 @@ export function RequestDetailsPage() {
                 <dd>{details.patientConfirmedAt || 'Ainda não confirmada na consulta pública'}</dd>
               </div>
               <div>
+                <dt>Último acesso do paciente</dt>
+                <dd>{details.patientLastViewedAt || 'Ainda não registrado'}</dd>
+              </div>
+              <div>
+                <dt>Última leitura de mensagens</dt>
+                <dd>{details.patientLastMessageSeenAt || 'Ainda não registrada'}</dd>
+              </div>
+              <div>
                 <dt>Acompanhante</dt>
                 <dd>{details.companionRequired ? details.companionName || 'Necessário' : 'Não necessário'}</dd>
               </div>

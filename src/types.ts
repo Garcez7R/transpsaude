@@ -47,6 +47,9 @@ export interface TravelRequest {
   assignedVehicleId?: number | null
   assignedVehicleName?: string
   patientConfirmedAt?: string | null
+  patientLastViewedAt?: string | null
+  patientLastMessageSeenAt?: string | null
+  messages?: RequestMessage[]
   departureTime?: string
   managerNotes?: string
   scheduledAt?: string
@@ -67,6 +70,7 @@ export interface RequestMessage {
   body: string
   visibleToCitizen: boolean
   createdByName: string
+  createdByRole?: string
   createdAt: string
 }
 

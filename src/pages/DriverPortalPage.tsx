@@ -1,6 +1,6 @@
 import { BusFront, LogOut, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { activateDriverPassword, fetchDriverTrips, loginDriver, logoutSession } from '../lib/api'
+import { activateDriverPassword, createDriverRequestMessage, fetchDriverTrips, loginDriver, logoutSession } from '../lib/api'
 import { clearDriverSession, getDriverSession, saveDriverSession } from '../lib/driver-session'
 import type { DriverSession, TravelRequest } from '../types'
 
@@ -21,6 +21,9 @@ export function DriverPortalPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [firstAccess, setFirstAccess] = useState<{ cpf: string; name: string } | null>(null)
+  const [messageDrafts, setMessageDrafts] = useState<Record<number, { title: string; body: string; visibleToCitizen: boolean }>>({})
+  const [messageStatus, setMessageStatus] = useState<Record<number, string>>({})
+  const [sendingMessageId, setSendingMessageId] = useState<number | null>(null)
 
   useEffect(() => {
     setSession(getDriverSession())
@@ -126,6 +129,46 @@ export function DriverPortalPage() {
     clearDriverSession()
     setSession(null)
     setTrips([])
+  }
+
+  function getDraft(requestId: number) {
+    return messageDrafts[requestId] ?? { title: '', body: '', visibleToCitizen: false }
+  }
+
+  async function handleSubmitMessage(requestId: number) {
+    const draft = getDraft(requestId)
+
+    if (!draft.body.trim()) {
+      setMessageStatus((current) => ({ ...current, [requestId]: 'Informe a mensagem antes de enviar.' }))
+      return
+    }
+
+    setSendingMessageId(requestId)
+    setMessageStatus((current) => ({ ...current, [requestId]: '' }))
+
+    try {
+      const result = await createDriverRequestMessage({
+        requestId,
+        title: draft.title,
+        body: draft.body,
+        visibleToCitizen: draft.visibleToCitizen,
+      })
+
+      const refreshed = await fetchDriverTrips(session!.driverId)
+      setTrips(refreshed)
+      setMessageDrafts((current) => ({
+        ...current,
+        [requestId]: { title: '', body: '', visibleToCitizen: false },
+      }))
+      setMessageStatus((current) => ({ ...current, [requestId]: result.message }))
+    } catch (error) {
+      setMessageStatus((current) => ({
+        ...current,
+        [requestId]: error instanceof Error ? error.message : 'Não foi possível enviar a mensagem desta viagem.',
+      }))
+    } finally {
+      setSendingMessageId(null)
+    }
   }
 
   if (!session) {
@@ -310,7 +353,80 @@ export function DriverPortalPage() {
                   <dt>Observações da gerência</dt>
                   <dd>{trip.managerNotes || trip.notes || 'Sem observações adicionais.'}</dd>
                 </div>
+                <div>
+                  <dt>Agenda confirmada pelo paciente</dt>
+                  <dd>{trip.patientConfirmedAt || 'Ainda não confirmada'}</dd>
+                </div>
               </dl>
+
+              <div className="detail-note">
+                <strong>Mensagens da viagem</strong>
+                {trip.messages && trip.messages.length > 0 ? (
+                  <ol className="status-history">
+                    {trip.messages.map((entry) => (
+                      <li key={`trip-message-${trip.id}-${entry.id}`}>
+                        <strong>{entry.title || 'Atualização da viagem'}</strong> por {entry.createdByName}
+                        {entry.visibleToCitizen ? ' • visível ao paciente' : ' • interna'}
+                        <br />
+                        {entry.body}
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="table-note">Nenhuma mensagem registrada para esta viagem.</p>
+                )}
+              </div>
+
+              <div className="detail-note">
+                <strong>Nova mensagem</strong>
+                <div className="form-grid" style={{ marginTop: '12px' }}>
+                  <div className="field">
+                    <label htmlFor={`driver-message-title-${trip.id}`}>Título</label>
+                    <input
+                      id={`driver-message-title-${trip.id}`}
+                      value={getDraft(trip.id).title}
+                      onChange={(event) => setMessageDrafts((current) => ({
+                        ...current,
+                        [trip.id]: { ...getDraft(trip.id), title: event.target.value },
+                      }))}
+                      placeholder="Ex.: Chegada prevista"
+                    />
+                  </div>
+                  <div className="field full">
+                    <label htmlFor={`driver-message-body-${trip.id}`}>Mensagem</label>
+                    <textarea
+                      id={`driver-message-body-${trip.id}`}
+                      rows={3}
+                      value={getDraft(trip.id).body}
+                      onChange={(event) => setMessageDrafts((current) => ({
+                        ...current,
+                        [trip.id]: { ...getDraft(trip.id), body: event.target.value },
+                      }))}
+                      placeholder="Informe a orientação ou atualização desta viagem."
+                    />
+                  </div>
+                  <div className="field full checkbox-field">
+                    <label className="checkbox-row" htmlFor={`driver-message-visible-${trip.id}`}>
+                      <input
+                        id={`driver-message-visible-${trip.id}`}
+                        type="checkbox"
+                        checked={getDraft(trip.id).visibleToCitizen}
+                        onChange={(event) => setMessageDrafts((current) => ({
+                          ...current,
+                          [trip.id]: { ...getDraft(trip.id), visibleToCitizen: event.target.checked },
+                        }))}
+                      />
+                      <span>Exibir esta mensagem para o paciente na consulta pública</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button className="action-button primary" disabled={sendingMessageId === trip.id} onClick={() => void handleSubmitMessage(trip.id)} type="button">
+                    {sendingMessageId === trip.id ? 'Enviando...' : 'Enviar mensagem'}
+                  </button>
+                </div>
+                {messageStatus[trip.id] ? <p className="table-note">{messageStatus[trip.id]}</p> : null}
+              </div>
             </article>
           ))
         ) : (

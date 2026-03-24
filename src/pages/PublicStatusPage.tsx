@@ -1,6 +1,6 @@
 import { KeyRound, Search, ShieldCheck } from 'lucide-react'
-import { useState } from 'react'
-import { activateCitizenPin, confirmCitizenRequest, loginCitizen } from '../lib/api'
+import { useEffect, useState } from 'react'
+import { activateCitizenPin, confirmCitizenRequest, loginCitizen, markCitizenRequestViewed } from '../lib/api'
 import type { CitizenAccessResponse, PublicRequestDetails } from '../types'
 
 function formatCpf(value: string) {
@@ -166,6 +166,16 @@ export function PublicStatusPage() {
       setConfirmingRequest(false)
     }
   }
+
+  useEffect(() => {
+    if (!request || !cpf || !password || access?.mustChangePin) {
+      return
+    }
+
+    void markCitizenRequestViewed(cpf, password, request.id).catch(() => {
+      // O acompanhamento continua funcionando mesmo sem o registro de leitura.
+    })
+  }, [access?.mustChangePin, cpf, password, request])
 
   return (
     <div className="public-shell">

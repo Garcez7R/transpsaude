@@ -59,6 +59,8 @@ select
   assigned_vehicle_id,
   assigned_vehicle_name,
   patient_confirmed_at,
+  patient_last_viewed_at,
+  patient_last_message_seen_at,
   departure_time,
   use_custom_boarding_location,
   boarding_location_name,
@@ -86,6 +88,7 @@ select
   title,
   visible_to_citizen,
   created_by_name,
+  created_by_role,
   created_at
 from request_messages
 order by id desc

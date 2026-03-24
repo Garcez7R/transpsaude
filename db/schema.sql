@@ -72,6 +72,8 @@ create table if not exists travel_requests (
   assigned_vehicle_id integer,
   assigned_vehicle_name text,
   patient_confirmed_at text,
+  patient_last_viewed_at text,
+  patient_last_message_seen_at text,
   departure_time text,
   manager_notes text,
   use_custom_boarding_location integer not null default 0,
@@ -137,6 +139,7 @@ create table if not exists request_messages (
   visible_to_citizen integer not null default 0,
   created_by_operator_id integer,
   created_by_name text not null,
+  created_by_role text not null default 'operator',
   created_at text not null default current_timestamp,
   foreign key (travel_request_id) references travel_requests(id),
   foreign key (created_by_operator_id) references operators(id)

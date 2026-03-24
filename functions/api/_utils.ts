@@ -103,6 +103,16 @@ function hasMissingPatientConfirmationColumn(error: unknown) {
   return message.includes('no such column: tr.patient_confirmed_at') || message.includes('no such column: patient_confirmed_at')
 }
 
+function hasMissingPatientViewColumns(error: unknown) {
+  const message = error instanceof Error ? error.message : ''
+  return (
+    message.includes('no such column: tr.patient_last_viewed_at') ||
+    message.includes('no such column: tr.patient_last_message_seen_at') ||
+    message.includes('no such column: patient_last_viewed_at') ||
+    message.includes('no such column: patient_last_message_seen_at')
+  )
+}
+
 export async function listRequestMessages(env: Env, requestId: number, visibleToCitizenOnly = false) {
   const db = requireDb(env)
   let query = `
@@ -113,6 +123,7 @@ export async function listRequestMessages(env: Env, requestId: number, visibleTo
       body,
       visible_to_citizen as visibleToCitizen,
       created_by_name as createdByName,
+      created_by_role as createdByRole,
       created_at as createdAt
     from request_messages
     where travel_request_id = ?1
@@ -138,7 +149,34 @@ export async function listRequestMessages(env: Env, requestId: number, visibleTo
       return []
     }
 
-    throw error
+    if (!message.includes('no such column: created_by_role')) {
+      throw error
+    }
+
+    const legacyResult = await db.prepare(
+      `
+        select
+          id,
+          message_type as messageType,
+          title,
+          body,
+          visible_to_citizen as visibleToCitizen,
+          created_by_name as createdByName,
+          'operator' as createdByRole,
+          created_at as createdAt
+        from request_messages
+        where travel_request_id = ?1
+        ${visibleToCitizenOnly ? 'and visible_to_citizen = 1' : ''}
+        order by created_at desc, id desc
+      `,
+    )
+      .bind(requestId)
+      .all()
+
+    return (legacyResult.results ?? []).map((item) => ({
+      ...item,
+      visibleToCitizen: toBoolean(item.visibleToCitizen),
+    }))
   }
 }
 
@@ -534,6 +572,8 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       tr.assigned_vehicle_id as assignedVehicleId,
       tr.assigned_vehicle_name as assignedVehicleName,
       tr.patient_confirmed_at as patientConfirmedAt,
+      tr.patient_last_viewed_at as patientLastViewedAt,
+      tr.patient_last_message_seen_at as patientLastMessageSeenAt,
       tr.departure_time as departureTime,
       tr.manager_notes as managerNotes,
       tr.scheduled_at as scheduledAt,
@@ -574,6 +614,8 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       null as assignedVehicleId,
       '' as assignedVehicleName,
       null as patientConfirmedAt,
+      null as patientLastViewedAt,
+      null as patientLastMessageSeenAt,
       tr.departure_time as departureTime,
       tr.manager_notes as managerNotes,
       tr.scheduled_at as scheduledAt,
@@ -654,7 +696,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
     const statement = params.length > 0 ? prepared.bind(...params) : prepared
     result = await statement.all()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error))) {
       throw error
     }
 
@@ -812,6 +854,8 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
         tr.assigned_vehicle_id as assignedVehicleId,
         tr.assigned_vehicle_name as assignedVehicleName,
         tr.patient_confirmed_at as patientConfirmedAt,
+        tr.patient_last_viewed_at as patientLastViewedAt,
+        tr.patient_last_message_seen_at as patientLastMessageSeenAt,
         tr.departure_time as departureTime,
         tr.notes
       from travel_requests tr
@@ -823,7 +867,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       .bind(patientAccess.id)
       .all<Record<string, unknown>>()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error))) {
       throw error
     }
 
@@ -855,6 +899,8 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
           null as assignedVehicleId,
           '' as assignedVehicleName,
           null as patientConfirmedAt,
+          null as patientLastViewedAt,
+          null as patientLastMessageSeenAt,
           tr.departure_time as departureTime,
           tr.notes
         from travel_requests tr
@@ -1249,6 +1295,8 @@ export async function listDriverTrips(env: Env, driverId: number) {
         tr.assigned_vehicle_id as assignedVehicleId,
         tr.assigned_vehicle_name as assignedVehicleName,
         tr.patient_confirmed_at as patientConfirmedAt,
+        tr.patient_last_viewed_at as patientLastViewedAt,
+        tr.patient_last_message_seen_at as patientLastMessageSeenAt,
         tr.departure_time as departureTime,
         tr.manager_notes as managerNotes,
         tr.scheduled_at as scheduledAt,
@@ -1262,7 +1310,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
       .bind(driverId)
       .all()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error))) {
       throw error
     }
 
@@ -1299,6 +1347,8 @@ export async function listDriverTrips(env: Env, driverId: number) {
           null as assignedVehicleId,
           '' as assignedVehicleName,
           null as patientConfirmedAt,
+          null as patientLastViewedAt,
+          null as patientLastMessageSeenAt,
           tr.departure_time as departureTime,
           tr.manager_notes as managerNotes,
           tr.scheduled_at as scheduledAt,
@@ -1313,13 +1363,16 @@ export async function listDriverTrips(env: Env, driverId: number) {
       .all()
   }
 
-  return (result.results ?? []).map((item) => ({
-    ...item,
-    companionRequired: toBoolean(item.companionRequired),
-    companionIsWhatsapp: toBoolean(item.companionIsWhatsapp),
-    useCustomBoardingLocation: toBoolean(item.useCustomBoardingLocation),
-    showDriverPhoneToPatient: toBoolean(item.showDriverPhoneToPatient),
-  }))
+  return Promise.all(
+    (result.results ?? []).map(async (item) => ({
+      ...item,
+      companionRequired: toBoolean(item.companionRequired),
+      companionIsWhatsapp: toBoolean(item.companionIsWhatsapp),
+      useCustomBoardingLocation: toBoolean(item.useCustomBoardingLocation),
+      showDriverPhoneToPatient: toBoolean(item.showDriverPhoneToPatient),
+      messages: await listRequestMessages(env, Number(item.id)),
+    })),
+  )
 }
 
 export async function getRequestDetails(env: Env, requestId: number) {
@@ -1383,7 +1436,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
       .bind(requestId)
       .first<Record<string, unknown>>()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error))) {
       throw error
     }
 
@@ -1601,6 +1654,73 @@ export async function confirmCitizenRequest(env: Env, cpf: string, password: str
   }
 }
 
+export async function markCitizenRequestViewed(env: Env, cpf: string, password: string, requestId: number) {
+  const db = requireDb(env)
+  const access = await loginCitizen(env, cpf, password)
+
+  if (!access) {
+    return null
+  }
+
+  const targetRequest = access.requests.find((item) => item.id === requestId)
+
+  if (!targetRequest) {
+    return false
+  }
+
+  try {
+    await db.prepare(
+      `
+        update travel_requests
+        set patient_last_viewed_at = current_timestamp,
+            patient_last_message_seen_at = case
+              when exists (
+                select 1
+                from request_messages rm
+                where rm.travel_request_id = ?1
+                  and rm.visible_to_citizen = 1
+              )
+                then current_timestamp
+              else patient_last_message_seen_at
+            end,
+            updated_at = current_timestamp
+        where id = ?1
+      `,
+    )
+      .bind(requestId)
+      .run()
+  } catch (error) {
+    if (!hasMissingPatientViewColumns(error)) {
+      throw error
+    }
+
+    return {
+      requestId,
+      viewedAt: '',
+      messageSeenAt: '',
+    }
+  }
+
+  const refreshed = await db.prepare(
+    `
+      select
+        patient_last_viewed_at as viewedAt,
+        patient_last_message_seen_at as messageSeenAt
+      from travel_requests
+      where id = ?1
+      limit 1
+    `,
+  )
+    .bind(requestId)
+    .first<Record<string, unknown>>()
+
+  return {
+    requestId,
+    viewedAt: String(refreshed?.viewedAt ?? ''),
+    messageSeenAt: String(refreshed?.messageSeenAt ?? ''),
+  }
+}
+
 export async function updateRequestStatus(
   env: Env,
   requestId: number,
@@ -1737,8 +1857,9 @@ export async function createRequestMessage(
     title: string
     body: string
     visibleToCitizen: boolean
-    createdByOperatorId: number
+    createdByOperatorId?: number | null
     createdByName: string
+    createdByRole?: string
   },
 ) {
   const db = requireDb(env)
@@ -1757,30 +1878,65 @@ export async function createRequestMessage(
     return null
   }
 
-  await db.prepare(
-    `
-      insert into request_messages (
-        travel_request_id,
-        message_type,
-        title,
-        body,
-        visible_to_citizen,
-        created_by_operator_id,
-        created_by_name
-      )
-      values (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-    `,
-  )
-    .bind(
-      requestId,
-      input.messageType || 'general',
-      input.title.trim() || null,
-      input.body.trim(),
-      input.visibleToCitizen ? 1 : 0,
-      input.createdByOperatorId,
-      input.createdByName,
+  try {
+    await db.prepare(
+      `
+        insert into request_messages (
+          travel_request_id,
+          message_type,
+          title,
+          body,
+          visible_to_citizen,
+          created_by_operator_id,
+          created_by_name,
+          created_by_role
+        )
+        values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+      `,
     )
-    .run()
+      .bind(
+        requestId,
+        input.messageType || 'general',
+        input.title.trim() || null,
+        input.body.trim(),
+        input.visibleToCitizen ? 1 : 0,
+        input.createdByOperatorId ?? null,
+        input.createdByName,
+        input.createdByRole ?? 'operator',
+      )
+      .run()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+
+    if (!message.includes('no such column: created_by_role')) {
+      throw error
+    }
+
+    await db.prepare(
+      `
+        insert into request_messages (
+          travel_request_id,
+          message_type,
+          title,
+          body,
+          visible_to_citizen,
+          created_by_operator_id,
+          created_by_name
+        )
+        values (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+      `,
+    )
+      .bind(
+        requestId,
+        input.messageType || 'general',
+        input.title.trim() || null,
+        input.body.trim(),
+        input.visibleToCitizen ? 1 : 0,
+        input.createdByOperatorId ?? null,
+        input.createdByName,
+      )
+      .run()
+  }
 
   return {
     message: input.visibleToCitizen
