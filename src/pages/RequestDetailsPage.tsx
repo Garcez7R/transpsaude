@@ -33,9 +33,9 @@ function formatDisplayTimestamp(value?: string | null) {
 }
 
 export function RequestDetailsPage() {
-  const session = typeof window !== 'undefined' ? getOperatorSession() : null
   const params = useParams()
   const requestId = Number(params.id ?? '')
+  const [session, setSession] = useState(() => (typeof window !== 'undefined' ? getOperatorSession() : null))
   const [details, setDetails] = useState<TravelRequestDetails | null>(null)
   const [history, setHistory] = useState<StatusHistoryEntry[]>([])
   const [status, setStatus] = useState<RequestStatus>('recebida')
@@ -58,6 +58,10 @@ export function RequestDetailsPage() {
   const [message, setMessage] = useState('')
   const patientMessages = details?.messages.filter((entry) => entry.createdByRole === 'patient') ?? []
   const teamMessages = details?.messages.filter((entry) => entry.createdByRole !== 'patient') ?? []
+
+  useEffect(() => {
+    setSession(typeof window !== 'undefined' ? getOperatorSession() : null)
+  }, [])
 
   async function handleResetPatientAccess() {
     if (!details) {
@@ -721,7 +725,7 @@ export function RequestDetailsPage() {
               )}
             </article>
 
-            <article className="content-card">
+            <article className="content-card" id="mensagens-paciente">
               <h2>Mensagens do paciente</h2>
               {patientMessages.length > 0 ? (
                 <ol className="status-history">

@@ -612,7 +612,11 @@ export function DashboardPage() {
                   <div className="status-pill-row">
                     {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada</span> : null}
                     {request.patientLastViewedAt ? <span className="status-pill-live">Lida</span> : null}
-                    {Number(request.patientMessageCount ?? 0) > 0 ? <span className="update-badge">Paciente escreveu</span> : null}
+                    {Number(request.patientMessageCount ?? 0) > 0 ? (
+                      <Link className="update-badge inline-link" to={`/operador/solicitacoes/${request.id}#mensagens-paciente`}>
+                        Ver mensagem do paciente
+                      </Link>
+                    ) : null}
                   </div>
                 </article>
               ))}
