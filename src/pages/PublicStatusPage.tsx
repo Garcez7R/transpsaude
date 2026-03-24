@@ -122,6 +122,10 @@ function buildMapsUrl(label: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(label)}`
 }
 
+function getGreetingName(value?: string | null) {
+  return isMeaningfulValue(value) ? String(value).trim() : ''
+}
+
 export function PublicStatusPage() {
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
@@ -141,6 +145,7 @@ export function PublicStatusPage() {
     requests.find((entry) => entry.id === selectedRequestId) ??
     access?.request ??
     null
+  const greetingName = getGreetingName(access?.patientName || request?.patientName)
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -357,8 +362,8 @@ export function PublicStatusPage() {
         {request ? (
           <>
             <article className="public-card public-greeting-card">
-              <h2>Olá, {getDisplayValue(access?.patientName || request.patientName)}.</h2>
-              <p>Confira abaixo seus agendamentos de transporte em saúde.</p>
+              <h2>{greetingName ? `Olá, ${greetingName}.` : 'Seus agendamentos de transporte em saúde'}</h2>
+              <p>{greetingName ? 'Confira abaixo seus agendamentos de transporte em saúde.' : 'Confira abaixo as agendas vinculadas a este acesso.'}</p>
             </article>
 
             {requests.length > 1 ? (
@@ -382,6 +387,7 @@ export function PublicStatusPage() {
                       </div>
                       <strong>{entry.protocol}</strong>
                       <span>{formatDisplayDateTime(entry.travelDate, entry.departureTime)}</span>
+                      {entry.appointmentTime ? <span>Consulta às {entry.appointmentTime}</span> : null}
                       <span>{getDisplayValue(`${entry.destinationCity}/${entry.destinationState}`, 'Destino a definir')}</span>
                     </button>
                   ))}
@@ -407,11 +413,15 @@ export function PublicStatusPage() {
               </div>
               <h2>{formatDisplayDateTime(request.travelDate, request.departureTime)}</h2>
               <p>
+                Consulta:
+                {' '}
+                <strong>{formatDisplayTime(request.appointmentTime)}</strong>.
+              </p>
+              <p>
                 Embarque:
                 {' '}
                 <strong>{getBoardingLocation(request)}</strong>.
               </p>
-              {request.appointmentTime ? <p>Consulta prevista às <strong>{request.appointmentTime}</strong>.</p> : null}
               {isMeaningfulValue(request.boardingLocationLabel || request.addressLine) ? (
                 <div className="form-actions">
                   <a className="action-button secondary" href={buildMapsUrl(getBoardingLocation(request))} rel="noreferrer" target="_blank">
