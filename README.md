@@ -189,14 +189,14 @@ Também foi ajustado o mecanismo de hash de credenciais para um formato mais lev
 
 ## Estrutura do projeto
 
-- [src/](/home/rgarcez/Documentos/transp-saude/src) - aplicação React
-- [src/pages/](/home/rgarcez/Documentos/transp-saude/src/pages) - telas principais
-- [functions/api/](/home/rgarcez/Documentos/transp-saude/functions/api) - API da aplicação
-- [db/schema.sql](/home/rgarcez/Documentos/transp-saude/db/schema.sql) - schema consolidado do banco
-- [db/migrations/](/home/rgarcez/Documentos/transp-saude/db/migrations) - migrações incrementais
-- [public/manifest.webmanifest](/home/rgarcez/Documentos/transp-saude/public/manifest.webmanifest) - manifesto PWA
-- [public/sw.js](/home/rgarcez/Documentos/transp-saude/public/sw.js) - service worker
-- [wrangler.toml](/home/rgarcez/Documentos/transp-saude/wrangler.toml) - configuração Cloudflare
+- [src/](./src) - aplicação React
+- [src/pages/](./src/pages) - telas principais
+- [functions/api/](./functions/api) - API da aplicação
+- [db/schema.sql](./db/schema.sql) - schema consolidado do banco
+- [db/migrations/](./db/migrations) - migrações incrementais
+- [public/manifest.webmanifest](./public/manifest.webmanifest) - manifesto PWA
+- [public/sw.js](./public/sw.js) - service worker
+- [wrangler.toml](./wrangler.toml) - configuração Cloudflare
 
 ## Estrutura de dados principal
 
@@ -246,7 +246,7 @@ Sem autorização expressa e por escrito do titular, é vedado:
 
 É admitido apenas o uso **pessoal** e **para estudos**, sem finalidade comercial, institucional, operacional ou de redistribuição.
 
-As condições formais constam em [LICENSE](/home/rgarcez/Documentos/transp-saude/LICENSE).
+As condições formais constam em [LICENSE](./LICENSE).
 
 ## Implantação
 
@@ -277,7 +277,7 @@ npx wrangler d1 create transpsaude-db
 
 ### 5. Atualizar o `database_id`
 
-Editar [wrangler.toml](/home/rgarcez/Documentos/transp-saude/wrangler.toml) com o identificador real do banco.
+Editar [wrangler.toml](./wrangler.toml) com o identificador real do banco.
 
 ### 6. Aplicar schema e migrações
 
@@ -285,7 +285,7 @@ Editar [wrangler.toml](/home/rgarcez/Documentos/transp-saude/wrangler.toml) com 
 npx wrangler d1 execute transpsaude-db --file=db/schema.sql
 ```
 
-Quando necessário, aplicar também as migrações incrementais em [db/migrations/](/home/rgarcez/Documentos/transp-saude/db/migrations).
+Quando necessário, aplicar também as migrações incrementais em [db/migrations/](./db/migrations).
 
 ### 7. Publicar no Cloudflare Pages
 
