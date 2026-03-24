@@ -91,6 +91,32 @@ function formatCitizenHistory(entry: PublicRequestDetails['history'][number]) {
     .replace(/^viagem direcionada para .* com saída prevista às (.+)\.?$/i, 'Motorista definido e saída prevista para $1.')
 }
 
+function isMeaningfulValue(value?: string | null) {
+  const text = String(value ?? '').trim()
+
+  if (!text) {
+    return false
+  }
+
+  if (/^\d{1,2}$/.test(text)) {
+    return false
+  }
+
+  return true
+}
+
+function getDisplayValue(value?: string | null, fallback = 'Não informado') {
+  return isMeaningfulValue(value) ? String(value).trim() : fallback
+}
+
+function getBoardingLocation(request: PublicRequestDetails) {
+  return getDisplayValue(request.boardingLocationLabel || request.addressLine, 'A definir')
+}
+
+function buildMapsUrl(label: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(label)}`
+}
+
 export function PublicStatusPage() {
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
@@ -303,13 +329,14 @@ export function PublicStatusPage() {
                     >
                       <div className="request-list-header">
                         <span className={`status-badge ${entry.status}`}>{entry.statusLabel}</span>
-                        {hasVisibleUpdate(entry) ? <span className="update-badge">Atualizada</span> : null}
+                        <div className="request-list-flags">
+                          {entry.patientConfirmedAt ? <span className="confirmed-badge">Confirmada</span> : null}
+                          {hasVisibleUpdate(entry) ? <span className="update-badge">Atualizada</span> : null}
+                        </div>
                       </div>
                       <strong>{entry.protocol}</strong>
                       <span>{formatDisplayDateTime(entry.travelDate, entry.departureTime)}</span>
-                      <span>
-                        {entry.destinationCity}/{entry.destinationState}
-                      </span>
+                      <span>{getDisplayValue(`${entry.destinationCity}/${entry.destinationState}`, 'Destino a definir')}</span>
                     </button>
                   ))}
                 </div>
@@ -336,11 +363,18 @@ export function PublicStatusPage() {
               <p>
                 Embarque:
                 {' '}
-                <strong>{request.boardingLocationLabel || request.addressLine || 'a definir'}</strong>.
+                <strong>{getBoardingLocation(request)}</strong>.
               </p>
+              {isMeaningfulValue(request.boardingLocationLabel || request.addressLine) ? (
+                <div className="form-actions">
+                  <a className="action-button secondary" href={buildMapsUrl(getBoardingLocation(request))} rel="noreferrer" target="_blank">
+                    Abrir no mapa
+                  </a>
+                </div>
+              ) : null}
             </article>
 
-            <article className="public-card">
+            <article className={`public-card ${request.patientConfirmedAt ? 'confirmation-highlight' : ''}`}>
               <div className="eyebrow">
                 <ShieldCheck size={16} />
                 Confirmação da agenda
@@ -369,7 +403,7 @@ export function PublicStatusPage() {
               <dl className="request-summary">
                 <div>
                   <dt>Paciente</dt>
-                  <dd>{request.patientName}</dd>
+                  <dd>{getDisplayValue(request.patientName)}</dd>
                 </div>
                 <div>
                   <dt>CPF de acesso</dt>
@@ -377,18 +411,20 @@ export function PublicStatusPage() {
                 </div>
                 <div>
                   <dt>Destino</dt>
-                  <dd>
-                    {request.destinationCity}/{request.destinationState}
-                  </dd>
+                  <dd>{getDisplayValue(`${request.destinationCity}/${request.destinationState}`, 'Destino a definir')}</dd>
                 </div>
-                <div>
-                  <dt>Unidade</dt>
-                  <dd>{request.treatmentUnit}</dd>
-                </div>
-                <div>
-                  <dt>Especialidade</dt>
-                  <dd>{request.specialty}</dd>
-                </div>
+                {isMeaningfulValue(request.treatmentUnit) ? (
+                  <div>
+                    <dt>Unidade</dt>
+                    <dd>{request.treatmentUnit}</dd>
+                  </div>
+                ) : null}
+                {isMeaningfulValue(request.specialty) ? (
+                  <div>
+                    <dt>Especialidade</dt>
+                    <dd>{request.specialty}</dd>
+                  </div>
+                ) : null}
                 <div>
                   <dt>Data prevista</dt>
                   <dd>{formatDisplayDate(request.travelDate)}</dd>
@@ -399,7 +435,7 @@ export function PublicStatusPage() {
                 </div>
                 <div>
                   <dt>Local de embarque</dt>
-                  <dd>{request.boardingLocationLabel || request.addressLine || 'A definir'}</dd>
+                  <dd>{getBoardingLocation(request)}</dd>
                 </div>
                 <div>
                   <dt>Acompanhante</dt>
@@ -407,7 +443,7 @@ export function PublicStatusPage() {
                 </div>
                 <div>
                   <dt>Motorista responsável</dt>
-                  <dd>{request.assignedDriverName || 'A definir'}</dd>
+                  <dd>{getDisplayValue(request.assignedDriverName, 'A definir')}</dd>
                 </div>
                 <div>
                   <dt>Telefone do motorista</dt>
@@ -446,11 +482,7 @@ export function PublicStatusPage() {
               <ol className="status-history">
                 {request.history.map((entry) => (
                   <li key={`${entry.status}-${entry.updatedAt}`}>
-                    <strong>{entry.label}</strong>
-                    {' '}
-                    em
-                    {' '}
-                    {entry.updatedAt}
+                    <strong>{entry.label}</strong> em {entry.updatedAt}
                     {formatCitizenHistory(entry) ? ` - ${formatCitizenHistory(entry)}` : ''}
                   </li>
                 ))}

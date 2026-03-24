@@ -804,6 +804,13 @@ th {
   flex-wrap: wrap;
 }
 
+.request-list-flags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .request-list-item {
   display: grid;
   gap: 6px;
@@ -828,6 +835,17 @@ th {
   padding: 0.35rem 0.65rem;
   background: rgba(212, 171, 24, 0.2);
   color: var(--accent-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.confirmed-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  background: rgba(22, 133, 83, 0.16);
+  color: var(--primary-dark);
   font-size: 0.82rem;
   font-weight: 700;
 }
@@ -918,6 +936,13 @@ th {
     linear-gradient(135deg, rgba(212, 171, 24, 0.22), rgba(22, 133, 83, 0.08)),
     var(--surface-strong);
   border: 1px solid rgba(212, 171, 24, 0.3);
+}
+
+.confirmation-highlight {
+  border-color: rgba(22, 133, 83, 0.28);
+  background:
+    linear-gradient(135deg, rgba(22, 133, 83, 0.14), rgba(255, 255, 255, 0.92)),
+    var(--surface-strong);
 }
 
 .update-highlight h2 {
