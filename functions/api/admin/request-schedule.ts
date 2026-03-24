@@ -20,11 +20,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     requestId?: number
     travelDate?: string
     departureTime?: string
+    appointmentTime?: string
     note?: string
   }
 
-  if (!body.requestId || !body.travelDate || !body.departureTime) {
-    return badRequest('Informe a solicitação, a nova data e o horário de saída.')
+  if (!body.requestId || !body.travelDate || !body.departureTime || !body.appointmentTime) {
+    return badRequest('Informe a solicitação, a nova data, o horário da consulta e o horário de saída.')
   }
 
   const result = await updateRequestSchedule(
@@ -32,6 +33,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     body.requestId,
     body.travelDate,
     body.departureTime,
+    body.appointmentTime,
     body.note ?? '',
     session.operatorId,
   )
@@ -42,6 +44,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
 
   await writeAuditLog(env, session.operatorId, 'reschedule', 'travel_request', String(body.requestId), {
     travelDate: body.travelDate,
+    appointmentTime: body.appointmentTime,
     departureTime: body.departureTime,
     note: body.note ?? '',
   })

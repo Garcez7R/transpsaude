@@ -590,6 +590,7 @@ export function DashboardPage() {
                   <th>Destino</th>
                   <th>Unidade</th>
                   <th>Data</th>
+                  <th>Consulta</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -616,6 +617,10 @@ export function DashboardPage() {
                     <td>{request.treatmentUnit}</td>
                     <td>{formatDisplayDate(request.travelDate)}</td>
                     <td>
+                      <div>{request.appointmentTime || 'A definir'}</div>
+                      {request.departureTime ? <div className="table-note">Saída {request.departureTime}</div> : null}
+                    </td>
+                    <td>
                       <span className={`status-badge ${request.status}`}>
                         {labelByStatus[request.status]}
                       </span>
@@ -624,7 +629,7 @@ export function DashboardPage() {
                 ))}
                 {!loading && requests.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>Nenhuma solicitação encontrada para o filtro atual.</td>
+                    <td colSpan={7}>Nenhuma solicitação encontrada para o filtro atual.</td>
                   </tr>
                 ) : null}
               </tbody>

@@ -70,6 +70,15 @@ function formatPhone(value: string) {
   return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2')
 }
 
+function formatDisplayDate(value?: string) {
+  if (!value) {
+    return 'A definir'
+  }
+
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : value
+}
+
 export function AdminManagersPage() {
   const [session, setSession] = useState(() => (typeof window !== 'undefined' ? getAdminAreaSession() : null))
   const [cpf, setCpf] = useState('')
@@ -684,6 +693,7 @@ export function AdminManagersPage() {
                 <th>Paciente</th>
                 <th>Destino</th>
                 <th>Data</th>
+                <th>Consulta</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -693,13 +703,14 @@ export function AdminManagersPage() {
                   <td>{request.protocol}</td>
                   <td>{request.patientName}</td>
                   <td>{request.destinationCity}/{request.destinationState}</td>
-                  <td>{request.travelDate}</td>
+                  <td>{formatDisplayDate(request.travelDate)}</td>
+                  <td>{request.appointmentTime || 'A definir'}</td>
                   <td>{request.status}</td>
                 </tr>
               ))}
               {!loadingRequests && requests.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>Nenhuma solicitação encontrada para esse recorte.</td>
+                  <td colSpan={6}>Nenhuma solicitação encontrada para esse recorte.</td>
                 </tr>
               ) : null}
             </tbody>

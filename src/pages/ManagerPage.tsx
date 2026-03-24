@@ -15,6 +15,7 @@ type AssignmentState = Record<
     driverId: string
     vehicleId: string
     departureTime: string
+    appointmentTime: string
     managerNotes: string
     useCustomBoardingLocation: boolean
     boardingLocationName: string
@@ -26,6 +27,7 @@ const emptyAssignment = {
   driverId: '',
   vehicleId: '',
   departureTime: '',
+  appointmentTime: '',
   managerNotes: '',
   useCustomBoardingLocation: false,
   boardingLocationName: '',
@@ -172,6 +174,7 @@ export function ManagerPage() {
                 driverId: request.assignedDriverId ? String(request.assignedDriverId) : '',
                 vehicleId: request.assignedVehicleId ? String(request.assignedVehicleId) : '',
                 departureTime: request.departureTime ?? '',
+                appointmentTime: request.appointmentTime ?? '',
                 managerNotes: request.managerNotes ?? '',
                 useCustomBoardingLocation: request.useCustomBoardingLocation ?? false,
                 boardingLocationName: request.boardingLocationName ?? '',
@@ -232,6 +235,7 @@ export function ManagerPage() {
       | 'driverId'
       | 'vehicleId'
       | 'departureTime'
+      | 'appointmentTime'
       | 'managerNotes'
       | 'boardingLocationName'
       | 'useCustomBoardingLocation'
@@ -329,8 +333,8 @@ export function ManagerPage() {
   async function handleAssign(requestId: number) {
     const data = assignment[requestId]
 
-    if (!data?.driverId || !data.vehicleId || !data.departureTime) {
-      setError('Selecione um motorista, um veículo e informe o horário de saída.')
+    if (!data?.driverId || !data.vehicleId || !data.departureTime || !data.appointmentTime) {
+      setError('Selecione um motorista, um veículo, o horário da consulta e o horário de saída.')
       return
     }
 
@@ -349,6 +353,7 @@ export function ManagerPage() {
         driverId: Number(data.driverId),
         vehicleId: Number(data.vehicleId),
         departureTime: data.departureTime,
+        appointmentTime: data.appointmentTime,
         managerNotes: data.managerNotes,
         useCustomBoardingLocation: data.useCustomBoardingLocation,
         boardingLocationName: data.boardingLocationName,
@@ -749,6 +754,7 @@ export function ManagerPage() {
                       <span>Unidade: {request.treatmentUnit}</span>
                       <span>Motorista designado: {request.assignedDriverName || 'Não atribuído'}</span>
                       <span>Veículo da viagem: {request.assignedVehicleName || 'Não definido'}</span>
+                      <span>Horário da consulta: {request.appointmentTime || 'Não definido'}</span>
                       <span>Horário de saída: {request.departureTime || 'Não definido'}</span>
                       <span>Embarque: {request.boardingLocationLabel || request.addressLine || 'Não informado'}</span>
                       <span>Telefone do motorista ao paciente: {request.showDriverPhoneToPatient ? 'Visível' : 'Oculto'}</span>
@@ -798,6 +804,15 @@ export function ManagerPage() {
                             </option>
                           ))}
                         </select>
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`appointment-${request.id}`}>Horário da consulta</label>
+                        <input
+                          id={`appointment-${request.id}`}
+                          type="time"
+                          value={data.appointmentTime}
+                          onChange={(event) => updateAssignment(request.id, 'appointmentTime', event.target.value)}
+                        />
                       </div>
                       <div className="field">
                         <label htmlFor={`departure-${request.id}`}>Horário de saída</label>

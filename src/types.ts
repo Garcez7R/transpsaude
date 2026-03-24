@@ -32,6 +32,7 @@ export interface TravelRequest {
   treatmentUnit: string
   specialty: string
   travelDate: string
+  appointmentTime?: string
   requestedAt: string
   status: RequestStatus
   companionRequired: boolean
@@ -297,6 +298,7 @@ export interface AssignDriverInput {
   driverId: number
   vehicleId: number
   departureTime: string
+  appointmentTime: string
   managerNotes: string
   useCustomBoardingLocation: boolean
   boardingLocationName: string
@@ -313,6 +315,7 @@ export interface UpdateRequestScheduleInput {
   requestId: number
   travelDate: string
   departureTime: string
+  appointmentTime: string
   note: string
 }
 
@@ -354,6 +357,7 @@ export interface CreateTravelRequestInput {
   treatmentUnit: string
   specialty: string
   travelDate: string
+  appointmentTime: string
   companionRequired: boolean
   notes: string
 }

@@ -26,6 +26,7 @@ export function RequestDetailsPage() {
   const [status, setStatus] = useState<RequestStatus>('recebida')
   const [note, setNote] = useState('')
   const [scheduleDate, setScheduleDate] = useState('')
+  const [appointmentTime, setAppointmentTime] = useState('')
   const [scheduleTime, setScheduleTime] = useState('')
   const [scheduleNote, setScheduleNote] = useState('')
   const [messageType, setMessageType] = useState('general')
@@ -80,6 +81,7 @@ export function RequestDetailsPage() {
         setHistory(historyData)
         setStatus(requestData.status)
         setScheduleDate(requestData.travelDate)
+        setAppointmentTime(requestData.appointmentTime ?? '')
         setScheduleTime(requestData.departureTime ?? '')
         setShowDriverPhoneToPatient(requestData.showDriverPhoneToPatient ?? true)
       } catch {
@@ -147,6 +149,7 @@ export function RequestDetailsPage() {
         requestId: details.id,
         travelDate: scheduleDate,
         departureTime: scheduleTime,
+        appointmentTime,
         note: scheduleNote,
       }, 'operator')
 
@@ -155,6 +158,7 @@ export function RequestDetailsPage() {
       setDetails(requestData)
       setHistory(historyData)
       setScheduleDate(requestData.travelDate)
+      setAppointmentTime(requestData.appointmentTime ?? '')
       setScheduleTime(requestData.departureTime ?? '')
       setScheduleNote('')
       setMessage(result.message)
@@ -368,6 +372,10 @@ export function RequestDetailsPage() {
                 <dd>{details.travelDate}</dd>
               </div>
               <div>
+                <dt>Horário da consulta</dt>
+                <dd>{details.appointmentTime || 'Não definido'}</dd>
+              </div>
+              <div>
                 <dt>Motorista</dt>
                 <dd>{details.assignedDriverName || 'Não atribuído'}</dd>
               </div>
@@ -439,6 +447,10 @@ export function RequestDetailsPage() {
               <div>
                 <dt>Data da viagem</dt>
                 <dd>{details.travelDate}</dd>
+              </div>
+              <div>
+                <dt>Horário da consulta</dt>
+                <dd>{details.appointmentTime || 'A definir'}</dd>
               </div>
               <div>
                 <dt>Horário de saída</dt>
@@ -561,6 +573,16 @@ export function RequestDetailsPage() {
                         type="date"
                         value={scheduleDate}
                         onChange={(event) => setScheduleDate(event.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="schedule-appointment-time">Novo horário da consulta</label>
+                      <input
+                        id="schedule-appointment-time"
+                        type="time"
+                        value={appointmentTime}
+                        onChange={(event) => setAppointmentTime(event.target.value)}
                         required
                       />
                     </div>

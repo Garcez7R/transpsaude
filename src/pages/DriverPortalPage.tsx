@@ -322,6 +322,10 @@ export function DriverPortalPage() {
                   <dd>{trip.assignedVehicleName || session.vehicleName || 'Não definido'}</dd>
                 </div>
                 <div>
+                  <dt>Horário da consulta</dt>
+                  <dd>{trip.appointmentTime || 'A definir'}</dd>
+                </div>
+                <div>
                   <dt>Horário de saída</dt>
                   <dd>{trip.departureTime || 'A definir'}</dd>
                 </div>

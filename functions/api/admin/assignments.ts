@@ -13,14 +13,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     driverId?: number
     vehicleId?: number
     departureTime?: string
+    appointmentTime?: string
     managerNotes?: string
     useCustomBoardingLocation?: boolean
     boardingLocationName?: string
     showDriverPhoneToPatient?: boolean
   }
 
-  if (!body.requestId || !body.driverId || !body.vehicleId || !body.departureTime) {
-    return badRequest('Informe a solicitação, o motorista, o veículo e o horário de saída.')
+  if (!body.requestId || !body.driverId || !body.vehicleId || !body.departureTime || !body.appointmentTime) {
+    return badRequest('Informe a solicitação, o motorista, o veículo, o horário da consulta e o horário de saída.')
   }
 
   if (body.useCustomBoardingLocation && !body.boardingLocationName) {
@@ -93,12 +94,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
             assigned_vehicle_id = ?5,
             assigned_vehicle_name = ?6,
             departure_time = ?7,
-            manager_notes = ?8,
-            use_custom_boarding_location = ?9,
-            boarding_location_name = ?10,
+            appointment_time = ?8,
+            manager_notes = ?9,
+            use_custom_boarding_location = ?10,
+            boarding_location_name = ?11,
             scheduled_at = current_timestamp,
             updated_at = current_timestamp
-        where id = ?11
+        where id = ?12
       `,
     )
       .bind(
@@ -109,6 +111,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         vehicle.id,
         vehicle.name,
         body.departureTime,
+        body.appointmentTime ?? '',
         body.managerNotes ?? '',
         body.useCustomBoardingLocation ? 1 : 0,
         body.useCustomBoardingLocation ? body.boardingLocationName ?? '' : '',
@@ -122,7 +125,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       !message.includes('no such column: assigned_driver_phone') &&
       !message.includes('no such column: show_driver_phone_to_patient') &&
       !message.includes('no such column: assigned_vehicle_id') &&
-      !message.includes('no such column: assigned_vehicle_name')
+      !message.includes('no such column: assigned_vehicle_name') &&
+      !message.includes('no such column: appointment_time')
     ) {
       throw error
     }
@@ -133,18 +137,20 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         set assigned_driver_id = ?1,
             assigned_driver_name = ?2,
             departure_time = ?3,
-            manager_notes = ?4,
-            use_custom_boarding_location = ?5,
-            boarding_location_name = ?6,
+            appointment_time = ?4,
+            manager_notes = ?5,
+            use_custom_boarding_location = ?6,
+            boarding_location_name = ?7,
             scheduled_at = current_timestamp,
             updated_at = current_timestamp
-        where id = ?7
+        where id = ?8
       `,
     )
       .bind(
         body.driverId,
         driver.name,
         body.departureTime,
+        body.appointmentTime ?? '',
         body.managerNotes ?? '',
         body.useCustomBoardingLocation ? 1 : 0,
         body.useCustomBoardingLocation ? body.boardingLocationName ?? '' : '',
@@ -173,7 +179,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       travelRequest.protocol,
       String(travelRequest.status),
       statusLabels[String(travelRequest.status) as keyof typeof statusLabels] ?? String(travelRequest.status),
-      `Viagem direcionada para ${String(driver.name)} com o veículo ${String(vehicle.name)} e saída prevista às ${body.departureTime}. ${body.managerNotes ?? ''}`.trim(),
+      `Viagem direcionada para ${String(driver.name)} com o veículo ${String(vehicle.name)}, consulta às ${body.appointmentTime || 'a definir'} e saída prevista às ${body.departureTime}. ${body.managerNotes ?? ''}`.trim(),
       session.operatorId,
     )
     .run()
@@ -183,6 +189,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     driverName: String(driver.name),
     driverPhone: String(driver.phone ?? ''),
     vehicleName: String(vehicle.name),
+    appointmentTime: body.appointmentTime ?? '',
     departureTime: body.departureTime,
     boardingLocationName: body.useCustomBoardingLocation ? body.boardingLocationName ?? '' : 'endereco_paciente',
     showDriverPhoneToPatient: body.showDriverPhoneToPatient === false ? 0 : 1,

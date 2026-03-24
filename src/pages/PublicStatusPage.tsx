@@ -79,6 +79,10 @@ function formatDisplayDateTime(date?: string, time?: string) {
   return `${formattedDate} às ${time}`
 }
 
+function formatDisplayTime(value?: string) {
+  return value || 'A definir'
+}
+
 function formatCitizenHistory(entry: PublicRequestDetails['history'][number]) {
   const note = entry.note?.trim()
 
@@ -407,6 +411,7 @@ export function PublicStatusPage() {
                 {' '}
                 <strong>{getBoardingLocation(request)}</strong>.
               </p>
+              {request.appointmentTime ? <p>Consulta prevista às <strong>{request.appointmentTime}</strong>.</p> : null}
               {isMeaningfulValue(request.boardingLocationLabel || request.addressLine) ? (
                 <div className="form-actions">
                   <a className="action-button secondary" href={buildMapsUrl(getBoardingLocation(request))} rel="noreferrer" target="_blank">
@@ -470,6 +475,10 @@ export function PublicStatusPage() {
                 <div>
                   <dt>Data prevista</dt>
                   <dd>{formatDisplayDate(request.travelDate)}</dd>
+                </div>
+                <div>
+                  <dt>Horário da consulta</dt>
+                  <dd>{formatDisplayTime(request.appointmentTime)}</dd>
                 </div>
                 <div>
                   <dt>Horário de saída</dt>

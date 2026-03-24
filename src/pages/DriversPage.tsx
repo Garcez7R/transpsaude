@@ -945,6 +945,7 @@ export function DriversPage() {
                       <span className={`status-badge ${trip.status}`}>{trip.status}</span>
                     </div>
                     <div className="assignment-meta">
+                      <span>Consulta: {trip.travelDate} {trip.appointmentTime ? `às ${trip.appointmentTime}` : ''}</span>
                       <span>Saída: {trip.travelDate} {trip.departureTime ? `às ${trip.departureTime}` : ''}</span>
                       <span>Embarque: {trip.boardingLocationLabel || trip.addressLine || 'Não informado'}</span>
                       <span>Acompanhante: {trip.companionRequired ? trip.companionName || 'Sim' : 'Não'}</span>

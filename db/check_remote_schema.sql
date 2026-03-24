@@ -61,6 +61,7 @@ select
   patient_confirmed_at,
   patient_last_viewed_at,
   patient_last_message_seen_at,
+  appointment_time,
   departure_time,
   use_custom_boarding_location,
   boarding_location_name,

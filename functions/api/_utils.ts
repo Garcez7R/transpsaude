@@ -113,6 +113,11 @@ function hasMissingPatientViewColumns(error: unknown) {
   )
 }
 
+function hasMissingAppointmentTimeColumn(error: unknown) {
+  const message = error instanceof Error ? error.message : ''
+  return message.includes('no such column: tr.appointment_time') || message.includes('no such column: appointment_time')
+}
+
 function hasMissingMessageRoleColumn(error: unknown) {
   const message = error instanceof Error ? error.message : ''
   return message.includes('no such column: rm.created_by_role') || message.includes('no such column: created_by_role')
@@ -562,6 +567,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       tr.treatment_unit as treatmentUnit,
       tr.specialty,
       tr.travel_date as travelDate,
+      tr.appointment_time as appointmentTime,
       tr.requested_at as requestedAt,
       tr.status,
       tr.companion_required as companionRequired,
@@ -610,6 +616,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       tr.treatment_unit as treatmentUnit,
       tr.specialty,
       tr.travel_date as travelDate,
+      '' as appointmentTime,
       tr.requested_at as requestedAt,
       tr.status,
       tr.companion_required as companionRequired,
@@ -708,7 +715,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
     const statement = params.length > 0 ? prepared.bind(...params) : prepared
     result = await statement.all()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingMessageRoleColumn(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingAppointmentTimeColumn(error) || hasMissingMessageRoleColumn(error))) {
       throw error
     }
 
@@ -856,6 +863,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
         tr.treatment_unit as treatmentUnit,
         tr.specialty,
         tr.travel_date as travelDate,
+        tr.appointment_time as appointmentTime,
         tr.requested_at as requestedAt,
         tr.status,
         tr.companion_required as companionRequired,
@@ -879,7 +887,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       .bind(patientAccess.id)
       .all<Record<string, unknown>>()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingAppointmentTimeColumn(error))) {
       throw error
     }
 
@@ -901,6 +909,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
           tr.treatment_unit as treatmentUnit,
           tr.specialty,
           tr.travel_date as travelDate,
+          '' as appointmentTime,
           tr.requested_at as requestedAt,
           tr.status,
           tr.companion_required as companionRequired,
@@ -1292,6 +1301,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
         tr.treatment_unit as treatmentUnit,
         tr.specialty,
         tr.travel_date as travelDate,
+        tr.appointment_time as appointmentTime,
         tr.requested_at as requestedAt,
         tr.status,
         tr.companion_required as companionRequired,
@@ -1316,13 +1326,13 @@ export async function listDriverTrips(env: Env, driverId: number) {
       from travel_requests tr
       inner join patients p on p.id = tr.patient_id
       where tr.assigned_driver_id = ?1
-      order by travel_date asc, departure_time asc, created_at desc
+      order by travel_date asc, appointment_time asc, departure_time asc, created_at desc
     `,
     )
       .bind(driverId)
       .all()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingAppointmentTimeColumn(error))) {
       throw error
     }
 
@@ -1344,6 +1354,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
           tr.treatment_unit as treatmentUnit,
           tr.specialty,
           tr.travel_date as travelDate,
+          '' as appointmentTime,
           tr.requested_at as requestedAt,
           tr.status,
           tr.companion_required as companionRequired,
@@ -1420,6 +1431,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
         tr.treatment_unit as treatmentUnit,
         tr.specialty,
         tr.travel_date as travelDate,
+        tr.appointment_time as appointmentTime,
         tr.requested_at as requestedAt,
         tr.status,
         tr.companion_required as companionRequired,
@@ -1448,7 +1460,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
       .bind(requestId)
       .first<Record<string, unknown>>()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingAppointmentTimeColumn(error))) {
       throw error
     }
 
@@ -1476,6 +1488,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
           tr.treatment_unit as treatmentUnit,
           tr.specialty,
           tr.travel_date as travelDate,
+          '' as appointmentTime,
           tr.requested_at as requestedAt,
           tr.status,
           tr.companion_required as companionRequired,
@@ -1841,6 +1854,7 @@ export async function updateRequestSchedule(
   requestId: number,
   travelDate: string,
   departureTime: string,
+  appointmentTime: string,
   note: string,
   operatorId = 1,
 ) {
@@ -1867,17 +1881,18 @@ export async function updateRequestSchedule(
       update travel_requests
       set travel_date = ?1,
           departure_time = ?2,
+          appointment_time = ?3,
           updated_at = current_timestamp
-      where id = ?3
+      where id = ?4
     `,
   )
-    .bind(travelDate, departureTime, requestId)
+    .bind(travelDate, departureTime, appointmentTime, requestId)
     .run()
 
   const nextOrder = await getNextHistoryOrder(db, requestId)
   const noteText = note?.trim()
-    ? `Viagem reagendada para ${travelDate} as ${departureTime}. ${note.trim()}`
-    : `Viagem reagendada para ${travelDate} as ${departureTime}.`
+    ? `Viagem reagendada para ${travelDate} com consulta às ${appointmentTime || 'a definir'} e saída às ${departureTime}. ${note.trim()}`
+    : `Viagem reagendada para ${travelDate} com consulta às ${appointmentTime || 'a definir'} e saída às ${departureTime}.`
 
   await db.prepare(
     `
@@ -1898,7 +1913,7 @@ export async function updateRequestSchedule(
     .run()
 
   return {
-    message: `Viagem reagendada para ${travelDate} as ${departureTime}.`,
+    message: `Viagem reagendada para ${travelDate} com consulta às ${appointmentTime || 'a definir'} e saída às ${departureTime}.`,
   }
 }
 

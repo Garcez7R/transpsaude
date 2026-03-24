@@ -66,11 +66,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     treatmentUnit?: string
     specialty?: string
     travelDate?: string
+    appointmentTime?: string
     companionRequired?: boolean
     notes?: string
   }
 
-  if (!body.patientName || !body.cpf || !body.phone || !body.addressLine || !body.accessCpf || !body.destinationCity || !body.destinationState || !body.treatmentUnit || !body.specialty || !body.travelDate) {
+  if (!body.patientName || !body.cpf || !body.phone || !body.addressLine || !body.accessCpf || !body.destinationCity || !body.destinationState || !body.treatmentUnit || !body.specialty || !body.travelDate || !body.appointmentTime) {
     return badRequest('Preencha os campos obrigatórios da solicitação.')
   }
 
@@ -230,6 +231,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         specialty,
         requested_at,
         travel_date,
+        appointment_time,
         status,
         companion_required,
         notes,
@@ -253,10 +255,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         ?14,
         date('now'),
         ?15,
-        'agendada',
         ?16,
+        'agendada',
         ?17,
-        ?18
+        ?18,
+        ?19
       )
     `,
   )
@@ -276,6 +279,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       body.treatmentUnit,
       body.specialty,
       body.travelDate,
+      body.appointmentTime,
       body.companionRequired ? 1 : 0,
       body.notes ?? '',
       session.operatorId,
@@ -299,6 +303,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     destinationCity: body.destinationCity,
     treatmentUnit: body.treatmentUnit,
     travelDate: body.travelDate,
+    appointmentTime: body.appointmentTime,
   })
 
   if (createdRequest?.id) {

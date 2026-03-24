@@ -63,6 +63,7 @@ create table if not exists travel_requests (
   specialty text not null,
   requested_at text not null,
   travel_date text not null,
+  appointment_time text,
   status text not null,
   companion_required integer not null default 0,
   assigned_driver_id integer,

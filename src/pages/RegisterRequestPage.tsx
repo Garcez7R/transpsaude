@@ -29,6 +29,7 @@ const initialForm: CreateTravelRequestInput = {
   treatmentUnit: '',
   specialty: '',
   travelDate: '',
+  appointmentTime: '',
   companionRequired: false,
   notes: '',
 }
@@ -92,6 +93,7 @@ export function RegisterRequestPage() {
     form.cpf.replace(/\D/g, '').length !== 11 ? 'Preencha o CPF do paciente com 11 dígitos.' : null,
     form.phone.replace(/\D/g, '').length < 10 ? 'Informe um telefone válido do paciente.' : null,
     !form.addressLine.trim() ? 'Informe o endereço completo do paciente.' : null,
+    !form.appointmentTime ? 'Informe o horário da consulta para organizar a ordem dos pacientes.' : null,
     form.useResponsibleCpfForAccess && form.responsibleCpf.replace(/\D/g, '').length !== 11
       ? 'Quando o acesso usa o responsável, o CPF do responsável deve estar completo.'
       : null,
@@ -109,6 +111,7 @@ export function RegisterRequestPage() {
     destination: form.destinationCity.trim() ? `${form.destinationCity}/${form.destinationState || 'RS'}` : 'Destino a definir',
     treatmentUnit: form.treatmentUnit.trim() || 'Unidade a definir',
     travelDate: form.travelDate || 'Data a definir',
+    appointmentTime: form.appointmentTime || 'Horário da consulta a definir',
     companion: form.companionRequired ? form.companionName.trim() || 'Acompanhante necessário' : 'Não necessário',
   }
 
@@ -295,6 +298,16 @@ export function RegisterRequestPage() {
                 <label htmlFor="travel-date">Data da viagem</label>
                 <input id="travel-date" type="date" value={form.travelDate} onChange={(event) => updateField('travelDate', event.target.value)} required />
               </div>
+              <div className="field">
+                <label htmlFor="appointment-time">Horário da consulta</label>
+                <input
+                  id="appointment-time"
+                  type="time"
+                  value={form.appointmentTime}
+                  onChange={(event) => updateField('appointmentTime', event.target.value)}
+                  required
+                />
+              </div>
               <div className="field full">
                 <label htmlFor="notes-register">Observações</label>
                 <textarea id="notes-register" value={form.notes} onChange={(event) => updateField('notes', event.target.value)} placeholder="Documentos apresentados, orientações ou observações internas" rows={5} />
@@ -333,6 +346,10 @@ export function RegisterRequestPage() {
               <div>
                 <dt>Data da viagem</dt>
                 <dd>{liveSummary.travelDate}</dd>
+              </div>
+              <div>
+                <dt>Horário da consulta</dt>
+                <dd>{liveSummary.appointmentTime}</dd>
               </div>
               <div>
                 <dt>Acompanhante</dt>
@@ -390,10 +407,11 @@ export function RegisterRequestPage() {
             <article className="content-card">
               <h2>O que acontece depois</h2>
               <ul className="check-list">
-                <li>Solicitação nasce com status `agendada`</li>
-                <li>Mensagens e confirmação do paciente ficam disponíveis no detalhe da solicitação</li>
-                <li>Cidadão ou responsável consulta andamento no PWA com CPF de acesso e PIN</li>
-              </ul>
+              <li>Solicitação nasce com status `agendada`</li>
+              <li>Horário da consulta fica salvo para organizar melhor a ordem dos pacientes</li>
+              <li>Mensagens e confirmação do paciente ficam disponíveis no detalhe da solicitação</li>
+              <li>Cidadão ou responsável consulta andamento no PWA com CPF de acesso e PIN</li>
+            </ul>
             </article>
           )}
         </aside>
