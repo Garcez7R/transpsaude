@@ -1,9 +1,17 @@
 const lowerWords = new Set(['da', 'de', 'do', 'das', 'dos', 'e'])
 
 export function toTitleCase(value: string) {
-  return value
-    .trim()
+  const withoutLeadingSpaces = value.replace(/^\s+/g, '')
+  const hasTrailingSpace = /\s$/.test(withoutLeadingSpaces)
+  const collapsed = withoutLeadingSpaces
     .replace(/\s+/g, ' ')
+    .replace(/\s$/g, '')
+
+  if (!collapsed) {
+    return ''
+  }
+
+  const formatted = collapsed
     .split(' ')
     .map((word, index) => {
       const lower = word.toLowerCase()
@@ -19,6 +27,8 @@ export function toTitleCase(value: string) {
       return lower.charAt(0).toUpperCase() + lower.slice(1)
     })
     .join(' ')
+
+  return hasTrailingSpace ? `${formatted} ` : formatted
 }
 
 export function toInstitutionalText(value: string) {
