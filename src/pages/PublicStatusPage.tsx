@@ -1,4 +1,4 @@
-import { KeyRound, Search, ShieldCheck } from 'lucide-react'
+import { CalendarClock, Copy, KeyRound, Phone, Printer, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { activateCitizenPin, confirmCitizenRequest, createCitizenRequestMessage, loginCitizen, markCitizenRequestViewed } from '../lib/api'
 import { toInstitutionalText } from '../lib/text-format'
@@ -83,6 +83,21 @@ function formatDisplayTime(value?: string) {
   return value || 'A definir'
 }
 
+function formatDisplayTimestamp(value?: string | null) {
+  if (!value) {
+    return ''
+  }
+
+  const normalized = value.replace('T', ' ')
+  const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
+
+  if (!match) {
+    return value
+  }
+
+  return `${match[3]}/${match[2]}/${match[1]} às ${match[4]}:${match[5]}`
+}
+
 function formatCitizenHistory(entry: PublicRequestDetails['history'][number]) {
   const note = entry.note?.trim()
 
@@ -94,6 +109,10 @@ function formatCitizenHistory(entry: PublicRequestDetails['history'][number]) {
     .replace(/^solicitacao cadastrada pelo painel interno\.?$/i, 'Solicitação registrada pela equipe responsável.')
     .replace(/^viagem direcionada para .* com saida prevista as (.+)\.?$/i, 'Motorista definido e saída prevista para $1.')
     .replace(/^viagem direcionada para .* com saída prevista às (.+)\.?$/i, 'Motorista definido e saída prevista para $1.')
+    .replace(
+      /^viagem direcionada para .* consulta às (.+) e saída prevista às (.+)\.?$/i,
+      'Consulta prevista para $1 e saída organizada para $2.',
+    )
 }
 
 function isMeaningfulValue(value?: string | null) {
@@ -126,6 +145,22 @@ function getGreetingName(value?: string | null) {
   return isMeaningfulValue(value) ? String(value).trim() : ''
 }
 
+const secretaryContact = {
+  phone: '',
+  whatsapp: '',
+  hours: 'Atendimento em horário administrativo da prefeitura.',
+}
+
+const statusSupportText: Record<PublicRequestDetails['status'], string> = {
+  recebida: 'Sua solicitação foi registrada pela equipe e aguarda os próximos encaminhamentos.',
+  em_analise: 'A equipe está conferindo os dados e a necessidade do transporte.',
+  aguardando_documentos: 'Ainda faltam documentos ou informações para concluir a análise.',
+  aprovada: 'A solicitação foi aprovada e aguarda a organização final da viagem.',
+  agendada: 'Sua viagem já está organizada e disponível para acompanhamento.',
+  cancelada: 'Esta solicitação foi cancelada. Em caso de dúvida, procure a equipe responsável.',
+  concluida: 'Esta viagem já foi concluída.',
+}
+
 export function PublicStatusPage() {
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
@@ -137,6 +172,7 @@ export function PublicStatusPage() {
   const [sendingMessage, setSendingMessage] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [copyMessage, setCopyMessage] = useState('')
   const [citizenMessageTitle, setCitizenMessageTitle] = useState('')
   const [citizenMessageBody, setCitizenMessageBody] = useState('')
 
@@ -146,6 +182,10 @@ export function PublicStatusPage() {
     access?.request ??
     null
   const greetingName = getGreetingName(access?.patientName || request?.patientName)
+  const driverPhoneVisible =
+    !!request?.showDriverPhoneToPatient &&
+    isMeaningfulValue(request?.assignedDriverPhone)
+  const latestTeamMessage = request?.messages.find((entry) => entry.createdByRole !== 'patient') ?? null
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -248,6 +288,21 @@ export function PublicStatusPage() {
       // O acompanhamento continua funcionando mesmo sem o registro de leitura.
     })
   }, [access?.mustChangePin, cpf, password, request])
+
+  async function handleCopyDriverPhone() {
+    if (!request?.assignedDriverPhone || typeof navigator === 'undefined' || !navigator.clipboard) {
+      return
+    }
+
+    await navigator.clipboard.writeText(request.assignedDriverPhone)
+    setCopyMessage('Telefone do motorista copiado.')
+  }
+
+  function handlePrint() {
+    if (typeof window !== 'undefined') {
+      window.print()
+    }
+  }
 
   return (
     <div className="public-shell">
@@ -422,13 +477,39 @@ export function PublicStatusPage() {
                 {' '}
                 <strong>{getBoardingLocation(request)}</strong>.
               </p>
-              {isMeaningfulValue(request.boardingLocationLabel || request.addressLine) ? (
-                <div className="form-actions">
+              <div className="travel-actions">
+                {isMeaningfulValue(request.boardingLocationLabel || request.addressLine) ? (
                   <a className="action-button secondary" href={buildMapsUrl(getBoardingLocation(request))} rel="noreferrer" target="_blank">
                     Abrir no mapa
                   </a>
-                </div>
-              ) : null}
+                ) : null}
+                {driverPhoneVisible ? (
+                  <a className="action-button secondary" href={`tel:${String(request.assignedDriverPhone).replace(/\D/g, '')}`}>
+                    <Phone size={16} />
+                    Ligar para o motorista
+                  </a>
+                ) : null}
+                {driverPhoneVisible ? (
+                  <button className="action-button secondary" type="button" onClick={() => void handleCopyDriverPhone()}>
+                    <Copy size={16} />
+                    Copiar telefone
+                  </button>
+                ) : null}
+                <button className="action-button secondary" type="button" onClick={handlePrint}>
+                  <Printer size={16} />
+                  Imprimir agenda
+                </button>
+              </div>
+              {copyMessage ? <p className="table-note">{copyMessage}</p> : null}
+            </article>
+
+            <article className="public-card public-status-card">
+              <div className="eyebrow">
+                <CalendarClock size={16} />
+                Situação da viagem
+              </div>
+              <h2>{request.statusLabel}</h2>
+              <p>{statusSupportText[request.status]}</p>
             </article>
 
             <article className={`public-card ${request.patientConfirmedAt ? 'confirmation-highlight' : ''}`}>
@@ -457,11 +538,31 @@ export function PublicStatusPage() {
                 <span className="status-pill">Protocolo {request.protocol}</span>
               </div>
               <h2>Detalhes da viagem</h2>
+              <div className="travel-overview-grid">
+                <article className="travel-overview-card">
+                  <span>Saída</span>
+                  <strong>{request.departureTime || 'A definir'}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Consulta</span>
+                  <strong>{formatDisplayTime(request.appointmentTime)}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Embarque</span>
+                  <strong>{getBoardingLocation(request)}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Motorista</span>
+                  <strong>{getDisplayValue(request.assignedDriverName, 'A definir')}</strong>
+                </article>
+              </div>
               <dl className="request-summary">
-                <div>
-                  <dt>Paciente</dt>
-                  <dd>{getDisplayValue(request.patientName)}</dd>
-                </div>
+                {isMeaningfulValue(request.patientName) ? (
+                  <div>
+                    <dt>Paciente</dt>
+                    <dd>{request.patientName}</dd>
+                  </div>
+                ) : null}
                 <div>
                   <dt>CPF de acesso</dt>
                   <dd>{access?.cpfMasked ?? request.accessCpfMasked ?? 'Não informado'}</dd>
@@ -511,7 +612,7 @@ export function PublicStatusPage() {
                   <dd>
                     {request.showDriverPhoneToPatient && request.assignedDriverPhone
                       ? request.assignedDriverPhone
-                      : 'Não informado'}
+                      : 'Contato não liberado para esta agenda'}
                   </dd>
                 </div>
                 <div>
@@ -521,13 +622,24 @@ export function PublicStatusPage() {
               </dl>
             </article>
 
+            {latestTeamMessage ? (
+              <article className="public-card message-highlight">
+                <div className="eyebrow">
+                  <ShieldCheck size={16} />
+                  Nova orientação da equipe
+                </div>
+                <h2>{latestTeamMessage.title || 'Atualização da solicitação'}</h2>
+                <p>{latestTeamMessage.body}</p>
+              </article>
+            ) : null}
+
             <article className="public-card">
               <h2>Orientações da equipe</h2>
               {request.messages.length > 0 ? (
                 <ol className="status-history">
                   {request.messages.map((entry) => (
                     <li key={`public-message-${entry.id}`}>
-                      <strong>{entry.title || 'Atualização da solicitação'}</strong> em {entry.createdAt}
+                      <strong>{entry.title || 'Atualização da solicitação'}</strong> em {formatDisplayTimestamp(entry.createdAt)}
                       {' '}por {entry.createdByRole === 'patient' ? 'você' : entry.createdByName}
                       <br />
                       {entry.body}
@@ -578,7 +690,7 @@ export function PublicStatusPage() {
               <ol className="status-history">
                 {request.history.map((entry) => (
                   <li key={`${entry.status}-${entry.updatedAt}`}>
-                    <strong>{entry.label}</strong> em {entry.updatedAt}
+                    <strong>{entry.label}</strong> em {formatDisplayTimestamp(entry.updatedAt)}
                     {formatCitizenHistory(entry) ? ` - ${formatCitizenHistory(entry)}` : ''}
                   </li>
                 ))}
@@ -589,9 +701,23 @@ export function PublicStatusPage() {
           <article className="empty-state">
             <Search size={28} />
             <h2>Nenhuma consulta realizada ainda</h2>
-            <p>Após o atendimento presencial, utilize esta área para acompanhar suas solicitações de transporte em saúde.</p>
+            <p>Depois do atendimento presencial, esta área passa a mostrar suas agendas, orientações da equipe e dados da viagem.</p>
+            <p className="table-note">Se precisar de ajuda, procure a equipe responsável pelo transporte em saúde.</p>
           </article>
         )}
+
+        <article className="public-card public-privacy-card">
+          <h2>Contato da secretaria</h2>
+          <p>
+            Em caso de dúvida, alteração importante ou impossibilidade de comparecimento,
+            procure a equipe responsável pelo transporte em saúde.
+          </p>
+          <ul className="check-list compact-list">
+            <li>Telefone institucional: {secretaryContact.phone || 'A definir pela prefeitura'}</li>
+            <li>WhatsApp institucional: {secretaryContact.whatsapp || 'A definir pela prefeitura'}</li>
+            <li>Horário de atendimento: {secretaryContact.hours}</li>
+          </ul>
+        </article>
 
         <article className="public-card public-privacy-card">
           <h2>Privacidade e uso das informações</h2>

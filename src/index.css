@@ -762,6 +762,11 @@ th {
   background: rgba(248, 249, 248, 0.82);
 }
 
+.public-status-card,
+.message-highlight {
+  border-color: rgba(22, 133, 83, 0.18);
+}
+
 .request-summary {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -801,6 +806,48 @@ th {
 .request-list {
   display: grid;
   gap: 12px;
+}
+
+.travel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.travel-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 18px 0 22px;
+}
+
+.travel-overview-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(22, 133, 83, 0.07);
+  border: 1px solid rgba(22, 133, 83, 0.1);
+}
+
+.travel-overview-card span {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.travel-overview-card strong {
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.compact-list {
+  margin: 0;
+}
+
+.compact-list li {
+  margin-bottom: 8px;
 }
 
 .request-list-header {
@@ -938,6 +985,12 @@ th {
     var(--surface-strong);
 }
 
+.message-highlight {
+  background:
+    linear-gradient(135deg, rgba(212, 171, 24, 0.14), rgba(255, 255, 255, 0.96)),
+    var(--surface-strong);
+}
+
 .update-highlight {
   background:
     linear-gradient(135deg, rgba(212, 171, 24, 0.22), rgba(22, 133, 83, 0.08)),
@@ -971,6 +1024,13 @@ th {
   color: var(--text);
 }
 
+.public-card p,
+.request-card p,
+.status-history li,
+.request-summary dd {
+  line-height: 1.55;
+}
+
 @media (max-width: 980px) {
   .hero-panel,
   .auth-shell,
@@ -980,7 +1040,8 @@ th {
   .timeline,
   .status-grid,
   .request-summary,
-  .form-grid {
+  .form-grid,
+  .travel-overview-grid {
     grid-template-columns: 1fr;
   }
 
