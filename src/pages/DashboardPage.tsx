@@ -477,14 +477,20 @@ export function DashboardPage() {
         <div className="content-card">
           <div className="filter-stack">
             <form className="filter-stack" onSubmit={handleFilterSubmit}>
-              <div className="field">
+              <div className="field full operator-search-row">
                 <label htmlFor="request-search">Buscar</label>
-                <input
-                  id="request-search"
-                  value={draftFilters.search}
-                  onChange={(event) => updateDraftFilter('search', normalizeSearchInput(event.target.value))}
-                  placeholder="CPF, nome, protocolo ou unidade..."
-                />
+                <div className="operator-search-inline">
+                  <input
+                    id="request-search"
+                    value={draftFilters.search}
+                    onChange={(event) => updateDraftFilter('search', normalizeSearchInput(event.target.value))}
+                    placeholder="CPF, nome, protocolo ou unidade..."
+                  />
+                  <button className="action-button primary" type="submit">
+                    <Search size={16} />
+                    Buscar
+                  </button>
+                </div>
               </div>
               <div className="field">
                 <label htmlFor="request-date-filter">Data da viagem</label>
@@ -536,11 +542,7 @@ export function DashboardPage() {
                   ))}
                 </select>
               </div>
-              <div className="form-actions">
-                <button className="action-button primary" type="submit">
-                  <Search size={16} />
-                  Buscar
-                </button>
+              <div className="form-actions operator-filter-actions">
                 <button
                   className="action-button secondary"
                   type="button"
@@ -552,19 +554,17 @@ export function DashboardPage() {
                   <Filter size={16} />
                   Limpar filtros
                 </button>
+                <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('today')}>
+                  Hoje
+                </button>
+                <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
+                  Amanhã
+                </button>
+                <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('week')}>
+                  Esta semana
+                </button>
               </div>
             </form>
-          </div>
-          <div className="filter-actions">
-            <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('today')}>
-              Hoje
-            </button>
-            <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
-              Amanhã
-            </button>
-            <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('week')}>
-              Esta semana
-            </button>
           </div>
 
           <div className="status-line">
@@ -575,62 +575,65 @@ export function DashboardPage() {
             {error ? <span className="status-pill">{error}</span> : null}
           </div>
 
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Protocolo</th>
-                  <th>Paciente</th>
-                  <th>Destino</th>
-                  <th>Unidade</th>
-                  <th>Data</th>
-                  <th>Consulta</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {requests.map((request) => (
-                  <tr key={request.id}>
-                    <td>
+          {loading ? (
+            <p className="table-note">Carregando solicitações...</p>
+          ) : requests.length > 0 ? (
+            <div className="assignment-list scroll-list">
+              {requests.map((request) => (
+                <article className="assignment-card operator-request-card" key={request.id}>
+                  <div className="assignment-header">
+                    <div>
                       <Link className="inline-link" to={`/operador/solicitacoes/${request.id}`}>
                         {request.protocol}
                       </Link>
-                    </td>
-                    <td>
+                      <p className="table-note">
+                        {formatDisplayDate(request.travelDate)} • {request.destinationCity}/{request.destinationState}
+                      </p>
+                    </div>
+                    <span className={`status-badge ${request.status}`}>
+                      {labelByStatus[request.status]}
+                    </span>
+                  </div>
+
+                  <div className="travel-overview-grid">
+                    <article className="travel-overview-card">
+                      <span>Paciente</span>
                       <strong>{request.patientName}</strong>
-                      <div className="table-note">{request.cpfMasked}</div>
-                      <div className="table-note">{request.appointmentTime ? `Consulta às ${request.appointmentTime}` : 'Consulta a definir'}</div>
-                      <div className="status-pill-row" style={{ marginTop: '8px' }}>
-                        {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada</span> : null}
-                        {request.patientLastViewedAt ? <span className="status-pill-live">Lida</span> : null}
-                        {Number(request.patientMessageCount ?? 0) > 0 ? <span className="update-badge">Paciente escreveu</span> : null}
-                      </div>
-                    </td>
-                    <td>
-                      {request.destinationCity}/{request.destinationState}
-                    </td>
-                    <td>{request.treatmentUnit}</td>
-                    <td>{formatDisplayDate(request.travelDate)}</td>
-                    <td>
-                      <div>{request.appointmentTime || 'A definir'}</div>
-                      {request.departureTime ? <div className="table-note">Saída {request.departureTime}</div> : null}
-                      {request.boardingLocationLabel || request.addressLine ? <div className="table-note">Embarque {request.boardingLocationLabel || request.addressLine}</div> : null}
-                    </td>
-                    <td>
-                      <span className={`status-badge ${request.status}`}>
-                        {labelByStatus[request.status]}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {!loading && requests.length === 0 ? (
-                  <tr>
-                    <td colSpan={7}>Nenhuma solicitação encontrada para o filtro atual.</td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
+                    </article>
+                    <article className="travel-overview-card">
+                      <span>Consulta</span>
+                      <strong>{request.appointmentTime || 'A definir'}</strong>
+                    </article>
+                    <article className="travel-overview-card">
+                      <span>Saída</span>
+                      <strong>{request.departureTime || 'A definir'}</strong>
+                    </article>
+                    <article className="travel-overview-card">
+                      <span>Embarque</span>
+                      <strong>{request.boardingLocationLabel || request.addressLine || 'Não informado'}</strong>
+                    </article>
+                  </div>
+
+                  <div className="assignment-meta">
+                    <span>CPF: {request.cpfMasked}</span>
+                    <span>Unidade: {request.treatmentUnit}</span>
+                    <span>Destino: {request.destinationCity}/{request.destinationState}</span>
+                    {request.patientConfirmedAt ? <span>Agenda confirmada pelo paciente</span> : null}
+                    {request.patientLastViewedAt ? <span>Consulta pública já visualizada</span> : null}
+                    {Number(request.patientMessageCount ?? 0) > 0 ? <span>Paciente enviou mensagem</span> : null}
+                  </div>
+
+                  <div className="status-pill-row">
+                    {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada</span> : null}
+                    {request.patientLastViewedAt ? <span className="status-pill-live">Lida</span> : null}
+                    {Number(request.patientMessageCount ?? 0) > 0 ? <span className="update-badge">Paciente escreveu</span> : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="table-note">Nenhuma solicitação encontrada para o filtro atual.</p>
+          )}
         </div>
 
         <aside className="dashboard-side">

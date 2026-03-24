@@ -261,6 +261,16 @@ button {
   max-width: 560px;
 }
 
+.operator-search-inline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.operator-filter-actions {
+  align-items: center;
+}
+
 .filter-actions {
   margin-top: 14px;
   display: flex;
@@ -953,6 +963,10 @@ th {
   background: rgba(255, 255, 255, 0.88);
 }
 
+.operator-request-card .inline-link {
+  font-size: 1rem;
+}
+
 .assignment-header,
 .assignment-meta {
   display: flex;
@@ -1042,6 +1056,10 @@ th {
   .request-summary,
   .form-grid,
   .travel-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .operator-search-inline {
     grid-template-columns: 1fr;
   }
 
