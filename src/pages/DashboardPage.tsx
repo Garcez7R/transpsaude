@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { activateAdminPassword, loginAdmin, fetchDashboardSummary, fetchRequests, logoutSession } from '../lib/api'
 import { canAccessOperator, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { clearOperatorSession, getOperatorSession, saveOperatorSession } from '../lib/operator-session'
+import { toInstitutionalText } from '../lib/text-format'
 import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } from '../types'
 
 const statusOptions: Array<{ value: RequestStatus | 'todos'; label: string }> = [
@@ -35,6 +36,30 @@ function formatCpf(value: string) {
     .replace(/\.(\d{3})(\d)/, '.$1-$2')
 }
 
+function normalizeSearchInput(value: string) {
+  const trimmed = value.trimStart()
+  const digits = trimmed.replace(/\D/g, '')
+
+  if (trimmed.toUpperCase().startsWith('TS')) {
+    return trimmed.toUpperCase()
+  }
+
+  if (digits.length > 0 && digits.length <= 11 && /^[\d.\- ]+$/.test(trimmed)) {
+    return formatCpf(trimmed)
+  }
+
+  return toInstitutionalText(trimmed)
+}
+
+const initialFilters = {
+  status: 'todos' as RequestStatus | 'todos',
+  search: '',
+  travelDate: '',
+  dateFrom: '',
+  dateTo: '',
+  destination: '',
+}
+
 export function DashboardPage() {
   const [session, setSession] = useState<AdminSession | null>(null)
   const [cpf, setCpf] = useState('')
@@ -46,12 +71,8 @@ export function DashboardPage() {
 
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [requests, setRequests] = useState<TravelRequest[]>([])
-  const [selectedStatus, setSelectedStatus] = useState<RequestStatus | 'todos'>('todos')
-  const [search, setSearch] = useState('')
-  const [travelDate, setTravelDate] = useState('')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
-  const [destination, setDestination] = useState('')
+  const [draftFilters, setDraftFilters] = useState(initialFilters)
+  const [filters, setFilters] = useState(initialFilters)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -74,12 +95,12 @@ export function DashboardPage() {
         const [dashboardData, requestsData] = await Promise.all([
           fetchDashboardSummary('operator'),
           fetchRequests({
-            status: selectedStatus,
-            search,
-            travelDate,
-            dateFrom,
-            dateTo,
-            destination,
+            status: filters.status,
+            search: filters.search,
+            travelDate: filters.travelDate,
+            dateFrom: filters.dateFrom,
+            dateTo: filters.dateTo,
+            destination: filters.destination,
           }, 'operator'),
         ])
 
@@ -107,16 +128,27 @@ export function DashboardPage() {
     return () => {
       active = false
     }
-  }, [dateFrom, dateTo, destination, search, selectedStatus, session, travelDate])
+  }, [filters, session])
+
+  function updateDraftFilter<K extends keyof typeof initialFilters>(key: K, value: (typeof initialFilters)[K]) {
+    setDraftFilters((current) => ({ ...current, [key]: value }))
+  }
+
+  function applyFilters() {
+    setFilters(draftFilters)
+  }
 
   function applyQuickPeriod(mode: 'today' | 'tomorrow' | 'week') {
     const now = new Date()
     const today = now.toISOString().slice(0, 10)
 
     if (mode === 'today') {
-      setTravelDate('')
-      setDateFrom(today)
-      setDateTo(today)
+      setDraftFilters((current) => ({
+        ...current,
+        travelDate: '',
+        dateFrom: today,
+        dateTo: today,
+      }))
       return
     }
 
@@ -124,17 +156,28 @@ export function DashboardPage() {
       const tomorrow = new Date(now)
       tomorrow.setDate(tomorrow.getDate() + 1)
       const value = tomorrow.toISOString().slice(0, 10)
-      setTravelDate('')
-      setDateFrom(value)
-      setDateTo(value)
+      setDraftFilters((current) => ({
+        ...current,
+        travelDate: '',
+        dateFrom: value,
+        dateTo: value,
+      }))
       return
     }
 
     const weekEnd = new Date(now)
     weekEnd.setDate(weekEnd.getDate() + 7)
-    setTravelDate('')
-    setDateFrom(today)
-    setDateTo(weekEnd.toISOString().slice(0, 10))
+    setDraftFilters((current) => ({
+      ...current,
+      travelDate: '',
+      dateFrom: today,
+      dateTo: weekEnd.toISOString().slice(0, 10),
+    }))
+  }
+
+  function handleFilterSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    applyFilters()
   }
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
@@ -419,65 +462,84 @@ export function DashboardPage() {
       <section className="dashboard-grid">
         <div className="content-card">
           <div className="filter-stack">
-            <div className="field">
-              <label htmlFor="request-search">Buscar</label>
-              <input
-                id="request-search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Protocolo, paciente, CPF, unidade..."
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="request-date-filter">Data da viagem</label>
-              <input
-                id="request-date-filter"
-                type="date"
-                value={travelDate}
-                onChange={(event) => setTravelDate(event.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="request-date-from">Período inicial</label>
-              <input
-                id="request-date-from"
-                type="date"
-                value={dateFrom}
-                onChange={(event) => setDateFrom(event.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="request-date-to">Período final</label>
-              <input
-                id="request-date-to"
-                type="date"
-                value={dateTo}
-                onChange={(event) => setDateTo(event.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="destination-filter">Destino</label>
-              <input
-                id="destination-filter"
-                value={destination}
-                onChange={(event) => setDestination(event.target.value)}
-                placeholder="Cidade"
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="status-filter">Filtrar por status</label>
-              <select
-                id="status-filter"
-                value={selectedStatus}
-                onChange={(event) => setSelectedStatus(event.target.value as RequestStatus | 'todos')}
-              >
-                {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <form className="filter-stack" onSubmit={handleFilterSubmit}>
+              <div className="field">
+                <label htmlFor="request-search">Buscar</label>
+                <input
+                  id="request-search"
+                  value={draftFilters.search}
+                  onChange={(event) => updateDraftFilter('search', normalizeSearchInput(event.target.value))}
+                  placeholder="CPF, nome, protocolo ou unidade..."
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="request-date-filter">Data da viagem</label>
+                <input
+                  id="request-date-filter"
+                  type="date"
+                  value={draftFilters.travelDate}
+                  onChange={(event) => updateDraftFilter('travelDate', event.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="request-date-from">Período inicial</label>
+                <input
+                  id="request-date-from"
+                  type="date"
+                  value={draftFilters.dateFrom}
+                  onChange={(event) => updateDraftFilter('dateFrom', event.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="request-date-to">Período final</label>
+                <input
+                  id="request-date-to"
+                  type="date"
+                  value={draftFilters.dateTo}
+                  onChange={(event) => updateDraftFilter('dateTo', event.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="destination-filter">Destino</label>
+                <input
+                  id="destination-filter"
+                  value={draftFilters.destination}
+                  onChange={(event) => updateDraftFilter('destination', toInstitutionalText(event.target.value))}
+                  placeholder="Cidade"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="status-filter">Filtrar por status</label>
+                <select
+                  id="status-filter"
+                  value={draftFilters.status}
+                  onChange={(event) => updateDraftFilter('status', event.target.value as RequestStatus | 'todos')}
+                >
+                  {statusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-actions">
+                <button className="action-button primary" type="submit">
+                  <Search size={16} />
+                  Buscar
+                </button>
+                <button
+                  className="action-button secondary"
+                  type="button"
+                  onClick={() => {
+                    setDraftFilters(initialFilters)
+                    setFilters(initialFilters)
+                  }}
+                >
+                  <Filter size={16} />
+                  Limpar filtros
+                </button>
+              </div>
+            </form>
           </div>
           <div className="filter-actions">
             <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('today')}>
@@ -489,26 +551,15 @@ export function DashboardPage() {
             <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('week')}>
               Esta semana
             </button>
-            <button
-              className="ghost-button"
-              type="button"
-              onClick={() => {
-                setSelectedStatus('todos')
-                setSearch('')
-                setTravelDate('')
-                setDateFrom('')
-                setDateTo('')
-                setDestination('')
-              }}
-            >
-              <Filter size={16} />
-              Limpar filtro
+            <button className="ghost-button" type="button" onClick={applyFilters}>
+              <RefreshCcw size={16} />
+              Aplicar período
             </button>
           </div>
 
           <div className="status-line">
             <span className="subtle-label">
-              {search || travelDate || dateFrom || dateTo || destination ? <Search size={14} /> : <RefreshCcw size={14} />}
+              {filters.search || filters.travelDate || filters.dateFrom || filters.dateTo || filters.destination ? <Search size={14} /> : <RefreshCcw size={14} />}
               {visibleCountLabel}
             </span>
             {error ? <span className="status-pill">{error}</span> : null}
