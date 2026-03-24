@@ -282,25 +282,19 @@ export function DashboardPage() {
     return `${requests.length} solicitação(ões) encontradas`
   }, [loading, requests.length])
 
-  const roleHighlights = session
-    ? {
-        operator: {
-          title: 'Rotina do operador',
-          description:
-            'Cadastre solicitações, confira os dados do paciente e acompanhe o andamento inicial de cada pedido.',
-        },
-        manager: {
-          title: 'Apoio de gerência liberado',
-          description:
-            'Além do cadastro, você também pode distribuir viagens, acompanhar a equipe e apoiar a operação diária.',
-        },
-        admin: {
-          title: 'Visão administrativa total',
-          description:
-            'Este acesso administra o fluxo inteiro, incluindo equipe, gerência, operador e governança do sistema.',
-        },
-      }[session.role]
-    : null
+  const operationalSignals = useMemo(() => {
+    const confirmed = requests.filter((request) => !!request.patientConfirmedAt).length
+    const viewed = requests.filter((request) => !!request.patientLastViewedAt).length
+    const patientMessages = requests.filter((request) => Number(request.patientMessageCount ?? 0) > 0).length
+    const missingAppointment = requests.filter((request) => !request.appointmentTime).length
+
+    return {
+      confirmed,
+      viewed,
+      patientMessages,
+      missingAppointment,
+    }
+  }, [requests])
 
   if (!session) {
     return (
@@ -641,59 +635,33 @@ export function DashboardPage() {
 
         <aside className="dashboard-side">
           <article className="content-card">
-            <h2>Status recomendados</h2>
+            <h2>Sinais operacionais</h2>
             <div className="status-grid">
               <div className="status-card">
-                <h3>Recebida</h3>
-                <p>Atendimento feito no balcão e protocolo emitido.</p>
+                <h3>{operationalSignals.confirmed}</h3>
+                <p>agenda(s) já confirmada(s) pelo paciente</p>
               </div>
               <div className="status-card">
-                <h3>Em análise</h3>
-                <p>Equipe valida elegibilidade, datas e documentos apresentados.</p>
+                <h3>{operationalSignals.viewed}</h3>
+                <p>agenda(s) já visualizada(s) na consulta pública</p>
               </div>
               <div className="status-card">
-                <h3>Aguardando documentos</h3>
-                <p>Faltam laudo, encaminhamento, comprovante ou documento de apoio.</p>
+                <h3>{operationalSignals.patientMessages}</h3>
+                <p>solicitação(ões) com mensagem enviada pelo paciente</p>
               </div>
               <div className="status-card">
-                <h3>Agendada</h3>
-                <p>Viagem confirmada com data, rota e orientações para o paciente.</p>
+                <h3>{operationalSignals.missingAppointment}</h3>
+                <p>cadastro(s) ainda sem horário de consulta definido</p>
               </div>
             </div>
           </article>
 
           <article className="content-card">
-            <h2>Campos do cadastro inicial</h2>
+            <h2>Ações rápidas</h2>
             <ul className="check-list">
-              <li>Paciente, CPF, telefone, endereço e sinalização de WhatsApp</li>
-              <li>Responsável com CPF de acesso quando necessário</li>
-              <li>Acompanhante com telefone e endereço próprios ou herdados do paciente</li>
-              <li>Observações internas, histórico e acesso inicial do cidadão</li>
-            </ul>
-          </article>
-
-          <article className="content-card login-card">
-            <div className="eyebrow">
-              <ShieldCheck size={16} />
-              Acesso ativo
-            </div>
-            <h2>{roleHighlights?.title ?? 'Acesso interno liberado'}</h2>
-            <p>{roleHighlights?.description ?? 'Este perfil pode atuar no fluxo interno do sistema.'}</p>
-            <p className="table-note">
-              Fluxo previsto no cadastro: operador informa o CPF, libera o primeiro acesso com
-              senha temporária <strong>0000</strong> e o paciente cria depois um PIN de 4 dígitos.
-            </p>
-            <p className="table-note">
-              A área de gerência e a área administrativa possuem acesso próprio por URL.
-            </p>
-          </article>
-
-          <article className="content-card">
-            <h2>Fluxo operacional novo</h2>
-            <ul className="check-list">
-              <li>Operador cadastra e organiza os dados do paciente</li>
-              <li>Gerência analisa a fila e atribui motorista e horário</li>
-              <li>Motorista acessa um portal próprio para ver suas viagens</li>
+              <li>Use CPF para localizar rapidamente pacientes já cadastrados.</li>
+              <li>Abra o protocolo para responder mensagens e conferir confirmação da agenda.</li>
+              <li>Prefira preencher também o horário da consulta para ajudar a ordem do transporte.</li>
             </ul>
           </article>
         </aside>
