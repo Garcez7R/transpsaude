@@ -318,28 +318,29 @@ export function RequestDetailsPage() {
           <p className="table-note">Carregando detalhes da solicitação...</p>
         </article>
       ) : (
-        <section className="dashboard-grid">
-          <article className="content-card">
-            <h2>Dados da solicitação</h2>
-            <div className="travel-overview-grid">
-              <article className="travel-overview-card">
-                <span>Consulta</span>
-                <strong>{details.appointmentTime || 'Não definido'}</strong>
-              </article>
-              <article className="travel-overview-card">
-                <span>Saída</span>
-                <strong>{details.departureTime || 'Não definido'}</strong>
-              </article>
-              <article className="travel-overview-card">
-                <span>Embarque</span>
-                <strong>{details.boardingLocationLabel || details.addressLine || 'Não informado'}</strong>
-              </article>
-              <article className="travel-overview-card">
-                <span>Motorista</span>
-                <strong>{details.assignedDriverName || 'Não atribuído'}</strong>
-              </article>
-            </div>
-            <dl className="request-summary">
+        <section className="dashboard-grid dashboard-grid-main">
+          <div className="dashboard-main-stack">
+            <article className="content-card">
+              <h2>Dados da solicitação</h2>
+              <div className="travel-overview-grid">
+                <article className="travel-overview-card">
+                  <span>Consulta</span>
+                  <strong>{details.appointmentTime || 'Não definido'}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Saída</span>
+                  <strong>{details.departureTime || 'Não definido'}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Embarque</span>
+                  <strong>{details.boardingLocationLabel || details.addressLine || 'Não informado'}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Motorista</span>
+                  <strong>{details.assignedDriverName || 'Não atribuído'}</strong>
+                </article>
+              </div>
+              <dl className="request-summary">
               <div>
                 <dt>Protocolo</dt>
                 <dd>{details.protocol}</dd>
@@ -452,19 +453,19 @@ export function RequestDetailsPage() {
                 <dt>Obs. gerência</dt>
                 <dd>{details.managerNotes || 'Sem observações'}</dd>
               </div>
-            </dl>
+              </dl>
 
-            <div className="detail-note">
-              <strong>Observações do cadastro:</strong> {details.notes || 'Sem observações registradas.'}
-            </div>
-          </article>
+              <div className="detail-note">
+                <strong>Observações do cadastro:</strong> {details.notes || 'Sem observações registradas.'}
+              </div>
+            </article>
 
-          <article className="content-card">
-            <h2>Comprovante de agendamento</h2>
-            <p className="table-note">
-              Use este bloco para impressão ou conferência rápida com o paciente no balcão.
-            </p>
-            <dl className="request-summary">
+            <article className="content-card">
+              <h2>Comprovante de agendamento</h2>
+              <p className="table-note">
+                Use este bloco para impressão ou conferência rápida com o paciente no balcão.
+              </p>
+              <dl className="request-summary">
               <div>
                 <dt>Protocolo</dt>
                 <dd>{details.protocol}</dd>
@@ -527,11 +528,12 @@ export function RequestDetailsPage() {
                 <dt>Agenda confirmada</dt>
                 <dd>{details.patientConfirmedAt || 'Não'}</dd>
               </div>
-            </dl>
-          </article>
+              </dl>
+            </article>
+          </div>
 
           <aside className="dashboard-side">
-            <article className="content-card">
+            <article className="content-card dashboard-side-sticky">
               <h2>Contato do motorista</h2>
               <form onSubmit={handleDriverPhoneVisibilitySubmit}>
                 <div className="form-grid">

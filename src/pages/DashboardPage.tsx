@@ -459,7 +459,7 @@ export function DashboardPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-main">
         <div className="content-card">
           <div className="filter-stack">
             <form className="filter-stack" onSubmit={handleFilterSubmit}>
@@ -623,7 +623,7 @@ export function DashboardPage() {
         </div>
 
         <aside className="dashboard-side">
-          <article className="content-card">
+          <article className="content-card dashboard-side-sticky">
             <h2>Ações rápidas</h2>
             <ul className="check-list">
               <li>Use CPF para localizar rapidamente pacientes já cadastrados.</li>

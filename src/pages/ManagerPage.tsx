@@ -660,7 +660,7 @@ export function ManagerPage() {
         </div>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-main">
         <article className="content-card">
           <h2>Relatórios da gerência</h2>
           <p className="table-note">
@@ -684,7 +684,7 @@ export function ManagerPage() {
         </article>
 
         <aside className="dashboard-side">
-          <article className="content-card">
+          <article className="content-card dashboard-side-sticky">
             <h2>Acompanhantes</h2>
             <p className="table-note">
               {reports.companionTotal} solicitação(ões) deste recorte exigem acompanhante.
@@ -693,7 +693,7 @@ export function ManagerPage() {
         </aside>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-balanced">
         <article className="content-card">
           <h2>Destinos mais frequentes</h2>
           {reports.byDestination.length > 0 ? (
@@ -727,7 +727,7 @@ export function ManagerPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-main">
         <div className="content-card">
           <h2>Solicitações para análise e distribuição</h2>
           {loading ? (
@@ -922,7 +922,7 @@ export function ManagerPage() {
         </div>
 
         <aside className="dashboard-side">
-          <article className="content-card">
+          <article className="content-card dashboard-side-sticky">
             <h2>Regras de acesso</h2>
             <ul className="check-list">
               <li>Operador entra apenas na área do operador</li>

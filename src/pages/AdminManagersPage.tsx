@@ -721,7 +721,7 @@ export function AdminManagersPage() {
         </div>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-balanced">
         <article className="content-card">
           <h2>{editingManagerId ? 'Editar gerente' : 'Novo gerente'}</h2>
           <form onSubmit={handleSubmit}>
@@ -852,7 +852,7 @@ export function AdminManagersPage() {
 
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-main">
         <article className="content-card">
           <h2>{editingDriverId ? 'Editar motorista' : 'Novo motorista'}</h2>
           <form onSubmit={handleDriverSubmit}>
@@ -941,7 +941,7 @@ export function AdminManagersPage() {
           </form>
         </article>
 
-        <article className="content-card">
+        <article className="content-card dashboard-side-sticky">
           <h2>Permissões por perfil</h2>
           <ul className="check-list">
             <li>Administrador cria gerente e operador</li>
@@ -953,7 +953,7 @@ export function AdminManagersPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-balanced">
         <article className="content-card">
           <h2>Gerentes cadastrados</h2>
           {loadingData ? (
@@ -1033,7 +1033,7 @@ export function AdminManagersPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-single">
         <article className="content-card">
           <h2>Motoristas cadastrados</h2>
           {loadingData ? (

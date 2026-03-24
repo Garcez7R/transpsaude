@@ -522,6 +522,18 @@ button {
   gap: 18px;
 }
 
+.dashboard-grid-main {
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.8fr);
+}
+
+.dashboard-grid-balanced {
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.95fr);
+}
+
+.dashboard-grid-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .content-card,
 .public-card,
 .request-card,
@@ -811,6 +823,25 @@ th {
 .dashboard-side {
   display: grid;
   gap: 18px;
+}
+
+.dashboard-main-stack {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.dashboard-side {
+  align-content: start;
+}
+
+.dashboard-side > .content-card {
+  min-width: 0;
+}
+
+.dashboard-side-sticky {
+  position: sticky;
+  top: 110px;
 }
 
 .request-list {
