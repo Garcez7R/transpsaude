@@ -54,6 +54,43 @@ function getUpdateSummary(request: PublicRequestDetails) {
   return latestHistory.note || latestHistory.label
 }
 
+function formatDisplayDate(value?: string) {
+  if (!value) {
+    return 'A definir'
+  }
+
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+
+  if (!match) {
+    return value
+  }
+
+  return `${match[3]}/${match[2]}/${match[1]}`
+}
+
+function formatDisplayDateTime(date?: string, time?: string) {
+  const formattedDate = formatDisplayDate(date)
+
+  if (!time) {
+    return formattedDate
+  }
+
+  return `${formattedDate} às ${time}`
+}
+
+function formatCitizenHistory(entry: PublicRequestDetails['history'][number]) {
+  const note = entry.note?.trim()
+
+  if (!note) {
+    return ''
+  }
+
+  return note
+    .replace(/^solicitacao cadastrada pelo painel interno\.?$/i, 'Solicitação registrada pela equipe responsável.')
+    .replace(/^viagem direcionada para .* com saida prevista as (.+)\.?$/i, 'Motorista definido e saída prevista para $1.')
+    .replace(/^viagem direcionada para .* com saída prevista às (.+)\.?$/i, 'Motorista definido e saída prevista para $1.')
+}
+
 export function PublicStatusPage() {
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
@@ -233,10 +270,7 @@ export function PublicStatusPage() {
                         {hasVisibleUpdate(entry) ? <span className="update-badge">Atualizada</span> : null}
                       </div>
                       <strong>{entry.protocol}</strong>
-                      <span>
-                        {entry.travelDate}
-                        {entry.departureTime ? ` às ${entry.departureTime}` : ''}
-                      </span>
+                      <span>{formatDisplayDateTime(entry.travelDate, entry.departureTime)}</span>
                       <span>
                         {entry.destinationCity}/{entry.destinationState}
                       </span>
@@ -260,13 +294,11 @@ export function PublicStatusPage() {
             <article className="public-card departure-highlight">
               <div className="eyebrow">
                 <ShieldCheck size={16} />
-                Informações principais
+                Saída prevista
               </div>
-              <h2>
-                {request.travelDate || 'Data a definir'} {request.departureTime ? `às ${request.departureTime}` : ''}
-              </h2>
+              <h2>{formatDisplayDateTime(request.travelDate, request.departureTime)}</h2>
               <p>
-                Local de embarque:
+                Embarque:
                 {' '}
                 <strong>{request.boardingLocationLabel || request.addressLine || 'a definir'}</strong>.
               </p>
@@ -276,10 +308,17 @@ export function PublicStatusPage() {
               <div className="status-pill-row">
                 <span className={`status-badge ${request.status}`}>{request.statusLabel}</span>
                 <span className="status-pill">Protocolo {request.protocol}</span>
-                {access ? <span className="status-pill">CPF {access.cpfMasked}</span> : null}
               </div>
-              <h2>{request.patientName}</h2>
+              <h2>Detalhes da viagem</h2>
               <dl className="request-summary">
+                <div>
+                  <dt>Paciente</dt>
+                  <dd>{request.patientName}</dd>
+                </div>
+                <div>
+                  <dt>CPF de acesso</dt>
+                  <dd>{access?.cpfMasked ?? request.accessCpfMasked ?? 'Não informado'}</dd>
+                </div>
                 <div>
                   <dt>Destino</dt>
                   <dd>
@@ -296,7 +335,7 @@ export function PublicStatusPage() {
                 </div>
                 <div>
                   <dt>Data prevista</dt>
-                  <dd>{request.travelDate}</dd>
+                  <dd>{formatDisplayDate(request.travelDate)}</dd>
                 </div>
                 <div>
                   <dt>Horário de saída</dt>
@@ -319,22 +358,18 @@ export function PublicStatusPage() {
                   <dd>
                     {request.showDriverPhoneToPatient && request.assignedDriverPhone
                       ? request.assignedDriverPhone
-                      : 'Não disponível para esta solicitação'}
+                      : 'Não informado'}
                   </dd>
                 </div>
                 <div>
                   <dt>Veículo da viagem</dt>
                   <dd>{request.assignedVehicleName || 'A definir'}</dd>
                 </div>
-                <div>
-                  <dt>Orientações</dt>
-                  <dd>{request.loginHint}</dd>
-                </div>
               </dl>
             </article>
 
             <article className="public-card">
-              <h2>Mensagens e orientações</h2>
+              <h2>Orientações da equipe</h2>
               {request.messages.length > 0 ? (
                 <ol className="status-history">
                   {request.messages.map((entry) => (
@@ -346,12 +381,12 @@ export function PublicStatusPage() {
                   ))}
                 </ol>
               ) : (
-                <p className="table-note">Não há novas orientações registradas para esta solicitação.</p>
+                <p className="table-note">No momento, não há novas orientações para esta viagem.</p>
               )}
             </article>
 
             <article className="public-card">
-              <h2>Histórico da solicitação</h2>
+              <h2>Acompanhamento</h2>
               <ol className="status-history">
                 {request.history.map((entry) => (
                   <li key={`${entry.status}-${entry.updatedAt}`}>
@@ -360,7 +395,7 @@ export function PublicStatusPage() {
                     em
                     {' '}
                     {entry.updatedAt}
-                    {entry.note ? ` - ${entry.note}` : ''}
+                    {formatCitizenHistory(entry) ? ` - ${formatCitizenHistory(entry)}` : ''}
                   </li>
                 ))}
               </ol>
