@@ -315,6 +315,11 @@ export function PublicStatusPage() {
 
         {request ? (
           <>
+            <article className="public-card public-greeting-card">
+              <h2>Olá, {getDisplayValue(access?.patientName || request.patientName)}.</h2>
+              <p>Confira abaixo seus agendamentos de transporte em saúde.</p>
+            </article>
+
             {requests.length > 1 ? (
               <article className="public-card">
                 <h2>Solicitações vinculadas a este acesso</h2>

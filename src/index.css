@@ -747,6 +747,13 @@ th {
   margin-bottom: 8px;
 }
 
+.public-greeting-card {
+  border-color: rgba(22, 133, 83, 0.16);
+  background:
+    linear-gradient(135deg, rgba(22, 133, 83, 0.08), rgba(255, 255, 255, 0.96)),
+    var(--surface-strong);
+}
+
 .public-activation-card {
   border-color: rgba(212, 171, 24, 0.2);
 }
