@@ -282,20 +282,6 @@ export function DashboardPage() {
     return `${requests.length} solicitação(ões) encontradas`
   }, [loading, requests.length])
 
-  const operationalSignals = useMemo(() => {
-    const confirmed = requests.filter((request) => !!request.patientConfirmedAt).length
-    const viewed = requests.filter((request) => !!request.patientLastViewedAt).length
-    const patientMessages = requests.filter((request) => Number(request.patientMessageCount ?? 0) > 0).length
-    const missingAppointment = requests.filter((request) => !request.appointmentTime).length
-
-    return {
-      confirmed,
-      viewed,
-      patientMessages,
-      missingAppointment,
-    }
-  }, [requests])
-
   if (!session) {
     return (
       <div className="dashboard-shell">
@@ -637,28 +623,6 @@ export function DashboardPage() {
         </div>
 
         <aside className="dashboard-side">
-          <article className="content-card">
-            <h2>Sinais operacionais</h2>
-            <div className="status-grid">
-              <div className="status-card">
-                <h3>{operationalSignals.confirmed}</h3>
-                <p>agenda(s) já confirmada(s) pelo paciente</p>
-              </div>
-              <div className="status-card">
-                <h3>{operationalSignals.viewed}</h3>
-                <p>agenda(s) já visualizada(s) na consulta pública</p>
-              </div>
-              <div className="status-card">
-                <h3>{operationalSignals.patientMessages}</h3>
-                <p>solicitação(ões) com mensagem enviada pelo paciente</p>
-              </div>
-              <div className="status-card">
-                <h3>{operationalSignals.missingAppointment}</h3>
-                <p>cadastro(s) ainda sem horário de consulta definido</p>
-              </div>
-            </div>
-          </article>
-
           <article className="content-card">
             <h2>Ações rápidas</h2>
             <ul className="check-list">
