@@ -1,5 +1,6 @@
 import { CalendarClock, Copy, KeyRound, Phone, Printer, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { institutionContact } from '../config/institution'
 import { activateCitizenPin, confirmCitizenRequest, createCitizenRequestMessage, loginCitizen, markCitizenRequestViewed } from '../lib/api'
 import { toInstitutionalText } from '../lib/text-format'
 import type { CitizenAccessResponse, PublicRequestDetails } from '../types'
@@ -143,12 +144,6 @@ function buildMapsUrl(label: string) {
 
 function getGreetingName(value?: string | null) {
   return isMeaningfulValue(value) ? String(value).trim() : ''
-}
-
-const secretaryContact = {
-  phone: '',
-  whatsapp: '',
-  hours: 'Atendimento em horário administrativo da prefeitura.',
 }
 
 const statusSupportText: Record<PublicRequestDetails['status'], string> = {
@@ -464,7 +459,7 @@ export function PublicStatusPage() {
             <article className="public-card departure-highlight">
               <div className="eyebrow">
                 <ShieldCheck size={16} />
-                Saída prevista
+                Resumo da viagem
               </div>
               <h2>{formatDisplayDateTime(request.travelDate, request.departureTime)}</h2>
               <p>
@@ -537,16 +532,8 @@ export function PublicStatusPage() {
                 <span className={`status-badge ${request.status}`}>{request.statusLabel}</span>
                 <span className="status-pill">Protocolo {request.protocol}</span>
               </div>
-              <h2>Detalhes da viagem</h2>
+              <h2>Organização da viagem</h2>
               <div className="travel-overview-grid">
-                <article className="travel-overview-card">
-                  <span>Saída</span>
-                  <strong>{request.departureTime || 'A definir'}</strong>
-                </article>
-                <article className="travel-overview-card">
-                  <span>Consulta</span>
-                  <strong>{formatDisplayTime(request.appointmentTime)}</strong>
-                </article>
                 <article className="travel-overview-card">
                   <span>Embarque</span>
                   <strong>{getBoardingLocation(request)}</strong>
@@ -555,71 +542,95 @@ export function PublicStatusPage() {
                   <span>Motorista</span>
                   <strong>{getDisplayValue(request.assignedDriverName, 'A definir')}</strong>
                 </article>
-              </div>
-              <dl className="request-summary">
-                {isMeaningfulValue(request.patientName) ? (
-                  <div>
-                    <dt>Paciente</dt>
-                    <dd>{request.patientName}</dd>
-                  </div>
-                ) : null}
-                <div>
-                  <dt>CPF de acesso</dt>
-                  <dd>{access?.cpfMasked ?? request.accessCpfMasked ?? 'Não informado'}</dd>
-                </div>
-                <div>
-                  <dt>Destino</dt>
-                  <dd>{getDisplayValue(`${request.destinationCity}/${request.destinationState}`, 'Destino a definir')}</dd>
-                </div>
-                {isMeaningfulValue(request.treatmentUnit) ? (
-                  <div>
-                    <dt>Unidade</dt>
-                    <dd>{request.treatmentUnit}</dd>
-                  </div>
-                ) : null}
-                {isMeaningfulValue(request.specialty) ? (
-                  <div>
-                    <dt>Especialidade</dt>
-                    <dd>{request.specialty}</dd>
-                  </div>
-                ) : null}
-                <div>
-                  <dt>Data prevista</dt>
-                  <dd>{formatDisplayDate(request.travelDate)}</dd>
-                </div>
-                <div>
-                  <dt>Horário da consulta</dt>
-                  <dd>{formatDisplayTime(request.appointmentTime)}</dd>
-                </div>
-                <div>
-                  <dt>Horário de saída</dt>
-                  <dd>{request.departureTime || 'A definir'}</dd>
-                </div>
-                <div>
-                  <dt>Local de embarque</dt>
-                  <dd>{getBoardingLocation(request)}</dd>
-                </div>
-                <div>
-                  <dt>Acompanhante</dt>
-                  <dd>{request.companionRequired ? 'Necessário' : 'Não necessário'}</dd>
-                </div>
-                <div>
-                  <dt>Motorista responsável</dt>
-                  <dd>{getDisplayValue(request.assignedDriverName, 'A definir')}</dd>
-                </div>
-                <div>
-                  <dt>Telefone do motorista</dt>
-                  <dd>
+                <article className="travel-overview-card">
+                  <span>Telefone do motorista</span>
+                  <strong>
                     {request.showDriverPhoneToPatient && request.assignedDriverPhone
                       ? request.assignedDriverPhone
-                      : 'Contato não liberado para esta agenda'}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Veículo da viagem</dt>
-                  <dd>{request.assignedVehicleName || 'A definir'}</dd>
-                </div>
-              </dl>
+                      : 'Contato não liberado'}
+                  </strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Veículo da viagem</span>
+                  <strong>{request.assignedVehicleName || 'A definir'}</strong>
+                </article>
+              </div>
+
+              <div className="request-section-stack">
+                <section className="detail-section-card">
+                  <h3>Informações principais</h3>
+                  <dl className="request-summary">
+                    <div>
+                      <dt>Data prevista</dt>
+                      <dd>{formatDisplayDate(request.travelDate)}</dd>
+                    </div>
+                    <div>
+                      <dt>Horário da consulta</dt>
+                      <dd>{formatDisplayTime(request.appointmentTime)}</dd>
+                    </div>
+                    <div>
+                      <dt>Horário de saída</dt>
+                      <dd>{request.departureTime || 'A definir'}</dd>
+                    </div>
+                    <div>
+                      <dt>Local de embarque</dt>
+                      <dd>{getBoardingLocation(request)}</dd>
+                    </div>
+                    <div>
+                      <dt>Motorista responsável</dt>
+                      <dd>{getDisplayValue(request.assignedDriverName, 'A definir')}</dd>
+                    </div>
+                    <div>
+                      <dt>Telefone do motorista</dt>
+                      <dd>
+                        {request.showDriverPhoneToPatient && request.assignedDriverPhone
+                          ? request.assignedDriverPhone
+                          : 'Contato não liberado para esta agenda'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Veículo da viagem</dt>
+                      <dd>{request.assignedVehicleName || 'A definir'}</dd>
+                    </div>
+                    <div>
+                      <dt>Acompanhante</dt>
+                      <dd>{request.companionRequired ? 'Necessário' : 'Não necessário'}</dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <section className="detail-section-card">
+                  <h3>Dados do atendimento</h3>
+                  <dl className="request-summary">
+                    {isMeaningfulValue(request.patientName) ? (
+                      <div>
+                        <dt>Paciente</dt>
+                        <dd>{request.patientName}</dd>
+                      </div>
+                    ) : null}
+                    <div>
+                      <dt>CPF de acesso</dt>
+                      <dd>{access?.cpfMasked ?? request.accessCpfMasked ?? 'Não informado'}</dd>
+                    </div>
+                    <div>
+                      <dt>Destino</dt>
+                      <dd>{getDisplayValue(`${request.destinationCity}/${request.destinationState}`, 'Destino a definir')}</dd>
+                    </div>
+                    {isMeaningfulValue(request.treatmentUnit) ? (
+                      <div>
+                        <dt>Unidade</dt>
+                        <dd>{request.treatmentUnit}</dd>
+                      </div>
+                    ) : null}
+                    {isMeaningfulValue(request.specialty) ? (
+                      <div>
+                        <dt>Especialidade</dt>
+                        <dd>{request.specialty}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                </section>
+              </div>
             </article>
 
             {latestTeamMessage ? (
@@ -713,9 +724,9 @@ export function PublicStatusPage() {
             procure a equipe responsável pelo transporte em saúde.
           </p>
           <ul className="check-list compact-list">
-            <li>Telefone institucional: {secretaryContact.phone || 'A definir pela prefeitura'}</li>
-            <li>WhatsApp institucional: {secretaryContact.whatsapp || 'A definir pela prefeitura'}</li>
-            <li>Horário de atendimento: {secretaryContact.hours}</li>
+            <li>Telefone institucional: {institutionContact.phone || 'A definir pela prefeitura'}</li>
+            <li>WhatsApp institucional: {institutionContact.whatsapp || 'A definir pela prefeitura'}</li>
+            <li>Horário de atendimento: {institutionContact.hours}</li>
           </ul>
         </article>
 

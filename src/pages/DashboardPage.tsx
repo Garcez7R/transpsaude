@@ -626,9 +626,9 @@ export function DashboardPage() {
           <article className="content-card dashboard-side-sticky">
             <h2>Ações rápidas</h2>
             <ul className="check-list">
-              <li>Use CPF para localizar rapidamente pacientes já cadastrados.</li>
-              <li>Abra o protocolo para responder mensagens e conferir confirmação da agenda.</li>
-              <li>Prefira preencher também o horário da consulta para ajudar a ordem do transporte.</li>
+              <li>Busque por CPF para reaproveitar cadastros e evitar redigitação.</li>
+              <li>Abra o protocolo para responder mensagens e conferir leitura ou confirmação da agenda.</li>
+              <li>Preencha o horário da consulta junto da saída para facilitar a ordem do transporte.</li>
             </ul>
           </article>
         </aside>
