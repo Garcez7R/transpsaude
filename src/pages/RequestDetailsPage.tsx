@@ -40,6 +40,8 @@ export function RequestDetailsPage() {
   const [savingDriverPhoneVisibility, setSavingDriverPhoneVisibility] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const patientMessages = details?.messages.filter((entry) => entry.createdByRole === 'patient') ?? []
+  const teamMessages = details?.messages.filter((entry) => entry.createdByRole !== 'patient') ?? []
 
   async function handleResetPatientAccess() {
     if (!details) {
@@ -646,10 +648,10 @@ export function RequestDetailsPage() {
                 </div>
               </form>
 
-              {details.messages.length > 0 ? (
+              {teamMessages.length > 0 ? (
                 <ol className="status-history">
-                  {details.messages.map((entry) => (
-                    <li key={`message-${entry.id}`}>
+                  {teamMessages.map((entry) => (
+                    <li key={`team-message-${entry.id}`}>
                       <strong>{entry.title || 'Mensagem registrada'}</strong> em {entry.createdAt} por {entry.createdByName}
                       {entry.visibleToCitizen ? ' • Visível ao paciente' : ' • Uso interno'}
                       <br />
@@ -658,7 +660,24 @@ export function RequestDetailsPage() {
                   ))}
                 </ol>
               ) : (
-                <p className="table-note">Nenhuma mensagem registrada até o momento.</p>
+                <p className="table-note">Nenhuma mensagem da equipe registrada até o momento.</p>
+              )}
+            </article>
+
+            <article className="content-card">
+              <h2>Mensagens do paciente</h2>
+              {patientMessages.length > 0 ? (
+                <ol className="status-history">
+                  {patientMessages.map((entry) => (
+                    <li key={`patient-message-${entry.id}`}>
+                      <strong>{entry.title || 'Mensagem enviada pelo paciente'}</strong> em {entry.createdAt}
+                      <br />
+                      {entry.body}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="table-note">O paciente ainda não enviou mensagens por esta solicitação.</p>
               )}
             </article>
 

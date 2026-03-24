@@ -49,6 +49,7 @@ export interface TravelRequest {
   patientConfirmedAt?: string | null
   patientLastViewedAt?: string | null
   patientLastMessageSeenAt?: string | null
+  patientMessageCount?: number
   messages?: RequestMessage[]
   departureTime?: string
   managerNotes?: string
@@ -321,6 +322,14 @@ export interface CreateRequestMessageInput {
   title: string
   body: string
   visibleToCitizen: boolean
+}
+
+export interface CreateCitizenRequestMessageInput {
+  cpf: string
+  password: string
+  requestId: number
+  title: string
+  body: string
 }
 
 export interface CreateTravelRequestInput {

@@ -607,6 +607,7 @@ export function DashboardPage() {
                       <div className="status-pill-row" style={{ marginTop: '8px' }}>
                         {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada</span> : null}
                         {request.patientLastViewedAt ? <span className="status-pill-live">Lida</span> : null}
+                        {Number(request.patientMessageCount ?? 0) > 0 ? <span className="update-badge">Paciente escreveu</span> : null}
                       </div>
                     </td>
                     <td>

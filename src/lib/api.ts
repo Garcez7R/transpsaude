@@ -4,6 +4,7 @@ import type {
   CitizenAccessResponse,
   ConfirmCitizenRequestResponse,
   CreateDriverInput,
+  CreateCitizenRequestMessageInput,
   CreateManagerInput,
   CreateOperatorInput,
   CreateRequestMessageInput,
@@ -217,6 +218,16 @@ export async function markCitizenRequestViewed(cpf: string, password: string, re
   })
 
   return parseJson<{ requestId: number; viewedAt: string; messageSeenAt: string }>(response)
+}
+
+export async function createCitizenRequestMessage(input: CreateCitizenRequestMessageInput) {
+  const response = await fetch('/api/public/request-messages', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  return parseJson<{ message: string }>(response)
 }
 
 export async function loginAdmin(cpf: string, password: string) {

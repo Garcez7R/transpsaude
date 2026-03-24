@@ -1,6 +1,7 @@
 import { KeyRound, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { activateCitizenPin, confirmCitizenRequest, loginCitizen, markCitizenRequestViewed } from '../lib/api'
+import { activateCitizenPin, confirmCitizenRequest, createCitizenRequestMessage, loginCitizen, markCitizenRequestViewed } from '../lib/api'
+import { toInstitutionalText } from '../lib/text-format'
 import type { CitizenAccessResponse, PublicRequestDetails } from '../types'
 
 function formatCpf(value: string) {
@@ -125,8 +126,11 @@ export function PublicStatusPage() {
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [confirmingRequest, setConfirmingRequest] = useState(false)
+  const [sendingMessage, setSendingMessage] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [citizenMessageTitle, setCitizenMessageTitle] = useState('')
+  const [citizenMessageBody, setCitizenMessageBody] = useState('')
 
   const requests = access?.requests ?? []
   const request =
@@ -190,6 +194,39 @@ export function PublicStatusPage() {
       setError(error instanceof Error ? error.message : 'Não foi possível confirmar esta agenda.')
     } finally {
       setConfirmingRequest(false)
+    }
+  }
+
+  async function handleCitizenMessageSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!request) {
+      return
+    }
+
+    setSendingMessage(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const result = await createCitizenRequestMessage({
+        cpf,
+        password,
+        requestId: request.id,
+        title: citizenMessageTitle,
+        body: citizenMessageBody,
+      })
+
+      const refreshed = await loginCitizen(cpf, password)
+      setAccess(refreshed)
+      setSelectedRequestId(request.id)
+      setCitizenMessageTitle('')
+      setCitizenMessageBody('')
+      setMessage(result.message)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível enviar a mensagem para a equipe.')
+    } finally {
+      setSendingMessage(false)
     }
   }
 
@@ -472,6 +509,7 @@ export function PublicStatusPage() {
                   {request.messages.map((entry) => (
                     <li key={`public-message-${entry.id}`}>
                       <strong>{entry.title || 'Atualização da solicitação'}</strong> em {entry.createdAt}
+                      {' '}por {entry.createdByRole === 'patient' ? 'você' : entry.createdByName}
                       <br />
                       {entry.body}
                     </li>
@@ -480,6 +518,40 @@ export function PublicStatusPage() {
               ) : (
                 <p className="table-note">No momento, não há novas orientações para esta viagem.</p>
               )}
+            </article>
+
+            <article className="public-card">
+              <h2>Enviar mensagem para a equipe</h2>
+              <p className="table-note">Use este espaço para informar dúvida, alteração ou dificuldade relacionada a esta agenda.</p>
+              <form onSubmit={handleCitizenMessageSubmit}>
+                <div className="form-grid">
+                  <div className="field full">
+                    <label htmlFor="citizen-message-title">Assunto</label>
+                    <input
+                      id="citizen-message-title"
+                      value={citizenMessageTitle}
+                      onChange={(event) => setCitizenMessageTitle(toInstitutionalText(event.target.value))}
+                      placeholder="Ex.: Dúvida sobre horário"
+                    />
+                  </div>
+                  <div className="field full">
+                    <label htmlFor="citizen-message-body">Mensagem</label>
+                    <textarea
+                      id="citizen-message-body"
+                      rows={4}
+                      value={citizenMessageBody}
+                      onChange={(event) => setCitizenMessageBody(toInstitutionalText(event.target.value))}
+                      placeholder="Descreva o que você precisa informar para a equipe."
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button className="action-button primary" disabled={sendingMessage || !citizenMessageBody.trim()} type="submit">
+                    {sendingMessage ? 'Enviando...' : 'Enviar mensagem'}
+                  </button>
+                </div>
+              </form>
             </article>
 
             <article className="public-card">

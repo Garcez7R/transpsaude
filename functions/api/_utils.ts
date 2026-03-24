@@ -113,6 +113,11 @@ function hasMissingPatientViewColumns(error: unknown) {
   )
 }
 
+function hasMissingMessageRoleColumn(error: unknown) {
+  const message = error instanceof Error ? error.message : ''
+  return message.includes('no such column: rm.created_by_role') || message.includes('no such column: created_by_role')
+}
+
 export async function listRequestMessages(env: Env, requestId: number, visibleToCitizenOnly = false) {
   const db = requireDb(env)
   let query = `
@@ -574,6 +579,12 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       tr.patient_confirmed_at as patientConfirmedAt,
       tr.patient_last_viewed_at as patientLastViewedAt,
       tr.patient_last_message_seen_at as patientLastMessageSeenAt,
+      (
+        select count(*)
+        from request_messages rm
+        where rm.travel_request_id = tr.id
+          and rm.created_by_role = 'patient'
+      ) as patientMessageCount,
       tr.departure_time as departureTime,
       tr.manager_notes as managerNotes,
       tr.scheduled_at as scheduledAt,
@@ -616,6 +627,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       null as patientConfirmedAt,
       null as patientLastViewedAt,
       null as patientLastMessageSeenAt,
+      0 as patientMessageCount,
       tr.departure_time as departureTime,
       tr.manager_notes as managerNotes,
       tr.scheduled_at as scheduledAt,
@@ -696,7 +708,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
     const statement = params.length > 0 ? prepared.bind(...params) : prepared
     result = await statement.all()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingMessageRoleColumn(error))) {
       throw error
     }
 
@@ -1718,6 +1730,47 @@ export async function markCitizenRequestViewed(env: Env, cpf: string, password: 
     requestId,
     viewedAt: String(refreshed?.viewedAt ?? ''),
     messageSeenAt: String(refreshed?.messageSeenAt ?? ''),
+  }
+}
+
+export async function createCitizenRequestMessage(
+  env: Env,
+  cpf: string,
+  password: string,
+  input: {
+    requestId: number
+    title: string
+    body: string
+  },
+) {
+  const access = await loginCitizen(env, cpf, password)
+
+  if (!access) {
+    return null
+  }
+
+  const targetRequest = access.requests.find((item) => item.id === input.requestId)
+
+  if (!targetRequest) {
+    return false
+  }
+
+  const result = await createRequestMessage(env, input.requestId, {
+    messageType: 'patient',
+    title: input.title,
+    body: input.body,
+    visibleToCitizen: true,
+    createdByOperatorId: null,
+    createdByName: access.patientName,
+    createdByRole: 'patient',
+  })
+
+  if (!result) {
+    return false
+  }
+
+  return {
+    message: 'Mensagem enviada para a equipe responsável.',
   }
 }
 
