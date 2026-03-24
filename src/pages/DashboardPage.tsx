@@ -157,12 +157,14 @@ export function DashboardPage() {
     const today = now.toISOString().slice(0, 10)
 
     if (mode === 'today') {
-      setDraftFilters((current) => ({
-        ...current,
+      const nextFilters = {
+        ...draftFilters,
         travelDate: '',
         dateFrom: today,
         dateTo: today,
-      }))
+      }
+      setDraftFilters(nextFilters)
+      setFilters(nextFilters)
       return
     }
 
@@ -170,23 +172,27 @@ export function DashboardPage() {
       const tomorrow = new Date(now)
       tomorrow.setDate(tomorrow.getDate() + 1)
       const value = tomorrow.toISOString().slice(0, 10)
-      setDraftFilters((current) => ({
-        ...current,
+      const nextFilters = {
+        ...draftFilters,
         travelDate: '',
         dateFrom: value,
         dateTo: value,
-      }))
+      }
+      setDraftFilters(nextFilters)
+      setFilters(nextFilters)
       return
     }
 
     const weekEnd = new Date(now)
     weekEnd.setDate(weekEnd.getDate() + 7)
-    setDraftFilters((current) => ({
-      ...current,
+    const nextFilters = {
+      ...draftFilters,
       travelDate: '',
       dateFrom: today,
       dateTo: weekEnd.toISOString().slice(0, 10),
-    }))
+    }
+    setDraftFilters(nextFilters)
+    setFilters(nextFilters)
   }
 
   function handleFilterSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -564,10 +570,6 @@ export function DashboardPage() {
             </button>
             <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('week')}>
               Esta semana
-            </button>
-            <button className="ghost-button" type="button" onClick={applyFilters}>
-              <RefreshCcw size={16} />
-              Aplicar período
             </button>
           </div>
 
