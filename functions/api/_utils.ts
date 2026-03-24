@@ -98,6 +98,11 @@ function hasMissingAssignmentColumns(error: unknown) {
   )
 }
 
+function hasMissingPatientConfirmationColumn(error: unknown) {
+  const message = error instanceof Error ? error.message : ''
+  return message.includes('no such column: tr.patient_confirmed_at') || message.includes('no such column: patient_confirmed_at')
+}
+
 export async function listRequestMessages(env: Env, requestId: number, visibleToCitizenOnly = false) {
   const db = requireDb(env)
   let query = `
@@ -528,6 +533,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       tr.show_driver_phone_to_patient as showDriverPhoneToPatient,
       tr.assigned_vehicle_id as assignedVehicleId,
       tr.assigned_vehicle_name as assignedVehicleName,
+      tr.patient_confirmed_at as patientConfirmedAt,
       tr.departure_time as departureTime,
       tr.manager_notes as managerNotes,
       tr.scheduled_at as scheduledAt,
@@ -567,6 +573,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       1 as showDriverPhoneToPatient,
       null as assignedVehicleId,
       '' as assignedVehicleName,
+      null as patientConfirmedAt,
       tr.departure_time as departureTime,
       tr.manager_notes as managerNotes,
       tr.scheduled_at as scheduledAt,
@@ -647,7 +654,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
     const statement = params.length > 0 ? prepared.bind(...params) : prepared
     result = await statement.all()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error))) {
       throw error
     }
 
@@ -804,6 +811,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
         tr.show_driver_phone_to_patient as showDriverPhoneToPatient,
         tr.assigned_vehicle_id as assignedVehicleId,
         tr.assigned_vehicle_name as assignedVehicleName,
+        tr.patient_confirmed_at as patientConfirmedAt,
         tr.departure_time as departureTime,
         tr.notes
       from travel_requests tr
@@ -815,7 +823,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       .bind(patientAccess.id)
       .all<Record<string, unknown>>()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error))) {
       throw error
     }
 
@@ -846,6 +854,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
           1 as showDriverPhoneToPatient,
           null as assignedVehicleId,
           '' as assignedVehicleName,
+          null as patientConfirmedAt,
           tr.departure_time as departureTime,
           tr.notes
         from travel_requests tr
@@ -1239,6 +1248,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
         tr.show_driver_phone_to_patient as showDriverPhoneToPatient,
         tr.assigned_vehicle_id as assignedVehicleId,
         tr.assigned_vehicle_name as assignedVehicleName,
+        tr.patient_confirmed_at as patientConfirmedAt,
         tr.departure_time as departureTime,
         tr.manager_notes as managerNotes,
         tr.scheduled_at as scheduledAt,
@@ -1252,7 +1262,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
       .bind(driverId)
       .all()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error))) {
       throw error
     }
 
@@ -1288,6 +1298,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
           1 as showDriverPhoneToPatient,
           null as assignedVehicleId,
           '' as assignedVehicleName,
+          null as patientConfirmedAt,
           tr.departure_time as departureTime,
           tr.manager_notes as managerNotes,
           tr.scheduled_at as scheduledAt,
@@ -1358,6 +1369,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
         tr.show_driver_phone_to_patient as showDriverPhoneToPatient,
         tr.assigned_vehicle_id as assignedVehicleId,
         tr.assigned_vehicle_name as assignedVehicleName,
+        tr.patient_confirmed_at as patientConfirmedAt,
         tr.departure_time as departureTime,
         tr.manager_notes as managerNotes,
         tr.scheduled_at as scheduledAt,
@@ -1413,6 +1425,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
           1 as showDriverPhoneToPatient,
           null as assignedVehicleId,
           '' as assignedVehicleName,
+          null as patientConfirmedAt,
           tr.departure_time as departureTime,
           tr.manager_notes as managerNotes,
           tr.scheduled_at as scheduledAt,
@@ -1458,6 +1471,133 @@ export async function getRequestDetails(env: Env, requestId: number) {
     showDriverPhoneToPatient: toBoolean(request.showDriverPhoneToPatient),
     history: historyResult.results ?? [],
     messages,
+  }
+}
+
+export async function confirmCitizenRequest(env: Env, cpf: string, password: string, requestId: number) {
+  const db = requireDb(env)
+  const access = await loginCitizen(env, cpf, password)
+
+  if (!access) {
+    return null
+  }
+
+  const targetRequest = access.requests.find((item) => item.id === requestId)
+
+  if (!targetRequest) {
+    return false
+  }
+
+  let requestRecord: Record<string, unknown> | null
+
+  try {
+    requestRecord = await db.prepare(
+      `
+        select
+          id,
+          patient_id as patientId,
+          protocol,
+          status,
+          patient_confirmed_at as patientConfirmedAt
+        from travel_requests
+        where id = ?1
+        limit 1
+      `,
+    )
+      .bind(requestId)
+      .first<Record<string, unknown>>()
+  } catch (error) {
+    if (!hasMissingPatientConfirmationColumn(error)) {
+      throw error
+    }
+
+    requestRecord = await db.prepare(
+      `
+        select
+          id,
+          patient_id as patientId,
+          protocol,
+          status,
+          null as patientConfirmedAt
+        from travel_requests
+        where id = ?1
+        limit 1
+      `,
+    )
+      .bind(requestId)
+      .first<Record<string, unknown>>()
+  }
+
+  if (!requestRecord) {
+    return false
+  }
+
+  const existingConfirmation = String(requestRecord.patientConfirmedAt ?? '').trim()
+
+  if (!existingConfirmation) {
+    try {
+      await db.prepare(
+        `
+          update travel_requests
+          set patient_confirmed_at = current_timestamp,
+              updated_at = current_timestamp
+          where id = ?1
+        `,
+      )
+        .bind(requestId)
+        .run()
+    } catch (error) {
+      if (!hasMissingPatientConfirmationColumn(error)) {
+        throw error
+      }
+
+      return {
+        ...access,
+        message: 'A confirmação da agenda ainda não foi habilitada no banco remoto.',
+        confirmedAt: '',
+      }
+    }
+
+    const nextOrder = await getNextHistoryOrder(db, requestId)
+    await db.prepare(
+      `
+        insert into request_status_history (
+          travel_request_id,
+          protocol,
+          status,
+          label,
+          note,
+          updated_by_operator_id,
+          updated_at,
+          sort_order
+        )
+        values (?1, ?2, ?3, 'Confirmada pelo paciente', ?4, null, datetime('now'), ?5)
+      `,
+    )
+      .bind(
+        requestId,
+        requestRecord.protocol,
+        requestRecord.status,
+        'Agenda confirmada pelo paciente na consulta pública.',
+        nextOrder,
+      )
+      .run()
+  }
+
+  const refreshedAccess = await loginCitizen(env, cpf, password)
+
+  if (!refreshedAccess) {
+    return null
+  }
+
+  const confirmedRequest = refreshedAccess.requests.find((item) => item.id === requestId)
+
+  return {
+    ...refreshedAccess,
+    message: existingConfirmation
+      ? 'Esta agenda já havia sido confirmada anteriormente.'
+      : 'Agenda confirmada com sucesso.',
+    confirmedAt: String(confirmedRequest?.patientConfirmedAt ?? requestRecord.patientConfirmedAt ?? ''),
   }
 }
 

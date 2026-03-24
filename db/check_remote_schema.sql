@@ -58,6 +58,7 @@ select
   show_driver_phone_to_patient,
   assigned_vehicle_id,
   assigned_vehicle_name,
+  patient_confirmed_at,
   departure_time,
   use_custom_boarding_location,
   boarding_location_name,

@@ -1,6 +1,6 @@
 import { KeyRound, Search, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
-import { activateCitizenPin, loginCitizen } from '../lib/api'
+import { activateCitizenPin, confirmCitizenRequest, loginCitizen } from '../lib/api'
 import type { CitizenAccessResponse, PublicRequestDetails } from '../types'
 
 function formatCpf(value: string) {
@@ -98,7 +98,9 @@ export function PublicStatusPage() {
   const [access, setAccess] = useState<CitizenAccessResponse | null>(null)
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  const [confirmingRequest, setConfirmingRequest] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
 
   const requests = access?.requests ?? []
   const request =
@@ -110,6 +112,7 @@ export function PublicStatusPage() {
     event.preventDefault()
     setLoading(true)
     setError('')
+    setMessage('')
 
     try {
       const data = await loginCitizen(cpf, password)
@@ -128,6 +131,7 @@ export function PublicStatusPage() {
     event.preventDefault()
     setLoading(true)
     setError('')
+    setMessage('')
 
     try {
       const data = await activateCitizenPin(cpf, newPin)
@@ -139,6 +143,27 @@ export function PublicStatusPage() {
       setError('Não foi possível concluir o cadastro do novo PIN. Verifique se ele possui 4 dígitos numéricos.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleConfirmRequest() {
+    if (!request) {
+      return
+    }
+
+    setConfirmingRequest(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const data = await confirmCitizenRequest(cpf, password, request.id)
+      setAccess(data)
+      setSelectedRequestId(request.id)
+      setMessage(data.message)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível confirmar esta agenda.')
+    } finally {
+      setConfirmingRequest(false)
     }
   }
 
@@ -202,6 +227,7 @@ export function PublicStatusPage() {
             </div>
           </form>
           <p className="public-helper-text">Primeiro acesso: utilize a senha temporária 0000 e depois cadastre um novo PIN numérico de 4 dígitos.</p>
+          {message ? <p className="table-note">{message}</p> : null}
           {error ? <p className="table-note">{error}</p> : null}
         </article>
 
@@ -302,6 +328,26 @@ export function PublicStatusPage() {
                 {' '}
                 <strong>{request.boardingLocationLabel || request.addressLine || 'a definir'}</strong>.
               </p>
+            </article>
+
+            <article className="public-card">
+              <div className="eyebrow">
+                <ShieldCheck size={16} />
+                Confirmação da agenda
+              </div>
+              <h2>{request.patientConfirmedAt ? 'Agenda já confirmada' : 'Confirme o recebimento desta agenda'}</h2>
+              <p>
+                {request.patientConfirmedAt
+                  ? `Confirmação registrada em ${request.patientConfirmedAt}.`
+                  : 'Se os dados estiverem corretos, confirme o recebimento para ajudar a equipe a acompanhar sua programação.'}
+              </p>
+              {!request.patientConfirmedAt ? (
+                <div className="form-actions">
+                  <button className="action-button primary" disabled={confirmingRequest} onClick={handleConfirmRequest} type="button">
+                    {confirmingRequest ? 'Confirmando...' : 'Confirmar recebimento da agenda'}
+                  </button>
+                </div>
+              ) : null}
             </article>
 
             <article className="request-card">

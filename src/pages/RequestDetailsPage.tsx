@@ -386,6 +386,10 @@ export function RequestDetailsPage() {
                 <dd>{details.departureTime || 'Não definido'}</dd>
               </div>
               <div>
+                <dt>Confirmação do paciente</dt>
+                <dd>{details.patientConfirmedAt || 'Ainda não confirmada na consulta pública'}</dd>
+              </div>
+              <div>
                 <dt>Acompanhante</dt>
                 <dd>{details.companionRequired ? details.companionName || 'Necessário' : 'Não necessário'}</dd>
               </div>
@@ -463,6 +467,10 @@ export function RequestDetailsPage() {
               <div>
                 <dt>Telefone</dt>
                 <dd>{details.phone || 'Não informado'}</dd>
+              </div>
+              <div>
+                <dt>Agenda confirmada</dt>
+                <dd>{details.patientConfirmedAt || 'Não'}</dd>
               </div>
             </dl>
           </article>

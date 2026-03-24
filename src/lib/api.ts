@@ -2,6 +2,7 @@ import type {
   AdminLoginResponse,
   AssignDriverInput,
   CitizenAccessResponse,
+  ConfirmCitizenRequestResponse,
   CreateDriverInput,
   CreateManagerInput,
   CreateOperatorInput,
@@ -196,6 +197,16 @@ export async function activateCitizenPin(cpf: string, newPin: string) {
   })
 
   return parseJson<CitizenAccessResponse>(response)
+}
+
+export async function confirmCitizenRequest(cpf: string, password: string, requestId: number) {
+  const response = await fetch('/api/public/confirm-request', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ cpf, password, requestId }),
+  })
+
+  return parseJson<ConfirmCitizenRequestResponse>(response)
 }
 
 export async function loginAdmin(cpf: string, password: string) {

@@ -46,6 +46,7 @@ export interface TravelRequest {
   showDriverPhoneToPatient?: boolean
   assignedVehicleId?: number | null
   assignedVehicleName?: string
+  patientConfirmedAt?: string | null
   departureTime?: string
   managerNotes?: string
   scheduledAt?: string
@@ -96,6 +97,11 @@ export interface CitizenAccessResponse {
   temporaryPasswordLabel: string
   request: PublicRequestDetails | null
   requests: PublicRequestDetails[]
+}
+
+export interface ConfirmCitizenRequestResponse extends CitizenAccessResponse {
+  message: string
+  confirmedAt: string
 }
 
 export interface AdminSession {

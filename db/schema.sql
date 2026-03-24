@@ -71,6 +71,7 @@ create table if not exists travel_requests (
   show_driver_phone_to_patient integer not null default 1,
   assigned_vehicle_id integer,
   assigned_vehicle_name text,
+  patient_confirmed_at text,
   departure_time text,
   manager_notes text,
   use_custom_boarding_location integer not null default 0,
