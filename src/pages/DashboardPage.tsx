@@ -51,6 +51,20 @@ function normalizeSearchInput(value: string) {
   return toInstitutionalText(trimmed)
 }
 
+function formatDisplayDate(value?: string) {
+  if (!value) {
+    return 'A definir'
+  }
+
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+
+  if (!match) {
+    return value
+  }
+
+  return `${match[3]}/${match[2]}/${match[1]}`
+}
+
 const initialFilters = {
   status: 'todos' as RequestStatus | 'todos',
   search: '',
@@ -588,12 +602,16 @@ export function DashboardPage() {
                     <td>
                       <strong>{request.patientName}</strong>
                       <div className="table-note">{request.cpfMasked}</div>
+                      <div className="status-pill-row" style={{ marginTop: '8px' }}>
+                        {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada</span> : null}
+                        {request.patientLastViewedAt ? <span className="status-pill-live">Lida</span> : null}
+                      </div>
                     </td>
                     <td>
                       {request.destinationCity}/{request.destinationState}
                     </td>
                     <td>{request.treatmentUnit}</td>
-                    <td>{request.travelDate}</td>
+                    <td>{formatDisplayDate(request.travelDate)}</td>
                     <td>
                       <span className={`status-badge ${request.status}`}>
                         {labelByStatus[request.status]}

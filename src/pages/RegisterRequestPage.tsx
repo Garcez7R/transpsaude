@@ -57,6 +57,7 @@ export function RegisterRequestPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState<{ protocol: string; message: string } | null>(null)
   const [error, setError] = useState('')
+  const [copyMessage, setCopyMessage] = useState('')
 
   function updateField<K extends keyof CreateTravelRequestInput>(key: K, value: CreateTravelRequestInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -85,6 +86,39 @@ export function RegisterRequestPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const validationHints = [
+    form.cpf.replace(/\D/g, '').length !== 11 ? 'Preencha o CPF do paciente com 11 dígitos.' : null,
+    form.phone.replace(/\D/g, '').length < 10 ? 'Informe um telefone válido do paciente.' : null,
+    !form.addressLine.trim() ? 'Informe o endereço completo do paciente.' : null,
+    form.useResponsibleCpfForAccess && form.responsibleCpf.replace(/\D/g, '').length !== 11
+      ? 'Quando o acesso usa o responsável, o CPF do responsável deve estar completo.'
+      : null,
+    form.companionRequired && form.companionCpf.replace(/\D/g, '').length !== 11
+      ? 'Se houver acompanhante, o CPF dele deve estar completo.'
+      : null,
+    form.companionRequired && form.companionPhone.replace(/\D/g, '').length < 10
+      ? 'Se houver acompanhante, o telefone dele deve estar válido.'
+      : null,
+  ].filter(Boolean) as string[]
+
+  const liveSummary = {
+    patientName: form.patientName.trim() || 'Aguardando nome do paciente',
+    accessCpf: form.accessCpf || 'A definir',
+    destination: form.destinationCity.trim() ? `${form.destinationCity}/${form.destinationState || 'RS'}` : 'Destino a definir',
+    treatmentUnit: form.treatmentUnit.trim() || 'Unidade a definir',
+    travelDate: form.travelDate || 'Data a definir',
+    companion: form.companionRequired ? form.companionName.trim() || 'Acompanhante necessário' : 'Não necessário',
+  }
+
+  async function handleCopyProtocol() {
+    if (!success?.protocol || typeof navigator === 'undefined' || !navigator.clipboard) {
+      return
+    }
+
+    await navigator.clipboard.writeText(success.protocol)
+    setCopyMessage('Protocolo copiado.')
   }
 
   if (!session || !canAccessOperator(session)) {
@@ -278,6 +312,49 @@ export function RegisterRequestPage() {
 
         <aside className="dashboard-side">
           <article className="content-card">
+            <h2>Resumo em tempo real</h2>
+            <dl className="request-summary">
+              <div>
+                <dt>Paciente</dt>
+                <dd>{liveSummary.patientName}</dd>
+              </div>
+              <div>
+                <dt>CPF de acesso</dt>
+                <dd>{liveSummary.accessCpf}</dd>
+              </div>
+              <div>
+                <dt>Destino</dt>
+                <dd>{liveSummary.destination}</dd>
+              </div>
+              <div>
+                <dt>Unidade</dt>
+                <dd>{liveSummary.treatmentUnit}</dd>
+              </div>
+              <div>
+                <dt>Data da viagem</dt>
+                <dd>{liveSummary.travelDate}</dd>
+              </div>
+              <div>
+                <dt>Acompanhante</dt>
+                <dd>{liveSummary.companion}</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article className="content-card">
+            <h2>Validação do cadastro</h2>
+            {validationHints.length > 0 ? (
+              <ul className="check-list">
+                {validationHints.map((hint) => (
+                  <li key={hint}>{hint}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="table-note">Os principais campos obrigatórios já estão preenchidos.</p>
+            )}
+          </article>
+
+          <article className="content-card">
             <h2>Acesso do cidadão</h2>
             <ul className="check-list">
               <li>CPF, telefone e endereço do paciente agora são obrigatórios</li>
@@ -296,13 +373,25 @@ export function RegisterRequestPage() {
               <h2>Solicitação registrada</h2>
               <p><strong>Protocolo:</strong> {success.protocol}</p>
               <p>{success.message}</p>
+              <div className="form-actions">
+                <Link className="action-button primary" to="/operador">
+                  Voltar ao painel
+                </Link>
+                <Link className="action-button secondary" to="/operador/cadastro">
+                  Nova solicitação
+                </Link>
+                <button className="action-button secondary" type="button" onClick={() => void handleCopyProtocol()}>
+                  Copiar protocolo
+                </button>
+              </div>
+              {copyMessage ? <p className="table-note">{copyMessage}</p> : null}
             </article>
           ) : (
             <article className="content-card">
               <h2>O que acontece depois</h2>
               <ul className="check-list">
-                <li>Solicitação nasce com status `recebida`</li>
-                <li>Painel interno pode evoluir para análise e agendamento</li>
+                <li>Solicitação nasce com status `agendada`</li>
+                <li>Mensagens e confirmação do paciente ficam disponíveis no detalhe da solicitação</li>
                 <li>Cidadão ou responsável consulta andamento no PWA com CPF de acesso e PIN</li>
               </ul>
             </article>
