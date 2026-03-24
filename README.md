@@ -42,6 +42,8 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - primeiro acesso com troca obrigatória de PIN;
 - visualização de status, data, horário e local de embarque;
 - leitura de mensagens e orientações liberadas pela equipe interna;
+- envio de mensagens para a equipe responsável;
+- confirmação opcional do recebimento da agenda;
 - acompanhamento do histórico da solicitação.
 
 **Particularidades do perfil**
@@ -70,6 +72,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 
 - análise e organização da fila de solicitações;
 - atribuição de motorista por viagem;
+- atribuição de veículo por viagem;
 - definição de horário de saída;
 - definição de local oficial de embarque;
 - visualização operacional por data e por período;
@@ -88,6 +91,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - visualização das viagens atribuídas ao seu nome;
 - consulta de paciente, acompanhante e destino;
 - consulta de local de embarque e horário de saída;
+- envio de mensagens vinculadas à viagem;
 - leitura das observações e orientações aplicáveis à viagem.
 
 **Particularidades do perfil**
@@ -119,11 +123,14 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - histórico de movimentações;
 - reagendamento com registro histórico;
 - mensagens internas e mensagens visíveis ao paciente.
+- registro de confirmação da agenda pelo paciente;
+- registro de visualização da agenda e leitura de mensagens.
 
 ### Gestão operacional
 
 - atribuição de motorista por solicitação;
-- vínculo de veículo ao motorista;
+- atribuição de veículo por solicitação;
+- vínculo preferencial de veículo no cadastro do motorista;
 - definição de horário de saída;
 - definição de local oficial de embarque;
 - visualização por status, data e período;
@@ -144,7 +151,10 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - acompanhamento do agendamento;
 - visualização de múltiplas solicitações vinculadas ao mesmo acesso, com separação por protocolo, data e destino;
 - visualização de data, horário e embarque;
+- abertura de local de embarque em mapa externo;
 - mensagens e orientações liberadas para consulta pública;
+- confirmação da agenda;
+- envio de mensagens para a equipe;
 - PWA instalável em dispositivos compatíveis.
 
 ## Arquitetura técnica
@@ -313,6 +323,7 @@ Próximas frentes possíveis de evolução:
 - exportação e impressão de relatórios operacionais;
 - painéis executivos por período;
 - indicadores de demanda por destino e por motorista;
+- contatos institucionais da secretaria e canais auxiliares de atendimento;
 - notificações adicionais no app;
 - rotinas formais de observabilidade e suporte institucional.
 
