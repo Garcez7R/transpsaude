@@ -1,5 +1,5 @@
 import { CalendarClock, Copy, KeyRound, Phone, Printer, Search, ShieldCheck } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { institutionContact } from '../config/institution'
 import { activateCitizenPin, confirmCitizenRequest, createCitizenRequestMessage, loginCitizen, markCitizenRequestViewed } from '../lib/api'
 import { toInstitutionalText } from '../lib/text-format'
@@ -171,7 +171,15 @@ export function PublicStatusPage() {
   const [citizenMessageTitle, setCitizenMessageTitle] = useState('')
   const [citizenMessageBody, setCitizenMessageBody] = useState('')
 
-  const requests = access?.requests ?? []
+  const requests = useMemo(
+    () =>
+      [...(access?.requests ?? [])].sort((left, right) => {
+        const leftKey = `${left.travelDate ?? ''} ${left.departureTime ?? ''}`.trim()
+        const rightKey = `${right.travelDate ?? ''} ${right.departureTime ?? ''}`.trim()
+        return rightKey.localeCompare(leftKey)
+      }),
+    [access?.requests],
+  )
   const request =
     requests.find((entry) => entry.id === selectedRequestId) ??
     access?.request ??
@@ -411,16 +419,11 @@ export function PublicStatusPage() {
 
         {request ? (
           <>
-            <article className="public-card public-greeting-card">
-              <h2>{greetingName ? `Olá, ${greetingName}.` : 'Seus agendamentos de transporte em saúde'}</h2>
-              <p>{greetingName ? 'Confira abaixo seus agendamentos de transporte em saúde.' : 'Confira abaixo as agendas vinculadas a este acesso.'}</p>
-            </article>
-
-            {requests.length > 1 ? (
+            {requests.length > 0 ? (
               <article className="public-card">
-                <h2>Solicitações vinculadas a este acesso</h2>
+                <h2>{greetingName ? `Olá, ${greetingName}.` : 'Seus agendamentos de transporte em saúde'}</h2>
                 <p className="table-note">Selecione abaixo a agenda que deseja consultar.</p>
-                <div className="request-list">
+                <div className="request-list scroll-list">
                   {requests.map((entry) => (
                     <button
                       key={entry.id}
@@ -444,6 +447,112 @@ export function PublicStatusPage() {
                 </div>
               </article>
             ) : null}
+
+            <article className="request-card">
+              <div className="status-pill-row">
+                <span className={`status-badge ${request.status}`}>{request.statusLabel}</span>
+                <span className="status-pill">Protocolo {request.protocol}</span>
+              </div>
+              <h2>Organização da viagem</h2>
+              <div className="travel-overview-grid">
+                <article className="travel-overview-card">
+                  <span>Embarque</span>
+                  <strong>{getBoardingLocation(request)}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Motorista</span>
+                  <strong>{getDisplayValue(request.assignedDriverName, 'A definir')}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Telefone do motorista</span>
+                  <strong>
+                    {request.showDriverPhoneToPatient && request.assignedDriverPhone
+                      ? request.assignedDriverPhone
+                      : 'Contato não liberado'}
+                  </strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Veículo da viagem</span>
+                  <strong>{request.assignedVehicleName || 'A definir'}</strong>
+                </article>
+              </div>
+
+              <div className="request-section-stack">
+                <section className="detail-section-card">
+                  <h3>Informações principais</h3>
+                  <dl className="request-summary">
+                    <div>
+                      <dt>Data prevista</dt>
+                      <dd>{formatDisplayDate(request.travelDate)}</dd>
+                    </div>
+                    <div>
+                      <dt>Horário da consulta</dt>
+                      <dd>{formatDisplayTime(request.appointmentTime)}</dd>
+                    </div>
+                    <div>
+                      <dt>Horário de saída</dt>
+                      <dd>{request.departureTime || 'A definir'}</dd>
+                    </div>
+                    <div>
+                      <dt>Acompanhante</dt>
+                      <dd>{request.companionRequired ? 'Necessário' : 'Não necessário'}</dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <section className="detail-section-card">
+                  <h3>Dados do atendimento</h3>
+                  <dl className="request-summary">
+                    {isMeaningfulValue(request.patientName) ? (
+                      <div>
+                        <dt>Paciente</dt>
+                        <dd>{request.patientName}</dd>
+                      </div>
+                    ) : null}
+                    <div>
+                      <dt>CPF de acesso</dt>
+                      <dd>{access?.cpfMasked ?? request.accessCpfMasked ?? 'Não informado'}</dd>
+                    </div>
+                    <div>
+                      <dt>Destino</dt>
+                      <dd>{getDisplayValue(`${request.destinationCity}/${request.destinationState}`, 'Destino a definir')}</dd>
+                    </div>
+                    {isMeaningfulValue(request.treatmentUnit) ? (
+                      <div>
+                        <dt>Unidade</dt>
+                        <dd>{request.treatmentUnit}</dd>
+                      </div>
+                    ) : null}
+                    {isMeaningfulValue(request.specialty) ? (
+                      <div>
+                        <dt>Especialidade</dt>
+                        <dd>{request.specialty}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                </section>
+              </div>
+            </article>
+
+            <article className={`public-card ${request.patientConfirmedAt ? 'confirmation-highlight' : ''}`}>
+              <div className="eyebrow">
+                <ShieldCheck size={16} />
+                Confirmação da agenda
+              </div>
+              <h2>{request.patientConfirmedAt ? 'Agenda já confirmada' : 'Confirme o recebimento desta agenda'}</h2>
+              <p>
+                {request.patientConfirmedAt
+                  ? `Confirmação registrada em ${request.patientConfirmedAt}.`
+                  : 'Se os dados estiverem corretos, confirme o recebimento para ajudar a equipe a acompanhar sua programação.'}
+              </p>
+              {!request.patientConfirmedAt ? (
+                <div className="form-actions">
+                  <button className="action-button primary" disabled={confirmingRequest} onClick={handleConfirmRequest} type="button">
+                    {confirmingRequest ? 'Confirmando...' : 'Confirmar recebimento da agenda'}
+                  </button>
+                </div>
+              ) : null}
+            </article>
 
             {hasVisibleUpdate(request) ? (
               <article className="public-card update-highlight">
@@ -505,132 +614,6 @@ export function PublicStatusPage() {
               </div>
               <h2>{request.statusLabel}</h2>
               <p>{statusSupportText[request.status]}</p>
-            </article>
-
-            <article className={`public-card ${request.patientConfirmedAt ? 'confirmation-highlight' : ''}`}>
-              <div className="eyebrow">
-                <ShieldCheck size={16} />
-                Confirmação da agenda
-              </div>
-              <h2>{request.patientConfirmedAt ? 'Agenda já confirmada' : 'Confirme o recebimento desta agenda'}</h2>
-              <p>
-                {request.patientConfirmedAt
-                  ? `Confirmação registrada em ${request.patientConfirmedAt}.`
-                  : 'Se os dados estiverem corretos, confirme o recebimento para ajudar a equipe a acompanhar sua programação.'}
-              </p>
-              {!request.patientConfirmedAt ? (
-                <div className="form-actions">
-                  <button className="action-button primary" disabled={confirmingRequest} onClick={handleConfirmRequest} type="button">
-                    {confirmingRequest ? 'Confirmando...' : 'Confirmar recebimento da agenda'}
-                  </button>
-                </div>
-              ) : null}
-            </article>
-
-            <article className="request-card">
-              <div className="status-pill-row">
-                <span className={`status-badge ${request.status}`}>{request.statusLabel}</span>
-                <span className="status-pill">Protocolo {request.protocol}</span>
-              </div>
-              <h2>Organização da viagem</h2>
-              <div className="travel-overview-grid">
-                <article className="travel-overview-card">
-                  <span>Embarque</span>
-                  <strong>{getBoardingLocation(request)}</strong>
-                </article>
-                <article className="travel-overview-card">
-                  <span>Motorista</span>
-                  <strong>{getDisplayValue(request.assignedDriverName, 'A definir')}</strong>
-                </article>
-                <article className="travel-overview-card">
-                  <span>Telefone do motorista</span>
-                  <strong>
-                    {request.showDriverPhoneToPatient && request.assignedDriverPhone
-                      ? request.assignedDriverPhone
-                      : 'Contato não liberado'}
-                  </strong>
-                </article>
-                <article className="travel-overview-card">
-                  <span>Veículo da viagem</span>
-                  <strong>{request.assignedVehicleName || 'A definir'}</strong>
-                </article>
-              </div>
-
-              <div className="request-section-stack">
-                <section className="detail-section-card">
-                  <h3>Informações principais</h3>
-                  <dl className="request-summary">
-                    <div>
-                      <dt>Data prevista</dt>
-                      <dd>{formatDisplayDate(request.travelDate)}</dd>
-                    </div>
-                    <div>
-                      <dt>Horário da consulta</dt>
-                      <dd>{formatDisplayTime(request.appointmentTime)}</dd>
-                    </div>
-                    <div>
-                      <dt>Horário de saída</dt>
-                      <dd>{request.departureTime || 'A definir'}</dd>
-                    </div>
-                    <div>
-                      <dt>Local de embarque</dt>
-                      <dd>{getBoardingLocation(request)}</dd>
-                    </div>
-                    <div>
-                      <dt>Motorista responsável</dt>
-                      <dd>{getDisplayValue(request.assignedDriverName, 'A definir')}</dd>
-                    </div>
-                    <div>
-                      <dt>Telefone do motorista</dt>
-                      <dd>
-                        {request.showDriverPhoneToPatient && request.assignedDriverPhone
-                          ? request.assignedDriverPhone
-                          : 'Contato não liberado para esta agenda'}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Veículo da viagem</dt>
-                      <dd>{request.assignedVehicleName || 'A definir'}</dd>
-                    </div>
-                    <div>
-                      <dt>Acompanhante</dt>
-                      <dd>{request.companionRequired ? 'Necessário' : 'Não necessário'}</dd>
-                    </div>
-                  </dl>
-                </section>
-
-                <section className="detail-section-card">
-                  <h3>Dados do atendimento</h3>
-                  <dl className="request-summary">
-                    {isMeaningfulValue(request.patientName) ? (
-                      <div>
-                        <dt>Paciente</dt>
-                        <dd>{request.patientName}</dd>
-                      </div>
-                    ) : null}
-                    <div>
-                      <dt>CPF de acesso</dt>
-                      <dd>{access?.cpfMasked ?? request.accessCpfMasked ?? 'Não informado'}</dd>
-                    </div>
-                    <div>
-                      <dt>Destino</dt>
-                      <dd>{getDisplayValue(`${request.destinationCity}/${request.destinationState}`, 'Destino a definir')}</dd>
-                    </div>
-                    {isMeaningfulValue(request.treatmentUnit) ? (
-                      <div>
-                        <dt>Unidade</dt>
-                        <dd>{request.treatmentUnit}</dd>
-                      </div>
-                    ) : null}
-                    {isMeaningfulValue(request.specialty) ? (
-                      <div>
-                        <dt>Especialidade</dt>
-                        <dd>{request.specialty}</dd>
-                      </div>
-                    ) : null}
-                  </dl>
-                </section>
-              </div>
             </article>
 
             {latestTeamMessage ? (
