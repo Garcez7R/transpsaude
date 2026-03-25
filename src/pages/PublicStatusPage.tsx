@@ -587,6 +587,14 @@ export function PublicStatusPage() {
                     Ligar para o motorista
                   </a>
                 ) : null}
+                {request.messages.length > 0 ? (
+                  <a className="action-button secondary" href="#orientacoes-equipe">
+                    Ver mensagens
+                  </a>
+                ) : null}
+                <a className="action-button secondary" href="#mensagens-equipe">
+                  Falar com a equipe
+                </a>
                 {driverPhoneVisible ? (
                   <button className="action-button secondary" type="button" onClick={() => void handleCopyDriverPhone()}>
                     <Copy size={16} />
@@ -617,7 +625,7 @@ export function PublicStatusPage() {
               </article>
             ) : null}
 
-            <article className="public-card">
+            <article className="public-card" id="orientacoes-equipe">
               <h2>Orientações da equipe</h2>
               {request.messages.length > 0 ? (
                 <ol className="status-history">
@@ -635,7 +643,7 @@ export function PublicStatusPage() {
               )}
             </article>
 
-            <article className="public-card">
+            <article className="public-card" id="mensagens-equipe">
               <h2>Enviar mensagem para a equipe</h2>
               <p className="table-note">Use este espaço para informar dúvida, alteração ou dificuldade relacionada a esta agenda.</p>
               <form onSubmit={handleCitizenMessageSubmit}>

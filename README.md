@@ -158,6 +158,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - visualização de múltiplas solicitações vinculadas ao mesmo acesso, com separação por protocolo, data e destino;
 - visualização de data, horário e embarque;
 - abertura de local de embarque em mapa externo;
+- atalhos diretos no resumo da viagem para abrir mensagens da equipe ou falar com a equipe;
 - mensagens e orientações liberadas para consulta pública;
 - confirmação da agenda;
 - envio de mensagens para a equipe;
