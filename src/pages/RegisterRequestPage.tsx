@@ -1,11 +1,11 @@
-import { ArrowLeft, CheckCircle2, FilePlus2 } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, FilePlus2, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createTravelRequest } from '../lib/api'
+import { createTravelRequest, fetchPatients } from '../lib/api'
 import { canAccessOperator } from '../lib/access'
 import { getOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText, toTitleCase } from '../lib/text-format'
-import type { CreateTravelRequestInput } from '../types'
+import type { CreateTravelRequestInput, PatientRecord } from '../types'
 
 const initialForm: CreateTravelRequestInput = {
   patientName: '',
@@ -56,9 +56,12 @@ export function RegisterRequestPage() {
   const session = typeof window !== 'undefined' ? getOperatorSession() : null
   const [form, setForm] = useState(initialForm)
   const [loading, setLoading] = useState(false)
+  const [patients, setPatients] = useState<PatientRecord[]>([])
+  const [lookupLoading, setLookupLoading] = useState(false)
   const [success, setSuccess] = useState<{ protocol: string; message: string } | null>(null)
   const [error, setError] = useState('')
   const [copyMessage, setCopyMessage] = useState('')
+  const [lookupMessage, setLookupMessage] = useState('')
 
   function updateField<K extends keyof CreateTravelRequestInput>(key: K, value: CreateTravelRequestInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -72,6 +75,33 @@ export function RegisterRequestPage() {
     }))
   }, [form.cpf, form.responsibleCpf, form.useResponsibleCpfForAccess, form.addressLine, form.usePatientAddressForCompanion])
 
+  useEffect(() => {
+    if (!session || !canAccessOperator(session)) {
+      return
+    }
+
+    let active = true
+
+    async function loadPatients() {
+      try {
+        const data = await fetchPatients()
+        if (active) {
+          setPatients(data)
+        }
+      } catch {
+        if (active) {
+          setPatients([])
+        }
+      }
+    }
+
+    void loadPatients()
+
+    return () => {
+      active = false
+    }
+  }, [session])
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
@@ -82,10 +112,53 @@ export function RegisterRequestPage() {
       const result = await createTravelRequest(form, 'operator')
       setSuccess({ protocol: result.protocol, message: result.message })
       setForm(initialForm)
+      setLookupMessage('')
     } catch {
       setError('Não foi possível cadastrar a solicitação no momento.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handlePatientLookup() {
+    const normalizedCpf = form.cpf.replace(/\D/g, '')
+
+    if (normalizedCpf.length !== 11) {
+      setLookupMessage('Informe o CPF completo para pesquisar um cadastro existente.')
+      return
+    }
+
+    setLookupLoading(true)
+    setLookupMessage('')
+
+    try {
+      const base = patients.length > 0 ? patients : await fetchPatients()
+      const existing = base.find((patient) => patient.cpf.replace(/\D/g, '') === normalizedCpf)
+
+      if (!existing) {
+        setLookupMessage('Nenhum cadastro anterior foi encontrado para esse CPF.')
+        return
+      }
+
+      setPatients(base)
+      setForm((current) => ({
+        ...current,
+        patientName: existing.fullName || current.patientName,
+        cpf: existing.cpfMasked || current.cpf,
+        cns: existing.cns || current.cns,
+        phone: existing.phone || current.phone,
+        isWhatsapp: existing.isWhatsapp,
+        addressLine: existing.addressLine || current.addressLine,
+        accessCpf: existing.accessCpfMasked || current.accessCpf,
+        useResponsibleCpfForAccess: existing.useResponsibleCpfForAccess,
+        responsibleName: existing.responsibleName || '',
+        responsibleCpf: existing.responsibleCpfMasked || '',
+      }))
+      setLookupMessage('Cadastro anterior encontrado. Confira os dados e ajuste o que for necessário.')
+    } catch {
+      setLookupMessage('Não foi possível pesquisar o cadastro do paciente agora.')
+    } finally {
+      setLookupLoading(false)
     }
   }
 
@@ -194,7 +267,13 @@ export function RegisterRequestPage() {
               </div>
               <div className="field">
                 <label htmlFor="cpf-register">CPF do paciente</label>
-                <input id="cpf-register" value={form.cpf} onChange={(event) => updateField('cpf', formatCpf(event.target.value))} inputMode="numeric" placeholder="000.000.000-00" required />
+                <div className="operator-search-inline">
+                  <input id="cpf-register" value={form.cpf} onChange={(event) => updateField('cpf', formatCpf(event.target.value))} inputMode="numeric" placeholder="000.000.000-00" required />
+                  <button className="action-button secondary" type="button" onClick={() => void handlePatientLookup()}>
+                    <Search size={16} />
+                    {lookupLoading ? 'Buscando...' : 'Buscar CPF'}
+                  </button>
+                </div>
               </div>
               <div className="field">
                 <label htmlFor="cns-register">CNS</label>
@@ -207,7 +286,7 @@ export function RegisterRequestPage() {
               <div className="field full checkbox-field">
                 <label className="checkbox-row" htmlFor="patient-whatsapp">
                   <input id="patient-whatsapp" type="checkbox" checked={form.isWhatsapp} onChange={(event) => updateField('isWhatsapp', event.target.checked)} />
-                  <span>Esse telefone do paciente é WhatsApp</span>
+                  <span>WhatsApp</span>
                 </label>
               </div>
               <div className="field full">
@@ -256,7 +335,7 @@ export function RegisterRequestPage() {
                   <div className="field full checkbox-field">
                     <label className="checkbox-row" htmlFor="companion-whatsapp">
                       <input id="companion-whatsapp" type="checkbox" checked={form.companionIsWhatsapp} onChange={(event) => updateField('companionIsWhatsapp', event.target.checked)} />
-                      <span>Esse telefone do acompanhante é WhatsApp</span>
+                      <span>WhatsApp</span>
                     </label>
                   </div>
                   <div className="field full checkbox-field">
@@ -320,6 +399,7 @@ export function RegisterRequestPage() {
               </button>
             </div>
           </form>
+          {lookupMessage ? <p className="table-note">{lookupMessage}</p> : null}
           {error ? <p className="table-note">{error}</p> : null}
         </article>
 
@@ -386,6 +466,14 @@ export function RegisterRequestPage() {
               <div className="eyebrow">
                 <CheckCircle2 size={16} />
                 Cadastro concluído
+              </div>
+              <div className="form-actions">
+                <Link className="action-button primary" to="/operador">
+                  Voltar ao painel
+                </Link>
+                <Link className="action-button secondary" to="/operador/cadastro">
+                  Nova solicitação
+                </Link>
               </div>
               <h2>Solicitação registrada</h2>
               <p><strong>Protocolo:</strong> {success.protocol}</p>
