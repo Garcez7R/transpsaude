@@ -600,6 +600,11 @@ button {
   padding-top: 10px;
 }
 
+.checkbox-field-inline {
+  align-self: end;
+  padding-top: 0;
+}
+
 .checkbox-row {
   display: inline-flex;
   flex-wrap: wrap;

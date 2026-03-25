@@ -283,7 +283,7 @@ export function RegisterRequestPage() {
                 <label htmlFor="phone-register">Telefone</label>
                 <input id="phone-register" value={form.phone} onChange={(event) => updateField('phone', formatPhone(event.target.value))} inputMode="tel" placeholder="(53) 99999-9999" required />
               </div>
-              <div className="field full checkbox-field">
+              <div className="field checkbox-field checkbox-field-inline">
                 <label className="checkbox-row" htmlFor="patient-whatsapp">
                   <input id="patient-whatsapp" type="checkbox" checked={form.isWhatsapp} onChange={(event) => updateField('isWhatsapp', event.target.checked)} />
                   <span>WhatsApp</span>
@@ -332,7 +332,7 @@ export function RegisterRequestPage() {
                     <label htmlFor="companion-phone">Telefone do acompanhante</label>
                     <input id="companion-phone" value={form.companionPhone} onChange={(event) => updateField('companionPhone', formatPhone(event.target.value))} inputMode="tel" placeholder="(53) 99999-9999" required />
                   </div>
-                  <div className="field full checkbox-field">
+                  <div className="field checkbox-field checkbox-field-inline">
                     <label className="checkbox-row" htmlFor="companion-whatsapp">
                       <input id="companion-whatsapp" type="checkbox" checked={form.companionIsWhatsapp} onChange={(event) => updateField('companionIsWhatsapp', event.target.checked)} />
                       <span>WhatsApp</span>
