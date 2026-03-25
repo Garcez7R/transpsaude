@@ -1,4 +1,4 @@
-import { ArrowLeft, LockKeyhole, LogOut, Route, Save, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, LockKeyhole, LogOut, RefreshCcw, Route, Save, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
@@ -116,6 +116,8 @@ export function ManagerPage() {
     const scheduledTotal = requests.filter((request) => request.status === 'agendada').length
     const pendingTotal = requests.filter((request) => request.status === 'aguardando_documentos').length
     const withoutDriverTotal = requests.filter((request) => !request.assignedDriverName).length
+    const confirmedByPatientTotal = requests.filter((request) => !!request.patientConfirmedAt).length
+    const unreadPatientMessagesTotal = requests.filter((request) => !!request.hasUnreadPatientMessage).length
 
     return {
       byStatus,
@@ -125,9 +127,19 @@ export function ManagerPage() {
       scheduledTotal,
       pendingTotal,
       withoutDriverTotal,
+      confirmedByPatientTotal,
+      unreadPatientMessagesTotal,
       total: requests.length,
     }
   }, [requests])
+
+  const visibleCountLabel = useMemo(() => {
+    if (loading) {
+      return 'Carregando solicitações...'
+    }
+
+    return `${requests.length} solicitação(ões) no recorte atual`
+  }, [loading, requests.length])
 
   useEffect(() => {
     setSession(getManagerSession())
@@ -556,12 +568,18 @@ export function ManagerPage() {
         <div className="filter-stack">
           <div className="field">
             <label htmlFor="manager-search">Buscar</label>
-            <input
-              id="manager-search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Paciente, protocolo, CPF, unidade..."
-            />
+            <div className="operator-search-inline">
+              <input
+                id="manager-search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Paciente, protocolo, CPF, unidade..."
+              />
+              <button className="action-button primary" type="button" onClick={() => setSearch((current) => current.trimStart())}>
+                <Search size={16} />
+                Buscar
+              </button>
+            </div>
           </div>
           <div className="field">
             <label htmlFor="manager-date">Data da viagem</label>
@@ -658,6 +676,18 @@ export function ManagerPage() {
             Limpar filtros
           </button>
         </div>
+        <div className="status-line">
+          <span className="subtle-label">
+            {search || travelDate || dateFrom || dateTo || destination || driverFilterId ? <Search size={14} /> : <RefreshCcw size={14} />}
+            {visibleCountLabel}
+          </span>
+          <span className="status-pill">Confirmadas pelo paciente: {reports.confirmedByPatientTotal}</span>
+          <span className={reports.unreadPatientMessagesTotal > 0 ? 'attention-badge' : 'read-badge'}>
+            {reports.unreadPatientMessagesTotal > 0
+              ? `${reports.unreadPatientMessagesTotal} com mensagem nova do paciente`
+              : 'Sem mensagem nova do paciente'}
+          </span>
+        </div>
       </section>
 
       <section className="dashboard-grid dashboard-grid-main">
@@ -745,8 +775,13 @@ export function ManagerPage() {
                         <p className="table-note">
                           {request.protocol} • {request.destinationCity}/{request.destinationState} • {request.travelDate}
                         </p>
+                        <p className="table-note">
+                          <Link className="inline-link" to={`/operador/solicitacoes/${request.id}`}>
+                            Abrir detalhe completo da solicitação
+                          </Link>
+                        </p>
                       </div>
-                      <span className={`status-badge ${request.status}`}>{request.status}</span>
+                      <span className={`status-badge ${request.status}`}>{statusLabels[request.status]}</span>
                     </div>
 
                     <div className="travel-overview-grid">
@@ -788,12 +823,15 @@ export function ManagerPage() {
                     </div>
 
                     <div className="status-pill-row">
-                      {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada</span> : null}
+                      {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada pelo paciente</span> : null}
                       {request.patientLastViewedAt ? <span className="status-pill-live">Lida pelo paciente</span> : null}
                       {Number(request.patientMessageCount ?? 0) > 0 ? (
-                        <span className={request.hasUnreadPatientMessage ? 'attention-badge' : 'read-badge'}>
+                        <Link
+                          className={`${request.hasUnreadPatientMessage ? 'attention-badge' : 'read-badge'} inline-link`}
+                          to={`/operador/solicitacoes/${request.id}#mensagens-paciente`}
+                        >
                           {request.hasUnreadPatientMessage ? 'Nova mensagem do paciente' : 'Mensagem do paciente lida'}
-                        </span>
+                        </Link>
                       ) : null}
                     </div>
 

@@ -1,5 +1,5 @@
 import { ArrowLeft, BusFront, CarFront, ShieldCheck, UserPlus2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessManager, getInternalRoleLabel } from '../lib/access'
 import {
@@ -81,6 +81,15 @@ function formatPhone(value: string) {
   return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2')
 }
 
+function formatDisplayDate(value?: string) {
+  if (!value) {
+    return 'A definir'
+  }
+
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : value
+}
+
 export function DriversPage() {
   const [session] = useState(() => (typeof window !== 'undefined' ? getManagerSession() : null))
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
@@ -108,6 +117,16 @@ export function DriversPage() {
   const [savingPatient, setSavingPatient] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+
+  const selectedDriver = useMemo(
+    () => drivers.find((driver) => String(driver.id) === selectedDriverId) ?? null,
+    [drivers, selectedDriverId],
+  )
+
+  const driverTripsToday = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10)
+    return driverTrips.filter((trip) => trip.travelDate === today).length
+  }, [driverTrips])
 
   useEffect(() => {
     if (!session || !canAccessManager(session)) {
@@ -454,7 +473,123 @@ export function DriversPage() {
       {error ? <p className="table-note">{error}</p> : null}
       {message ? <p className="table-note">{message}</p> : null}
 
-      <section className="dashboard-grid">
+      <section className="metrics-grid">
+        <article className="metric-card">
+          <strong>{drivers.length}</strong>
+          <p>motoristas cadastrados</p>
+        </article>
+        <article className="metric-card">
+          <strong>{vehicles.length}</strong>
+          <p>veículos disponíveis</p>
+        </article>
+        <article className="metric-card">
+          <strong>{operators.length}</strong>
+          <p>operadores vinculados</p>
+        </article>
+        <article className="metric-card">
+          <strong>{patients.length}</strong>
+          <p>pacientes na base</p>
+        </article>
+      </section>
+
+      <section className="dashboard-grid dashboard-grid-main">
+        <article className="content-card">
+          <h2>Viagens por motorista</h2>
+          <div className="form-grid">
+            <div className="field full">
+              <label htmlFor="trip-driver-selector">Selecionar motorista</label>
+              <select
+                id="trip-driver-selector"
+                value={selectedDriverId}
+                onChange={(event) => setSelectedDriverId(event.target.value)}
+              >
+                <option value="">Selecione um motorista</option>
+                {drivers.map((driver) => (
+                  <option key={driver.id} value={driver.id}>
+                    {driver.name} • {driver.vehicleName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {selectedDriver ? (
+            <>
+              <div className="travel-overview-grid">
+                <article className="travel-overview-card">
+                  <span>Motorista selecionado</span>
+                  <strong>{selectedDriver.name}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Veículo preferencial</span>
+                  <strong>{selectedDriver.vehicleName || 'Sem vínculo fixo'}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Viagens atribuídas</span>
+                  <strong>{driverTrips.length}</strong>
+                </article>
+                <article className="travel-overview-card">
+                  <span>Viagens para hoje</span>
+                  <strong>{driverTripsToday}</strong>
+                </article>
+              </div>
+
+              {driverTrips.length > 0 ? (
+                <div className="assignment-list scroll-list">
+                  {driverTrips.map((trip) => (
+                    <article className="assignment-card" key={trip.id}>
+                      <div className="assignment-header">
+                        <div>
+                          <strong>{trip.patientName}</strong>
+                          <p className="table-note">
+                            {trip.protocol} • {trip.destinationCity}/{trip.destinationState}
+                          </p>
+                        </div>
+                        <span className={`status-badge ${trip.status}`}>{trip.status}</span>
+                      </div>
+                      <div className="travel-overview-grid">
+                        <article className="travel-overview-card">
+                          <span>Consulta</span>
+                          <strong>{trip.appointmentTime ? `${formatDisplayDate(trip.travelDate)} às ${trip.appointmentTime}` : formatDisplayDate(trip.travelDate)}</strong>
+                        </article>
+                        <article className="travel-overview-card">
+                          <span>Saída</span>
+                          <strong>{trip.departureTime ? `${formatDisplayDate(trip.travelDate)} às ${trip.departureTime}` : 'A definir'}</strong>
+                        </article>
+                        <article className="travel-overview-card">
+                          <span>Embarque</span>
+                          <strong>{trip.boardingLocationLabel || trip.addressLine || 'Não informado'}</strong>
+                        </article>
+                        <article className="travel-overview-card">
+                          <span>Acompanhante</span>
+                          <strong>{trip.companionRequired ? trip.companionName || 'Necessário' : 'Não necessário'}</strong>
+                        </article>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="table-note">Esse motorista ainda não possui viagens atribuídas.</p>
+              )}
+            </>
+          ) : (
+            <p className="table-note">Selecione um motorista para ver as viagens atribuídas a ele.</p>
+          )}
+        </article>
+
+        <aside className="dashboard-side">
+          <article className="content-card dashboard-side-sticky">
+            <h2>Leitura rápida</h2>
+            <ul className="check-list">
+              <li>O vínculo de veículo no cadastro do motorista é apenas preferencial.</li>
+              <li>A viagem pode usar outro veículo conforme rodízio, folga ou manutenção.</li>
+              <li>Use esta área para manter equipe, frota e base operacional em dia.</li>
+            </ul>
+          </article>
+        </aside>
+      </section>
+
+      <section className="dashboard-grid dashboard-grid-balanced">
         <article className="content-card">
           <h2>{editingVehicleId ? 'Editar veículo' : 'Novo veículo'}</h2>
           <form onSubmit={handleVehicleSubmit}>
@@ -601,7 +736,7 @@ export function DriversPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-main">
         {canAccessManager(session) ? (
           <article className="content-card">
             <h2>{editingOperatorId ? 'Editar operador' : 'Novo operador'}</h2>
@@ -670,7 +805,7 @@ export function DriversPage() {
         ) : null}
 
         <aside className="dashboard-side">
-          <article className="content-card">
+          <article className="content-card dashboard-side-sticky">
             <h2>Permissões nesta área</h2>
             <ul className="check-list">
               <li>Gerente e admin criam motoristas</li>
@@ -682,7 +817,7 @@ export function DriversPage() {
         </aside>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-main">
         <article className="content-card">
           <h2>Veículos cadastrados</h2>
           {loading ? (
@@ -764,7 +899,7 @@ export function DriversPage() {
         </aside>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid dashboard-grid-main">
         <article className="content-card">
           <h2>{editingPatientId ? 'Editar paciente' : 'Pacientes cadastrados'}</h2>
           {editingPatientId ? (
@@ -907,59 +1042,6 @@ export function DriversPage() {
             </div>
           </article>
         </aside>
-      </section>
-
-      <section className="dashboard-grid">
-        <article className="content-card">
-          <h2>Viagens por motorista</h2>
-          <div className="form-grid">
-            <div className="field full">
-              <label htmlFor="trip-driver-selector">Selecionar motorista</label>
-              <select
-                id="trip-driver-selector"
-                value={selectedDriverId}
-                onChange={(event) => setSelectedDriverId(event.target.value)}
-              >
-                <option value="">Selecione um motorista</option>
-                {drivers.map((driver) => (
-                  <option key={driver.id} value={driver.id}>
-                    {driver.name} • {driver.vehicleName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {selectedDriverId ? (
-            driverTrips.length > 0 ? (
-              <div className="assignment-list scroll-list">
-                {driverTrips.map((trip) => (
-                  <article className="assignment-card" key={trip.id}>
-                    <div className="assignment-header">
-                      <div>
-                        <strong>{trip.patientName}</strong>
-                        <p className="table-note">
-                          {trip.protocol} • {trip.destinationCity}/{trip.destinationState}
-                        </p>
-                      </div>
-                      <span className={`status-badge ${trip.status}`}>{trip.status}</span>
-                    </div>
-                    <div className="assignment-meta">
-                      <span>Consulta: {trip.travelDate} {trip.appointmentTime ? `às ${trip.appointmentTime}` : ''}</span>
-                      <span>Saída: {trip.travelDate} {trip.departureTime ? `às ${trip.departureTime}` : ''}</span>
-                      <span>Embarque: {trip.boardingLocationLabel || trip.addressLine || 'Não informado'}</span>
-                      <span>Acompanhante: {trip.companionRequired ? trip.companionName || 'Sim' : 'Não'}</span>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <p className="table-note">Esse motorista ainda não possui viagens atribuídas.</p>
-            )
-          ) : (
-            <p className="table-note">Selecione um motorista para ver as viagens atribuídas a ele.</p>
-          )}
-        </article>
       </section>
     </div>
   )

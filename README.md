@@ -75,6 +75,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - atribuição de motorista por viagem;
 - atribuição de veículo por viagem;
 - definição de horário de saída;
+- definição de horário da consulta;
 - definição de local oficial de embarque;
 - visualização operacional por data e por período;
 - gestão de motoristas, operadores, pacientes e veículos;
@@ -133,7 +134,9 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - atribuição de motorista por solicitação;
 - atribuição de veículo por solicitação;
 - vínculo preferencial de veículo no cadastro do motorista;
+- leitura rápida das viagens por motorista na área de equipe;
 - definição de horário de saída;
+- definição de horário da consulta;
 - definição de local oficial de embarque;
 - visualização por status, data e período;
 - filtros por destino, motorista, paciente e protocolo;
