@@ -52,6 +52,15 @@ function formatCpf(value: string) {
     .replace(/\.(\d{3})(\d)/, '.$1-$2')
 }
 
+function formatDisplayDate(value?: string) {
+  if (!value) {
+    return 'A definir'
+  }
+
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : value
+}
+
 export function ManagerPage() {
   const [session, setSession] = useState<AdminSession | null>(null)
   const [cpf, setCpf] = useState('')
@@ -78,41 +87,6 @@ export function ManagerPage() {
   const [error, setError] = useState('')
 
   const reports = useMemo(() => {
-    const byStatus = Object.entries(
-      requests.reduce<Record<string, number>>((accumulator, request) => {
-        accumulator[request.status] = (accumulator[request.status] ?? 0) + 1
-        return accumulator
-      }, {}),
-    )
-      .map(([status, total]) => ({
-        key: status,
-        label: statusLabels[status as TravelRequest['status']] ?? status,
-        total,
-      }))
-      .sort((left, right) => right.total - left.total)
-
-    const byDestination = Object.entries(
-      requests.reduce<Record<string, number>>((accumulator, request) => {
-        const key = `${request.destinationCity}/${request.destinationState}`
-        accumulator[key] = (accumulator[key] ?? 0) + 1
-        return accumulator
-      }, {}),
-    )
-      .map(([destinationLabel, total]) => ({ destinationLabel, total }))
-      .sort((left, right) => right.total - left.total)
-      .slice(0, 5)
-
-    const byDriver = Object.entries(
-      requests.reduce<Record<string, number>>((accumulator, request) => {
-        const key = request.assignedDriverName?.trim() || 'Sem motorista definido'
-        accumulator[key] = (accumulator[key] ?? 0) + 1
-        return accumulator
-      }, {}),
-    )
-      .map(([driverName, total]) => ({ driverName, total }))
-      .sort((left, right) => right.total - left.total)
-
-    const companionTotal = requests.filter((request) => request.companionRequired).length
     const scheduledTotal = requests.filter((request) => request.status === 'agendada').length
     const pendingTotal = requests.filter((request) => request.status === 'aguardando_documentos').length
     const withoutDriverTotal = requests.filter((request) => !request.assignedDriverName).length
@@ -120,10 +94,6 @@ export function ManagerPage() {
     const unreadPatientMessagesTotal = requests.filter((request) => !!request.hasUnreadPatientMessage).length
 
     return {
-      byStatus,
-      byDestination,
-      byDriver,
-      companionTotal,
       scheduledTotal,
       pendingTotal,
       withoutDriverTotal,
@@ -693,74 +663,7 @@ export function ManagerPage() {
         </div>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-main">
-        <article className="content-card">
-          <h2>Relatórios da gerência</h2>
-          <p className="table-note">
-            Os blocos abaixo respeitam os filtros atuais da tela e ajudam na distribuição diária das viagens.
-          </p>
-          <div className="status-grid">
-            {reports.byStatus.length > 0 ? (
-              reports.byStatus.map((item) => (
-                <div className="status-card" key={item.key}>
-                  <h3>{item.label}</h3>
-                  <p>{item.total} solicitação(ões)</p>
-                </div>
-              ))
-            ) : (
-              <div className="status-card">
-                <h3>Sem dados</h3>
-                <p>Não há solicitações para compor o relatório atual.</p>
-              </div>
-            )}
-          </div>
-        </article>
-
-        <aside className="dashboard-side">
-          <article className="content-card dashboard-side-sticky">
-            <h2>Acompanhantes</h2>
-            <p className="table-note">
-              {reports.companionTotal} solicitação(ões) deste recorte exigem acompanhante.
-            </p>
-          </article>
-        </aside>
-      </section>
-
-      <section className="dashboard-grid dashboard-grid-balanced">
-        <article className="content-card">
-          <h2>Destinos mais frequentes</h2>
-          {reports.byDestination.length > 0 ? (
-            <div className="assignment-list scroll-list">
-              {reports.byDestination.map((item) => (
-                <article className="assignment-card" key={item.destinationLabel}>
-                  <strong>{item.destinationLabel}</strong>
-                  <p className="table-note">{item.total} viagem(ns) no filtro atual</p>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="table-note">Nenhum destino encontrado para os filtros selecionados.</p>
-          )}
-        </article>
-
-        <article className="content-card">
-          <h2>Carga por motorista</h2>
-          {reports.byDriver.length > 0 ? (
-            <div className="assignment-list scroll-list">
-              {reports.byDriver.map((item) => (
-                <article className="assignment-card" key={item.driverName}>
-                  <strong>{item.driverName}</strong>
-                  <p className="table-note">{item.total} viagem(ns) vinculada(s)</p>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="table-note">Nenhuma viagem vinculada a motorista neste recorte.</p>
-          )}
-        </article>
-      </section>
-
-      <section className="dashboard-grid dashboard-grid-main">
+      <section className="dashboard-grid dashboard-grid-single">
         <div className="content-card">
           <h2>Solicitações para análise e distribuição</h2>
           {loading ? (
@@ -771,12 +674,15 @@ export function ManagerPage() {
                 const data = assignment[request.id] ?? emptyAssignment
 
                 return (
-                  <article className="assignment-card" key={request.id}>
+                  <article className="assignment-card manager-request-card" key={request.id}>
                     <div className="assignment-header">
                       <div>
                         <strong>{request.patientName}</strong>
                         <p className="table-note">
-                          {request.protocol} • {request.destinationCity}/{request.destinationState} • {request.travelDate}
+                          {request.protocol} • {request.destinationCity}/{request.destinationState} • {formatDisplayDate(request.travelDate)}
+                        </p>
+                        <p className="assignment-patient-name">
+                          {request.accessCpfMasked ?? request.cpfMasked} • {request.treatmentUnit}
                         </p>
                         <p className="table-note">
                           <Link className="inline-link" to={`/operador/solicitacoes/${request.id}`}>
@@ -807,12 +713,7 @@ export function ManagerPage() {
                     </div>
 
                     <div className="assignment-meta">
-                      <span>CPF de acesso: {request.accessCpfMasked ?? request.cpfMasked}</span>
-                      <span>Unidade: {request.treatmentUnit}</span>
-                      <span>Motorista designado: {request.assignedDriverName || 'Não atribuído'}</span>
                       <span>Veículo da viagem: {request.assignedVehicleName || 'Não definido'}</span>
-                      <span>Horário da consulta: {request.appointmentTime || 'Não definido'}</span>
-                      <span>Horário de saída: {request.departureTime || 'Não definido'}</span>
                       <span>Telefone do motorista ao paciente: {request.showDriverPhoneToPatient ? 'Visível' : 'Oculto'}</span>
                       <span>Acompanhante: {request.companionRequired ? 'Sim' : 'Não'}</span>
                       {Number(request.patientMessageCount ?? 0) > 0 ? (
@@ -905,7 +806,7 @@ export function ManagerPage() {
                           placeholder="Ponto de saída, observações de rota, documentos ou orientações para o motorista."
                         />
                       </div>
-                      <div className="field full checkbox-field">
+                      <div className="field checkbox-field checkbox-field-inline">
                         <label className="checkbox-row" htmlFor={`show-driver-phone-${request.id}`}>
                           <input
                             id={`show-driver-phone-${request.id}`}
@@ -918,7 +819,7 @@ export function ManagerPage() {
                           <span>Exibir telefone do motorista para o paciente</span>
                         </label>
                       </div>
-                      <div className="field full checkbox-field">
+                      <div className="field checkbox-field checkbox-field-inline">
                         <label className="checkbox-row" htmlFor={`boarding-flag-${request.id}`}>
                           <input
                             id={`boarding-flag-${request.id}`}
@@ -974,18 +875,6 @@ export function ManagerPage() {
             </div>
           )}
         </div>
-
-        <aside className="dashboard-side">
-          <article className="content-card dashboard-side-sticky">
-            <h2>Regras de acesso</h2>
-            <ul className="check-list">
-              <li>Operador entra apenas na área do operador</li>
-              <li>Gerente entra em operador, gerência, equipe e portal do motorista</li>
-              <li>Administrador também tem acesso total</li>
-              <li>Motorista fica restrito ao portal funcional dele</li>
-            </ul>
-          </article>
-        </aside>
       </section>
     </div>
   )

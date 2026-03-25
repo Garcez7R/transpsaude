@@ -1159,6 +1159,36 @@ th {
   margin-bottom: 10px;
 }
 
+.manager-request-card {
+  padding: 16px;
+}
+
+.manager-request-card .assignment-header {
+  margin-bottom: 10px;
+}
+
+.manager-request-card .travel-overview-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+
+.manager-request-card .travel-overview-card {
+  padding: 12px 14px;
+}
+
+.manager-request-card .travel-overview-card strong {
+  font-size: 1rem;
+}
+
+.manager-request-card .assignment-meta {
+  margin-bottom: 12px;
+}
+
+.manager-request-card .status-pill-row {
+  margin-bottom: 10px;
+}
+
 .lookup-feedback.success {
   color: var(--primary-dark);
 }
