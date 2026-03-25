@@ -188,7 +188,9 @@ export function PublicStatusPage() {
   const driverPhoneVisible =
     !!request?.showDriverPhoneToPatient &&
     isMeaningfulValue(request?.assignedDriverPhone)
-  const latestTeamMessage = request?.messages.find((entry) => entry.createdByRole !== 'patient') ?? null
+  const teamMessages = request?.messages.filter((entry) => entry.createdByRole !== 'patient') ?? []
+  const patientMessages = request?.messages.filter((entry) => entry.createdByRole === 'patient') ?? []
+  const latestTeamMessage = teamMessages[0] ?? null
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -536,7 +538,7 @@ export function PublicStatusPage() {
               <h2>{request.patientConfirmedAt ? 'Agenda já confirmada' : 'Confirme o recebimento desta agenda'}</h2>
               <p>
                 {request.patientConfirmedAt
-                  ? `Confirmação registrada em ${request.patientConfirmedAt}.`
+                  ? `Confirmação registrada em ${formatDisplayTimestamp(request.patientConfirmedAt)}.`
                   : 'Se os dados estiverem corretos, confirme o recebimento para ajudar a equipe a acompanhar sua programação.'}
               </p>
               {!request.patientConfirmedAt ? (
@@ -627,12 +629,12 @@ export function PublicStatusPage() {
 
             <article className="public-card" id="orientacoes-equipe">
               <h2>Orientações da equipe</h2>
-              {request.messages.length > 0 ? (
+              {teamMessages.length > 0 ? (
                 <ol className="status-history">
-                  {request.messages.map((entry) => (
+                  {teamMessages.map((entry) => (
                     <li key={`public-message-${entry.id}`}>
                       <strong>{entry.title || 'Atualização da solicitação'}</strong> em {formatDisplayTimestamp(entry.createdAt)}
-                      {' '}por {entry.createdByRole === 'patient' ? 'você' : entry.createdByName}
+                      {' '}por {entry.createdByName}
                       <br />
                       {entry.body}
                     </li>
@@ -642,6 +644,21 @@ export function PublicStatusPage() {
                 <p className="table-note">No momento, não há novas orientações para esta viagem.</p>
               )}
             </article>
+
+            {patientMessages.length > 0 ? (
+              <article className="public-card">
+                <h2>Suas mensagens enviadas</h2>
+                <ol className="status-history">
+                  {patientMessages.map((entry) => (
+                    <li key={`citizen-message-${entry.id}`}>
+                      <strong>{entry.title || 'Mensagem enviada por você'}</strong> em {formatDisplayTimestamp(entry.createdAt)}
+                      <br />
+                      {entry.body}
+                    </li>
+                  ))}
+                </ol>
+              </article>
+            ) : null}
 
             <article className="public-card" id="mensagens-equipe">
               <h2>Enviar mensagem para a equipe</h2>

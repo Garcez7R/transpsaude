@@ -623,6 +623,17 @@ export function DashboardPage() {
                       </Link>
                     ) : null}
                   </div>
+
+                  <div className="assignment-actions">
+                    <Link className="action-button secondary" to={`/operador/solicitacoes/${request.id}`}>
+                      Abrir solicitação
+                    </Link>
+                    {Number(request.patientMessageCount ?? 0) > 0 ? (
+                      <Link className="ghost-button" to={`/operador/solicitacoes/${request.id}#mensagens-paciente`}>
+                        Ir para mensagens
+                      </Link>
+                    ) : null}
+                  </div>
                 </article>
               ))}
             </div>
@@ -633,11 +644,11 @@ export function DashboardPage() {
 
         <aside className="dashboard-side">
           <article className="content-card dashboard-side-sticky">
-            <h2>Ações rápidas</h2>
+            <h2>Atalhos do dia</h2>
             <ul className="check-list">
-              <li>Busque por CPF para reaproveitar cadastros e evitar redigitação.</li>
-              <li>Abra o protocolo para responder mensagens e conferir leitura ou confirmação da agenda.</li>
-              <li>Preencha o horário da consulta junto da saída para facilitar a ordem do transporte.</li>
+              <li>Busque por CPF para reaproveitar cadastros sem redigitar os dados do paciente.</li>
+              <li>Abra a solicitação para responder mensagens, revisar leitura pública e confirmar dados da agenda.</li>
+              <li>Preencha horário da consulta e saída para ajudar a gerência a ordenar a rota.</li>
             </ul>
           </article>
         </aside>
