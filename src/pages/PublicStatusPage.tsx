@@ -1,4 +1,4 @@
-import { CalendarClock, Copy, KeyRound, Phone, Printer, Search, ShieldCheck } from 'lucide-react'
+import { CalendarClock, Copy, KeyRound, Phone, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { institutionContact } from '../config/institution'
 import { activateCitizenPin, confirmCitizenRequest, createCitizenRequestMessage, loginCitizen, markCitizenRequestViewed } from '../lib/api'
@@ -301,12 +301,6 @@ export function PublicStatusPage() {
     setCopyMessage('Telefone do motorista copiado.')
   }
 
-  function handlePrint() {
-    if (typeof window !== 'undefined') {
-      window.print()
-    }
-  }
-
   return (
     <div className="public-shell">
       <section className="institutional-bar institutional-bar-inner">
@@ -599,10 +593,6 @@ export function PublicStatusPage() {
                     Copiar telefone
                   </button>
                 ) : null}
-                <button className="action-button secondary" type="button" onClick={handlePrint}>
-                  <Printer size={16} />
-                  Imprimir agenda
-                </button>
               </div>
               {copyMessage ? <p className="table-note">{copyMessage}</p> : null}
             </article>
