@@ -462,7 +462,7 @@ export function DashboardPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-main">
+      <section className="dashboard-grid dashboard-grid-single">
         <div className="content-card">
           <div className="filter-stack">
             <form className="filter-stack" onSubmit={handleFilterSubmit}>
@@ -644,17 +644,6 @@ export function DashboardPage() {
             <p className="table-note">Nenhuma solicitação encontrada para o filtro atual.</p>
           )}
         </div>
-
-        <aside className="dashboard-side">
-          <article className="content-card dashboard-side-sticky">
-            <h2>Atalhos do dia</h2>
-            <ul className="check-list">
-              <li>Busque por CPF para reaproveitar cadastros sem redigitar os dados do paciente.</li>
-              <li>Abra a solicitação para responder mensagens, revisar leitura pública e confirmar dados da agenda.</li>
-              <li>Preencha horário da consulta e saída para ajudar a gerência a ordenar a rota.</li>
-            </ul>
-          </article>
-        </aside>
       </section>
     </div>
   )

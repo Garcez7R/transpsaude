@@ -699,7 +699,7 @@ export function RequestDetailsPage() {
                       required
                     />
                   </div>
-                  <div className="field full checkbox-field">
+                  <div className="field checkbox-field checkbox-field-inline">
                     <label className="checkbox-row" htmlFor="request-message-visible">
                       <input
                         id="request-message-visible"
