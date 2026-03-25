@@ -464,6 +464,7 @@ export function DashboardPage() {
 
       <section className="dashboard-grid dashboard-grid-single">
         <div className="content-card">
+          <h2>Agendamentos e solicitações</h2>
           <div className="filter-stack">
             <form className="filter-stack" onSubmit={handleFilterSubmit}>
               <div className="field full operator-search-row">

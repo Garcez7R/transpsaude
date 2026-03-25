@@ -538,6 +538,7 @@ export function ManagerPage() {
       </section>
 
       <section className="content-card">
+        <h2>Agendamentos e solicitações</h2>
         <div className="filter-stack">
           <div className="field">
             <label htmlFor="manager-search">Buscar</label>
@@ -665,7 +666,7 @@ export function ManagerPage() {
 
       <section className="dashboard-grid dashboard-grid-single">
         <div className="content-card">
-          <h2>Solicitações para análise e distribuição</h2>
+          <h2>Distribuição das solicitações</h2>
           {loading ? (
             <p className="table-note">Carregando viagens...</p>
           ) : (
