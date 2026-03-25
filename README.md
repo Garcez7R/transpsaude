@@ -120,6 +120,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - cadastro completo de solicitações de transporte em saúde;
 - identificação de paciente, responsável e acompanhante;
 - busca prévia por CPF para reaproveitar cadastros existentes e reduzir redigitação;
+- base de pacientes com pesquisa refinada por nome, CPF, telefone, endereço, CPF de acesso e responsável;
 - controle de acesso do cidadão para consulta pública;
 - protocolo de solicitação;
 - detalhe completo da solicitação;

@@ -429,6 +429,9 @@ export function DashboardPage() {
         </div>
 
         <div className="page-actions">
+          <Link className="action-button secondary" to="/operador/pacientes">
+            Base de pacientes
+          </Link>
           <Link className="action-button secondary" to="/operador/cadastro">
             <Plus size={16} />
             Nova solicitação

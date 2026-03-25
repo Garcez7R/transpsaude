@@ -531,8 +531,8 @@ export async function deleteVehicle(id: number) {
   return parseJson<{ message: string }>(response)
 }
 
-export async function fetchPatients() {
-  const response = await fetch('/api/admin/patients', withInternalHeaders())
+export async function fetchPatients(accessMode: 'internal' | 'operator' = 'internal') {
+  const response = await fetch('/api/admin/patients', accessMode === 'operator' ? withOperatorHeaders() : withInternalHeaders())
   return parseJson<PatientRecord[]>(response)
 }
 

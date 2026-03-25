@@ -256,6 +256,9 @@ export function RegisterRequestPage() {
         </div>
 
         <div className="page-actions">
+          <Link className="action-button secondary" to="/operador/pacientes">
+            Base de pacientes
+          </Link>
           <Link className="action-button secondary" to="/operador">
             <ArrowLeft size={16} />
             Voltar ao painel

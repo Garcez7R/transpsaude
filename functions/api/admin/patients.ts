@@ -22,10 +22,10 @@ function maskCpf(value: string) {
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
-  const session = await requireInternalRole(env, request, ['manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['operator', 'manager', 'admin'])
 
   if (!session) {
-    return forbidden('Somente gerente ou administrador podem consultar pacientes.')
+    return forbidden('Somente perfis internos autorizados podem consultar pacientes.')
   }
 
   return ok(await listPatients(env))

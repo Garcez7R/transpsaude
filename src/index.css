@@ -1123,6 +1123,15 @@ th {
   margin-top: 2px;
 }
 
+.lookup-feedback.success {
+  color: var(--primary-dark);
+}
+
+.lookup-feedback.warning,
+.lookup-feedback.error {
+  color: var(--danger);
+}
+
 .detail-note {
   margin-top: 18px;
   padding: 14px 16px;

@@ -528,6 +528,9 @@ export function ManagerPage() {
         </div>
 
         <div className="page-actions">
+          <Link className="action-button secondary" to="/gerente/pacientes">
+            Base de pacientes
+          </Link>
           <Link className="action-button secondary" to="/gerente/equipe">
             Equipe e veículos
           </Link>
