@@ -794,8 +794,16 @@ th {
 
 .request-summary {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px 18px;
+}
+
+.request-summary > div {
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(18, 48, 58, 0.08);
+  background: rgba(248, 249, 248, 0.84);
 }
 
 .request-summary dd {
@@ -1136,6 +1144,10 @@ th {
 
   .operator-search-inline {
     grid-template-columns: 1fr;
+  }
+
+  .request-summary > div {
+    padding: 13px 14px;
   }
 
   .topbar {

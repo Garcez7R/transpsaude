@@ -547,7 +547,7 @@ export function RequestDetailsPage() {
           </div>
 
           <aside className="dashboard-side">
-            <article className="content-card dashboard-side-sticky">
+            <article className="content-card">
               <h2>Contato do motorista</h2>
               <form onSubmit={handleDriverPhoneVisibilitySubmit}>
                 <div className="form-grid">
