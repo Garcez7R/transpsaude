@@ -238,7 +238,7 @@ export function PatientsDirectoryPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-main">
+      <section className="dashboard-grid dashboard-grid-single">
         <div className="content-card">
           <div className="filter-stack">
             <div className="form-grid">
@@ -323,11 +323,14 @@ export function PatientsDirectoryPage() {
                       <strong>{patient.fullName}</strong>
                       <p className="table-note">{patient.cpfMasked} • Acesso {patient.accessCpfMasked}</p>
                     </div>
+                  </div>
+
+                  {patient.isWhatsapp || patient.useResponsibleCpfForAccess ? (
                     <div className="status-pill-row">
                       {patient.isWhatsapp ? <span className="confirmed-badge">WhatsApp</span> : null}
                       {patient.useResponsibleCpfForAccess ? <span className="update-badge">Acesso por responsável</span> : null}
                     </div>
-                  </div>
+                  ) : null}
 
                   <div className="request-summary">
                     <div>
@@ -358,17 +361,6 @@ export function PatientsDirectoryPage() {
             </article>
           )}
         </div>
-
-        <aside className="dashboard-side">
-          <article className="content-card dashboard-side-sticky">
-            <h2>Uso recomendado</h2>
-            <ul className="check-list">
-              <li>Use esta base para auditoria, conferência rápida e localização refinada de cadastro.</li>
-              <li>Para atendimento no balcão, continue usando a busca por CPF dentro do cadastro da viagem.</li>
-              <li>Filtre por responsável, telefone ou endereço quando o paciente não souber o CPF de acesso.</li>
-            </ul>
-          </article>
-        </aside>
       </section>
     </div>
   )

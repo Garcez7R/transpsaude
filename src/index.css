@@ -526,11 +526,23 @@ button {
 
 .metrics-grid {
   grid-template-columns: repeat(4, 1fr);
-  margin-bottom: 18px;
+  margin-bottom: 16px;
+  gap: 12px;
 }
 
 .metric-card {
-  padding: 22px;
+  padding: 14px 16px;
+  border-radius: 18px;
+}
+
+.metric-card p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+}
+
+.metric-card strong {
+  font-size: 1.35rem;
+  line-height: 1.1;
 }
 
 .dashboard-grid {
