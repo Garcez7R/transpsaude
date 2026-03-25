@@ -326,6 +326,33 @@ npm run lint
 npm run build
 ```
 
+## Checkpoint atual
+
+Estado atual do produto neste repositório:
+
+- fluxo principal já funcional entre cidadão, operador, gerente, motorista e administração;
+- consulta pública com múltiplas agendas, mensagens, confirmação, mapa e leitura mais acessível;
+- operador com painel mais enxuto, cadastro reorganizado por etapas e reaproveitamento de paciente por CPF;
+- gerência com distribuição de viagens mais direta, foco em motorista, consulta, saída e embarque;
+- base refinada de pacientes para busca, auditoria e conferência por dados críticos;
+- badges, flags e métricas mais compactas e consistentes entre as telas internas;
+- compatibilidade operacional mantida com Cloudflare Pages + Functions + D1.
+
+Pontos já maduros:
+
+- consulta pública do cidadão;
+- cadastro inicial da solicitação;
+- painel operacional do operador;
+- distribuição da gerência;
+- base de pacientes.
+
+Próximos passos mais naturais:
+
+- QA ponta a ponta por perfil em ambiente real;
+- revisão final do portal do motorista;
+- preenchimento dos contatos institucionais definitivos;
+- estabilização operacional para uso contínuo e coleta de feedback da prefeitura.
+
 ## Evolução recomendada
 
 Próximas frentes possíveis de evolução:
