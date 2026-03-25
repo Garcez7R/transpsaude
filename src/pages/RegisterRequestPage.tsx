@@ -269,7 +269,7 @@ export function RegisterRequestPage() {
                 <label htmlFor="cpf-register">CPF do paciente</label>
                 <div className="operator-search-inline">
                   <input id="cpf-register" value={form.cpf} onChange={(event) => updateField('cpf', formatCpf(event.target.value))} inputMode="numeric" placeholder="000.000.000-00" required />
-                  <button className="action-button secondary" type="button" onClick={() => void handlePatientLookup()}>
+                  <button className="action-button secondary lookup-button" type="button" onClick={() => void handlePatientLookup()}>
                     <Search size={16} />
                     {lookupLoading ? 'Buscando...' : 'Buscar CPF'}
                   </button>

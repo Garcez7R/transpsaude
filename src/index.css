@@ -267,8 +267,18 @@ button {
 
 .operator-search-inline {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) fit-content(150px);
   gap: 12px;
+  align-items: center;
+}
+
+.operator-search-inline input {
+  min-width: 0;
+}
+
+.lookup-button {
+  padding-inline: 0.95rem;
+  white-space: nowrap;
 }
 
 .operator-filter-actions {
