@@ -293,7 +293,7 @@ export function RegisterRequestPage() {
                 <label htmlFor="address-line">Endereço do paciente</label>
                 <input id="address-line" value={form.addressLine} onChange={(event) => updateField('addressLine', toInstitutionalText(event.target.value))} placeholder="Rua, numero, bairro e referencia" required />
               </div>
-              <div className="field full checkbox-field">
+              <div className="field checkbox-field checkbox-field-inline">
                 <label className="checkbox-row" htmlFor="use-responsible-access">
                   <input id="use-responsible-access" type="checkbox" checked={form.useResponsibleCpfForAccess} onChange={(event) => updateField('useResponsibleCpfForAccess', event.target.checked)} />
                   <span>Usar CPF do responsável como acesso ao acompanhamento</span>
