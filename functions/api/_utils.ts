@@ -785,7 +785,7 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
   const normalizedCpf = normalizeCpf(cpf)
   const db = requireDb(env)
 
-  const patientAccess = await db.prepare(
+  const patientAccessRows = await db.prepare(
     `
       select
         id,
@@ -799,38 +799,60 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       from patients
       where access_cpf = ?1
         and active = 1
-      limit 1
+      order by coalesce(updated_at, created_at) desc, id desc
     `,
   )
     .bind(normalizedCpf)
-    .first<Record<string, unknown>>()
+    .all<Record<string, unknown>>()
+
+  const patientAccessList = patientAccessRows.results ?? []
+
+  if (patientAccessList.length === 0) {
+    return null
+  }
+
+  let patientAccess: Record<string, unknown> | null = null
+  let temporaryMatch = { matches: false, shouldUpgrade: false }
+  let pinMatch = { matches: false, shouldUpgrade: false }
+  let mustChangePin = false
+
+  for (const candidate of patientAccessList) {
+    const candidateMustChangePin = toBoolean(candidate.mustChangePin)
+    const candidateTemporaryPassword = String(candidate.temporaryPassword ?? '')
+    const candidateTemporaryPasswordHash = String(candidate.temporaryPasswordHash ?? '')
+    const candidateCitizenPin = String(candidate.citizenPin ?? '')
+    const candidateCitizenPinHash = String(candidate.citizenPinHash ?? '')
+    const candidateTemporaryMatch = candidateMustChangePin
+      ? await verifySecretWithFallback({
+          secret: password,
+          storedHash: candidateTemporaryPasswordHash,
+          legacySecret: candidateTemporaryPassword,
+        })
+      : { matches: false, shouldUpgrade: false }
+    const candidatePinMatch = await verifySecretWithFallback({
+      secret: password,
+      storedHash: candidateCitizenPinHash,
+      legacySecret: candidateCitizenPin,
+    })
+
+    if (candidateTemporaryMatch.matches || candidatePinMatch.matches) {
+      patientAccess = candidate
+      temporaryMatch = candidateTemporaryMatch
+      pinMatch = candidatePinMatch
+      mustChangePin = candidateMustChangePin
+      break
+    }
+  }
 
   if (!patientAccess) {
     return null
   }
 
-  const mustChangePin = toBoolean(patientAccess.mustChangePin)
-  const temporaryPassword = String(patientAccess.temporaryPassword ?? '')
-  const temporaryPasswordHash = String(patientAccess.temporaryPasswordHash ?? '')
-  const citizenPin = String(patientAccess.citizenPin ?? '')
-  const citizenPinHash = String(patientAccess.citizenPinHash ?? '')
-  const temporaryMatch = mustChangePin
-    ? await verifySecretWithFallback({
-        secret: password,
-        storedHash: temporaryPasswordHash,
-        legacySecret: temporaryPassword,
-      })
-    : { matches: false, shouldUpgrade: false }
-  const pinMatch = await verifySecretWithFallback({
-    secret: password,
-    storedHash: citizenPinHash,
-    legacySecret: citizenPin,
-  })
-  const passwordMatches = temporaryMatch.matches || pinMatch.matches
+  const patientIds = patientAccessList
+    .map((item) => Number(item.id ?? ''))
+    .filter((value, index, array) => Number.isFinite(value) && value > 0 && array.indexOf(value) === index)
 
-  if (!passwordMatches) {
-    return null
-  }
+  const requestPlaceholders = patientIds.map((_, index) => `?${index + 1}`).join(', ')
 
   if (temporaryMatch.shouldUpgrade) {
     await db.prepare(
@@ -839,10 +861,11 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
         set temporary_password_hash = ?1,
             temporary_password = '',
             updated_at = current_timestamp
-        where id = ?2
+        where access_cpf = ?2
+          and active = 1
       `,
     )
-      .bind(await createSecretHash(password), patientAccess.id)
+      .bind(await createSecretHash(password), normalizedCpf)
       .run()
   }
 
@@ -853,10 +876,11 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
         set citizen_pin_hash = ?1,
             citizen_pin = '',
             updated_at = current_timestamp
-        where id = ?2
+        where access_cpf = ?2
+          and active = 1
       `,
     )
-      .bind(await createSecretHash(password), patientAccess.id)
+      .bind(await createSecretHash(password), normalizedCpf)
       .run()
   }
 
@@ -902,11 +926,11 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
         tr.notes
       from travel_requests tr
       inner join patients p on p.id = tr.patient_id
-      where tr.patient_id = ?1
+      where tr.patient_id in (${requestPlaceholders})
       order by tr.travel_date desc, tr.created_at desc, tr.id desc
     `,
     )
-      .bind(patientAccess.id)
+      .bind(...patientIds)
       .all<Record<string, unknown>>()
   } catch (error) {
     if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingAppointmentTimeColumn(error))) {
@@ -948,11 +972,11 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
           tr.notes
         from travel_requests tr
         inner join patients p on p.id = tr.patient_id
-        where tr.patient_id = ?1
+        where tr.patient_id in (${requestPlaceholders})
         order by tr.travel_date desc, tr.created_at desc, tr.id desc
       `,
     )
-      .bind(patientAccess.id)
+      .bind(...patientIds)
       .all<Record<string, unknown>>()
   }
 
@@ -1010,10 +1034,11 @@ export async function loginCitizen(env: Env, cpf: string, password: string) {
       update patients
       set last_login_at = current_timestamp,
           updated_at = current_timestamp
-      where id = ?1
+      where access_cpf = ?1
+        and active = 1
     `,
   )
-    .bind(patientAccess.id)
+    .bind(normalizedCpf)
     .run()
 
   return {
@@ -1040,6 +1065,7 @@ export async function activateCitizenPin(env: Env, cpf: string, newPin: string) 
       from patients
       where access_cpf = ?1
         and active = 1
+      order by coalesce(updated_at, created_at) desc, id desc
       limit 1
     `,
   )
@@ -1061,10 +1087,11 @@ export async function activateCitizenPin(env: Env, cpf: string, newPin: string) 
           access_activated_at = coalesce(access_activated_at, current_timestamp),
           last_login_at = current_timestamp,
           updated_at = current_timestamp
-      where id = ?2
+      where access_cpf = ?2
+        and active = 1
     `,
   )
-    .bind(await createSecretHash(newPin), patient.id)
+    .bind(await createSecretHash(newPin), normalizedCpf)
     .run()
 
   return loginCitizen(env, cpf, newPin)
