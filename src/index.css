@@ -374,14 +374,17 @@ button {
   gap: 8px;
   padding: 0.45rem 0.75rem;
   border-radius: 999px;
-  background: rgba(22, 133, 83, 0.1);
-  color: var(--primary-dark);
+  border: 1px solid transparent;
+  background: rgba(87, 102, 107, 0.12);
+  color: var(--gray-strong);
   font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .status-pill-live {
-  background: rgba(212, 171, 24, 0.18);
-  color: var(--accent-strong);
+  border-color: rgba(43, 116, 181, 0.18);
+  background: rgba(43, 116, 181, 0.12);
+  color: #275f91;
 }
 
 .check-list,
@@ -945,6 +948,7 @@ th {
   align-items: center;
   border-radius: 999px;
   padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(212, 171, 24, 0.2);
   background: rgba(212, 171, 24, 0.2);
   color: var(--accent-strong);
   font-size: 0.82rem;
@@ -956,10 +960,33 @@ th {
   align-items: center;
   border-radius: 999px;
   padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(22, 133, 83, 0.2);
   background: rgba(22, 133, 83, 0.16);
   color: var(--primary-dark);
   font-size: 0.82rem;
   font-weight: 700;
+}
+
+.attention-badge,
+.read-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.attention-badge {
+  border: 1px solid rgba(179, 67, 67, 0.2);
+  background: rgba(179, 67, 67, 0.12);
+  color: var(--danger);
+}
+
+.read-badge {
+  border: 1px solid rgba(22, 133, 83, 0.18);
+  background: rgba(22, 133, 83, 0.1);
+  color: var(--primary-dark);
 }
 
 .form-grid {

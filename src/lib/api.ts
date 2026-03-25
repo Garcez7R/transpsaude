@@ -180,6 +180,19 @@ export async function fetchRequestDetails(requestId: number, accessMode: 'intern
   return parseJson<TravelRequestDetails & { history: StatusHistoryEntry[] }>(response)
 }
 
+export async function markRequestPatientMessagesSeen(requestId: number, accessMode: 'internal' | 'operator' = 'internal') {
+  const response = await fetch(
+    '/api/admin/request-patient-message-read',
+    (accessMode === 'operator' ? withOperatorHeaders : withInternalHeaders)({
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ requestId }),
+    }),
+  )
+
+  return parseJson<{ requestId: number; operatorLastPatientMessageSeenAt: string }>(response)
+}
+
 export async function loginCitizen(cpf: string, password: string) {
   const response = await fetch('/api/public/login', {
     method: 'POST',

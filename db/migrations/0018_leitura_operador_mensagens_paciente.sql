@@ -1,0 +1,1 @@
+alter table travel_requests add column operator_last_patient_message_seen_at text;

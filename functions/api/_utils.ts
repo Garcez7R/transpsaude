@@ -113,6 +113,14 @@ function hasMissingPatientViewColumns(error: unknown) {
   )
 }
 
+function hasMissingOperatorPatientMessageSeenColumn(error: unknown) {
+  const message = error instanceof Error ? error.message : ''
+  return (
+    message.includes('no such column: tr.operator_last_patient_message_seen_at') ||
+    message.includes('no such column: operator_last_patient_message_seen_at')
+  )
+}
+
 function hasMissingAppointmentTimeColumn(error: unknown) {
   const message = error instanceof Error ? error.message : ''
   return message.includes('no such column: tr.appointment_time') || message.includes('no such column: appointment_time')
@@ -585,12 +593,19 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       tr.patient_confirmed_at as patientConfirmedAt,
       tr.patient_last_viewed_at as patientLastViewedAt,
       tr.patient_last_message_seen_at as patientLastMessageSeenAt,
+      tr.operator_last_patient_message_seen_at as operatorLastPatientMessageSeenAt,
       (
         select count(*)
         from request_messages rm
         where rm.travel_request_id = tr.id
           and rm.created_by_role = 'patient'
       ) as patientMessageCount,
+      (
+        select max(rm.created_at)
+        from request_messages rm
+        where rm.travel_request_id = tr.id
+          and rm.created_by_role = 'patient'
+      ) as latestPatientMessageAt,
       tr.departure_time as departureTime,
       tr.manager_notes as managerNotes,
       tr.scheduled_at as scheduledAt,
@@ -634,7 +649,9 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
       null as patientConfirmedAt,
       null as patientLastViewedAt,
       null as patientLastMessageSeenAt,
+      null as operatorLastPatientMessageSeenAt,
       0 as patientMessageCount,
+      null as latestPatientMessageAt,
       tr.departure_time as departureTime,
       tr.manager_notes as managerNotes,
       tr.scheduled_at as scheduledAt,
@@ -715,7 +732,7 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
     const statement = params.length > 0 ? prepared.bind(...params) : prepared
     result = await statement.all()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingAppointmentTimeColumn(error) || hasMissingMessageRoleColumn(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingAppointmentTimeColumn(error) || hasMissingMessageRoleColumn(error) || hasMissingOperatorPatientMessageSeenColumn(error))) {
       throw error
     }
 
@@ -738,6 +755,11 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
     companionIsWhatsapp: toBoolean(item.companionIsWhatsapp),
     useCustomBoardingLocation: toBoolean(item.useCustomBoardingLocation),
     showDriverPhoneToPatient: toBoolean(item.showDriverPhoneToPatient),
+    hasUnreadPatientMessage:
+      Number(item.patientMessageCount ?? 0) > 0 &&
+      (!item.operatorLastPatientMessageSeenAt ||
+        (String(item.latestPatientMessageAt ?? '') !== '' &&
+          String(item.latestPatientMessageAt ?? '') > String(item.operatorLastPatientMessageSeenAt ?? ''))),
   })) as Array<Record<string, unknown>>
 }
 
@@ -1447,6 +1469,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
         tr.assigned_vehicle_id as assignedVehicleId,
         tr.assigned_vehicle_name as assignedVehicleName,
         tr.patient_confirmed_at as patientConfirmedAt,
+        tr.operator_last_patient_message_seen_at as operatorLastPatientMessageSeenAt,
         tr.departure_time as departureTime,
         tr.manager_notes as managerNotes,
         tr.scheduled_at as scheduledAt,
@@ -1460,7 +1483,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
       .bind(requestId)
       .first<Record<string, unknown>>()
   } catch (error) {
-    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingAppointmentTimeColumn(error))) {
+    if (!(hasMissingBoardingColumns(error) || hasMissingAssignmentColumns(error) || hasMissingPatientConfirmationColumn(error) || hasMissingPatientViewColumns(error) || hasMissingAppointmentTimeColumn(error) || hasMissingOperatorPatientMessageSeenColumn(error))) {
       throw error
     }
 
@@ -1504,6 +1527,7 @@ export async function getRequestDetails(env: Env, requestId: number) {
           null as assignedVehicleId,
           '' as assignedVehicleName,
           null as patientConfirmedAt,
+          null as operatorLastPatientMessageSeenAt,
           tr.departure_time as departureTime,
           tr.manager_notes as managerNotes,
           tr.scheduled_at as scheduledAt,
@@ -1743,6 +1767,58 @@ export async function markCitizenRequestViewed(env: Env, cpf: string, password: 
     requestId,
     viewedAt: String(refreshed?.viewedAt ?? ''),
     messageSeenAt: String(refreshed?.messageSeenAt ?? ''),
+  }
+}
+
+export async function markOperatorPatientMessagesSeen(env: Env, requestId: number) {
+  const db = requireDb(env)
+
+  try {
+    await db.prepare(
+      `
+        update travel_requests
+        set operator_last_patient_message_seen_at = case
+              when exists (
+                select 1
+                from request_messages rm
+                where rm.travel_request_id = ?1
+                  and rm.created_by_role = 'patient'
+              )
+                then current_timestamp
+              else operator_last_patient_message_seen_at
+            end,
+            updated_at = current_timestamp
+        where id = ?1
+      `,
+    )
+      .bind(requestId)
+      .run()
+  } catch (error) {
+    if (hasMissingOperatorPatientMessageSeenColumn(error) || hasMissingMessageRoleColumn(error)) {
+      return {
+        requestId,
+        operatorLastPatientMessageSeenAt: '',
+      }
+    }
+
+    throw error
+  }
+
+  const refreshed = await db.prepare(
+    `
+      select
+        operator_last_patient_message_seen_at as operatorLastPatientMessageSeenAt
+      from travel_requests
+      where id = ?1
+      limit 1
+    `,
+  )
+    .bind(requestId)
+    .first<Record<string, unknown>>()
+
+  return {
+    requestId,
+    operatorLastPatientMessageSeenAt: String(refreshed?.operatorLastPatientMessageSeenAt ?? ''),
   }
 }
 

@@ -75,6 +75,7 @@ create table if not exists travel_requests (
   patient_confirmed_at text,
   patient_last_viewed_at text,
   patient_last_message_seen_at text,
+  operator_last_patient_message_seen_at text,
   departure_time text,
   manager_notes text,
   use_custom_boarding_location integer not null default 0,

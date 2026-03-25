@@ -2,7 +2,7 @@ import { ArrowLeft, CheckCircle2, Printer, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { canAccessManager, canAccessOperator } from '../lib/access'
-import { createRequestMessage, fetchRequestDetails, resetAccess, updateDriverPhoneVisibility, updateRequestSchedule, updateRequestStatus } from '../lib/api'
+import { createRequestMessage, fetchRequestDetails, markRequestPatientMessagesSeen, resetAccess, updateDriverPhoneVisibility, updateRequestSchedule, updateRequestStatus } from '../lib/api'
 import { getOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText } from '../lib/text-format'
 import type { RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '../types'
@@ -120,6 +120,16 @@ export function RequestDetailsPage() {
       active = false
     }
   }, [requestId, session])
+
+  useEffect(() => {
+    if (!details || patientMessages.length === 0 || !session || !canAccessOperator(session)) {
+      return
+    }
+
+    void markRequestPatientMessagesSeen(details.id, 'operator').catch(() => {
+      // O detalhe continua acessível mesmo se o registro de leitura falhar.
+    })
+  }, [details, patientMessages.length, session])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

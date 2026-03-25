@@ -50,6 +50,8 @@ export interface TravelRequest {
   patientConfirmedAt?: string | null
   patientLastViewedAt?: string | null
   patientLastMessageSeenAt?: string | null
+  operatorLastPatientMessageSeenAt?: string | null
+  hasUnreadPatientMessage?: boolean
   patientMessageCount?: number
   messages?: RequestMessage[]
   departureTime?: string

@@ -60,6 +60,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - visualização do painel operacional;
 - atualização de status da solicitação;
 - registro de mensagens e avisos vinculados ao agendamento;
+- leitura destacada de mensagens novas enviadas pelo paciente;
 - redefinição do acesso do paciente, quando necessário.
 
 **Particularidades do perfil**
@@ -125,6 +126,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - mensagens internas e mensagens visíveis ao paciente.
 - registro de confirmação da agenda pelo paciente;
 - registro de visualização da agenda e leitura de mensagens.
+- sinalização visual de mensagem nova do paciente até leitura pela equipe.
 
 ### Gestão operacional
 
@@ -135,6 +137,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - definição de local oficial de embarque;
 - visualização por status, data e período;
 - filtros por destino, motorista, paciente e protocolo;
+- badges padronizadas para confirmação, leitura e mensagens novas;
 - relatórios de apoio à gerência.
 
 ### Governança de acessos

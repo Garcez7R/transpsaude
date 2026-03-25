@@ -777,9 +777,22 @@ export function ManagerPage() {
                       <span>Horário de saída: {request.departureTime || 'Não definido'}</span>
                       <span>Telefone do motorista ao paciente: {request.showDriverPhoneToPatient ? 'Visível' : 'Oculto'}</span>
                       <span>Acompanhante: {request.companionRequired ? 'Sim' : 'Não'}</span>
+                      {Number(request.patientMessageCount ?? 0) > 0 ? (
+                        <span>{request.hasUnreadPatientMessage ? 'Nova mensagem do paciente' : 'Mensagem do paciente já lida'}</span>
+                      ) : null}
                       {request.companionRequired && request.companionName ? (
                         <span>
                           Acompanhante: {request.companionName} {request.companionCpfMasked ? `• ${request.companionCpfMasked}` : ''}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div className="status-pill-row">
+                      {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada</span> : null}
+                      {request.patientLastViewedAt ? <span className="status-pill-live">Lida pelo paciente</span> : null}
+                      {Number(request.patientMessageCount ?? 0) > 0 ? (
+                        <span className={request.hasUnreadPatientMessage ? 'attention-badge' : 'read-badge'}>
+                          {request.hasUnreadPatientMessage ? 'Nova mensagem do paciente' : 'Mensagem do paciente lida'}
                         </span>
                       ) : null}
                     </div>
