@@ -578,6 +578,7 @@ export function DashboardPage() {
                       <p className="table-note">
                         {formatDisplayDate(request.travelDate)} • {request.destinationCity}/{request.destinationState}
                       </p>
+                      <p className="assignment-patient-name">Paciente: {request.patientName}</p>
                     </div>
                     <span className={`status-badge ${request.status}`}>
                       {labelByStatus[request.status]}
@@ -585,10 +586,6 @@ export function DashboardPage() {
                   </div>
 
                   <div className="travel-overview-grid">
-                    <article className="travel-overview-card">
-                      <span>Paciente</span>
-                      <strong>{request.patientName}</strong>
-                    </article>
                     <article className="travel-overview-card">
                       <span>Consulta</span>
                       <strong>{request.appointmentTime || 'A definir'}</strong>

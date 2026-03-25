@@ -1102,12 +1102,18 @@ th {
 .assignment-card {
   border: 1px solid rgba(18, 48, 58, 0.08);
   border-radius: 20px;
-  padding: 18px;
+  padding: 16px;
   background: rgba(255, 255, 255, 0.88);
 }
 
 .operator-request-card .inline-link {
   font-size: 1rem;
+}
+
+.assignment-patient-name {
+  margin: 6px 0 0;
+  color: var(--text);
+  font-weight: 600;
 }
 
 .assignment-header,
@@ -1119,11 +1125,11 @@ th {
 }
 
 .assignment-header {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .assignment-meta {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   color: var(--muted);
   font-size: 0.94rem;
 }
@@ -1133,6 +1139,24 @@ th {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 2px;
+}
+
+.operator-request-card .travel-overview-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+
+.operator-request-card .travel-overview-card {
+  padding: 12px 14px;
+}
+
+.operator-request-card .travel-overview-card strong {
+  font-size: 1rem;
+}
+
+.operator-request-card .status-pill-row {
+  margin-bottom: 10px;
 }
 
 .lookup-feedback.success {
