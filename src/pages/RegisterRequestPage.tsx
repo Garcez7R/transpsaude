@@ -62,6 +62,7 @@ export function RegisterRequestPage() {
   const [error, setError] = useState('')
   const [copyMessage, setCopyMessage] = useState('')
   const [lookupMessage, setLookupMessage] = useState('')
+  const [lookupStatus, setLookupStatus] = useState<'idle' | 'success' | 'warning' | 'error'>('idle')
 
   function updateField<K extends keyof CreateTravelRequestInput>(key: K, value: CreateTravelRequestInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -113,6 +114,7 @@ export function RegisterRequestPage() {
       setSuccess({ protocol: result.protocol, message: result.message })
       setForm(initialForm)
       setLookupMessage('')
+      setLookupStatus('idle')
     } catch {
       setError('Não foi possível cadastrar a solicitação no momento.')
     } finally {
@@ -125,11 +127,13 @@ export function RegisterRequestPage() {
 
     if (normalizedCpf.length !== 11) {
       setLookupMessage('Informe o CPF completo para pesquisar um cadastro existente.')
+      setLookupStatus('warning')
       return
     }
 
     setLookupLoading(true)
     setLookupMessage('')
+    setLookupStatus('idle')
 
     try {
       const base = patients.length > 0 ? patients : await fetchPatients()
@@ -137,6 +141,7 @@ export function RegisterRequestPage() {
 
       if (!existing) {
         setLookupMessage('Nenhum cadastro anterior foi encontrado para esse CPF.')
+        setLookupStatus('warning')
         return
       }
 
@@ -154,9 +159,11 @@ export function RegisterRequestPage() {
         responsibleName: existing.responsibleName || '',
         responsibleCpf: existing.responsibleCpfMasked || '',
       }))
-      setLookupMessage('Cadastro anterior encontrado. Confira os dados e ajuste o que for necessário.')
+      setLookupMessage('Paciente localizado. Confira os dados preenchidos e ajuste apenas o que for necessário.')
+      setLookupStatus('success')
     } catch {
       setLookupMessage('Não foi possível pesquisar o cadastro do paciente agora.')
+      setLookupStatus('error')
     } finally {
       setLookupLoading(false)
     }
@@ -258,9 +265,13 @@ export function RegisterRequestPage() {
 
       <section className="dashboard-grid">
         <article className="content-card">
-          <h2>Dados do paciente e do destino</h2>
+          <h2>Cadastro da viagem</h2>
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
+              <div className="field full form-section-heading">
+                <h3>Paciente</h3>
+                <p>Localize o cadastro pelo CPF ou preencha os dados do atendimento.</p>
+              </div>
               <div className="field">
                 <label htmlFor="patient-name">Nome do paciente</label>
                 <input id="patient-name" value={form.patientName} onChange={(event) => updateField('patientName', toTitleCase(event.target.value))} placeholder="Nome completo" required />
@@ -293,6 +304,10 @@ export function RegisterRequestPage() {
                 <label htmlFor="address-line">Endereço do paciente</label>
                 <input id="address-line" value={form.addressLine} onChange={(event) => updateField('addressLine', toInstitutionalText(event.target.value))} placeholder="Rua, numero, bairro e referencia" required />
               </div>
+              <div className="field full form-section-heading">
+                <h3>Acesso</h3>
+                <p>Defina qual CPF será usado pelo cidadão ou responsável para acompanhar a agenda.</p>
+              </div>
               <div className="field checkbox-field checkbox-field-inline">
                 <label className="checkbox-row" htmlFor="use-responsible-access">
                   <input id="use-responsible-access" type="checkbox" checked={form.useResponsibleCpfForAccess} onChange={(event) => updateField('useResponsibleCpfForAccess', event.target.checked)} />
@@ -320,6 +335,10 @@ export function RegisterRequestPage() {
               </div>
               {form.companionRequired ? (
                 <>
+                  <div className="field full form-section-heading">
+                    <h3>Acompanhante</h3>
+                    <p>Preencha esta etapa apenas quando o paciente precisar viajar acompanhado.</p>
+                  </div>
                   <div className="field">
                     <label htmlFor="companion-name">Nome do acompanhante</label>
                     <input id="companion-name" value={form.companionName} onChange={(event) => updateField('companionName', toTitleCase(event.target.value))} placeholder="Nome completo do acompanhante" required />
@@ -357,6 +376,10 @@ export function RegisterRequestPage() {
                   </div>
                 </>
               ) : null}
+              <div className="field full form-section-heading">
+                <h3>Destino e consulta</h3>
+                <p>Esses dados ajudam a organizar a ordem dos pacientes e o planejamento da rota.</p>
+              </div>
               <div className="field">
                 <label htmlFor="destination-city">Cidade de destino</label>
                 <input id="destination-city" value={form.destinationCity} onChange={(event) => updateField('destinationCity', toTitleCase(event.target.value))} placeholder="Pelotas, Porto Alegre..." required />
@@ -387,6 +410,10 @@ export function RegisterRequestPage() {
                   required
                 />
               </div>
+              <div className="field full form-section-heading">
+                <h3>Observações</h3>
+                <p>Registre documentos apresentados, combinações do atendimento e observações internas.</p>
+              </div>
               <div className="field full">
                 <label htmlFor="notes-register">Observações</label>
                 <textarea id="notes-register" value={form.notes} onChange={(event) => updateField('notes', event.target.value)} placeholder="Documentos apresentados, orientações ou observações internas" rows={5} />
@@ -399,13 +426,14 @@ export function RegisterRequestPage() {
               </button>
             </div>
           </form>
-          {lookupMessage ? <p className="table-note">{lookupMessage}</p> : null}
+          {lookupMessage ? <p className={`table-note lookup-feedback ${lookupStatus}`}>{lookupMessage}</p> : null}
           {error ? <p className="table-note">{error}</p> : null}
         </article>
 
         <aside className="dashboard-side">
           <article className="content-card">
             <h2>Resumo em tempo real</h2>
+            <p className="table-note">Confira o essencial antes de salvar e use este quadro como última revisão do atendimento.</p>
             <dl className="request-summary">
               <div>
                 <dt>Paciente</dt>
@@ -452,12 +480,12 @@ export function RegisterRequestPage() {
           </article>
 
           <article className="content-card">
-            <h2>Acesso do cidadão</h2>
+            <h2>Fluxo rápido</h2>
             <ul className="check-list">
-              <li>CPF, telefone e endereço do paciente agora são obrigatórios</li>
-              <li>O telefone pode ser marcado como WhatsApp</li>
-              <li>Quando houver acompanhante, nome, CPF, telefone e endereço ficam obrigatórios</li>
-              <li>O endereço do acompanhante pode reaproveitar o do paciente ou usar outro</li>
+              <li>Busque primeiro pelo CPF para reaproveitar cadastro e evitar redigitação.</li>
+              <li>O acesso do cidadão usa o CPF do paciente, salvo quando houver responsável definido.</li>
+              <li>Se houver acompanhante, os dados dele aparecem e passam a ser obrigatórios.</li>
+              <li>Horário da consulta e data da viagem ajudam a organizar melhor a saída do transporte.</li>
             </ul>
           </article>
 

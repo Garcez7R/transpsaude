@@ -119,6 +119,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 
 - cadastro completo de solicitações de transporte em saúde;
 - identificação de paciente, responsável e acompanhante;
+- busca prévia por CPF para reaproveitar cadastros existentes e reduzir redigitação;
 - controle de acesso do cidadão para consulta pública;
 - protocolo de solicitação;
 - detalhe completo da solicitação;
@@ -135,6 +136,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - atribuição de veículo por solicitação;
 - vínculo preferencial de veículo no cadastro do motorista;
 - leitura rápida das viagens por motorista na área de equipe;
+- formulário do operador reorganizado por etapas de atendimento, acesso, acompanhante e destino;
 - definição de horário de saída;
 - definição de horário da consulta;
 - definição de local oficial de embarque;
