@@ -1189,6 +1189,48 @@ th {
   margin-bottom: 10px;
 }
 
+.driver-portal-shell {
+  max-width: 1140px;
+}
+
+.driver-header-actions {
+  margin-top: 4px;
+}
+
+.driver-metrics-grid {
+  margin-bottom: 18px;
+}
+
+.driver-request-card .assignment-header {
+  margin-bottom: 8px;
+}
+
+.driver-request-card .travel-overview-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+
+.driver-request-card .travel-overview-card {
+  padding: 12px 14px;
+}
+
+.driver-request-card .travel-overview-card strong {
+  font-size: 1rem;
+}
+
+.driver-request-card .request-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.driver-request-card .detail-section-card {
+  margin-top: 16px;
+}
+
+.driver-request-card .detail-section-card h3 {
+  margin-bottom: 10px;
+}
+
 .lookup-feedback.success {
   color: var(--primary-dark);
 }
@@ -1273,6 +1315,10 @@ th {
   }
 
   .operator-search-inline {
+    grid-template-columns: 1fr;
+  }
+
+  .driver-request-card .request-summary {
     grid-template-columns: 1fr;
   }
 

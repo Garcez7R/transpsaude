@@ -93,8 +93,10 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - visualização das viagens atribuídas ao seu nome;
 - consulta de paciente, acompanhante e destino;
 - consulta de local de embarque e horário de saída;
+- abertura rápida do embarque em mapa externo e ligação direta para paciente ou acompanhante, quando houver telefone disponível;
 - envio de mensagens vinculadas à viagem;
-- leitura das observações e orientações aplicáveis à viagem.
+- leitura das observações e orientações aplicáveis à viagem;
+- separação visual entre mensagens da equipe e mensagens enviadas pelo paciente.
 
 **Particularidades do perfil**
 
@@ -136,6 +138,7 @@ O sistema foi concebido para atender às necessidades conjuntas da:
 - atribuição de motorista por solicitação;
 - atribuição de veículo por solicitação;
 - vínculo preferencial de veículo no cadastro do motorista;
+- portal do motorista com leitura rápida da viagem, ações móveis e mensagens separadas por origem;
 - leitura rápida das viagens por motorista na área de equipe;
 - formulário do operador reorganizado por etapas de atendimento, acesso, acompanhante e destino;
 - definição de horário de saída;
