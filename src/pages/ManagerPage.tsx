@@ -333,8 +333,8 @@ export function ManagerPage() {
   async function handleAssign(requestId: number) {
     const data = assignment[requestId]
 
-    if (!data?.driverId || !data.vehicleId || !data.departureTime || !data.appointmentTime) {
-      setError('Selecione um motorista, um veículo, o horário da consulta e o horário de saída.')
+    if (!data?.driverId) {
+      setError('Selecione um motorista para vincular esta viagem.')
       return
     }
 
@@ -351,9 +351,9 @@ export function ManagerPage() {
       const result = await assignDriver({
         requestId,
         driverId: Number(data.driverId),
-        vehicleId: Number(data.vehicleId),
-        departureTime: data.departureTime,
-        appointmentTime: data.appointmentTime,
+        vehicleId: data.vehicleId ? Number(data.vehicleId) : undefined,
+        departureTime: data.departureTime || undefined,
+        appointmentTime: data.appointmentTime || undefined,
         managerNotes: data.managerNotes,
         useCustomBoardingLocation: data.useCustomBoardingLocation,
         boardingLocationName: data.boardingLocationName,

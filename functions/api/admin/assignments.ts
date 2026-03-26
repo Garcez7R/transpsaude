@@ -20,8 +20,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     showDriverPhoneToPatient?: boolean
   }
 
-  if (!body.requestId || !body.driverId || !body.vehicleId || !body.departureTime || !body.appointmentTime) {
-    return badRequest('Informe a solicitação, o motorista, o veículo, o horário da consulta e o horário de saída.')
+  if (!body.requestId || !body.driverId) {
+    return badRequest('Informe a solicitação e o motorista.')
   }
 
   if (body.useCustomBoardingLocation && !body.boardingLocationName) {
@@ -47,21 +47,23 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     return notFound('Motorista não encontrado.')
   }
 
-  const vehicle = await env.DB.prepare(
-    `
-      select
-        id,
-        name
-      from vehicles
-      where id = ?1
-        and active = 1
-      limit 1
-    `,
-  )
-    .bind(body.vehicleId)
-    .first<Record<string, unknown>>()
+  const vehicle = body.vehicleId
+    ? await env.DB.prepare(
+        `
+          select
+            id,
+            name
+          from vehicles
+          where id = ?1
+            and active = 1
+          limit 1
+        `,
+      )
+        .bind(body.vehicleId)
+        .first<Record<string, unknown>>()
+    : null
 
-  if (!vehicle) {
+  if (body.vehicleId && !vehicle) {
     return notFound('Veículo não encontrado.')
   }
 
@@ -108,9 +110,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         driver.name,
         driver.phone ?? '',
         body.showDriverPhoneToPatient === false ? 0 : 1,
-        vehicle.id,
-        vehicle.name,
-        body.departureTime,
+        vehicle?.id ?? null,
+        vehicle?.name ?? '',
+        body.departureTime ?? '',
         body.appointmentTime ?? '',
         body.managerNotes ?? '',
         body.useCustomBoardingLocation ? 1 : 0,
@@ -149,7 +151,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       .bind(
         body.driverId,
         driver.name,
-        body.departureTime,
+        body.departureTime ?? '',
         body.appointmentTime ?? '',
         body.managerNotes ?? '',
         body.useCustomBoardingLocation ? 1 : 0,
@@ -179,7 +181,18 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
       travelRequest.protocol,
       String(travelRequest.status),
       statusLabels[String(travelRequest.status) as keyof typeof statusLabels] ?? String(travelRequest.status),
-      `Viagem direcionada para ${String(driver.name)} com o veículo ${String(vehicle.name)}, consulta às ${body.appointmentTime || 'a definir'} e saída prevista às ${body.departureTime}. ${body.managerNotes ?? ''}`.trim(),
+      [
+        `Viagem direcionada para ${String(driver.name)}`,
+        vehicle?.name ? `com o veículo ${String(vehicle.name)}` : '',
+        body.appointmentTime ? `consulta às ${body.appointmentTime}` : '',
+        body.departureTime ? `saída prevista às ${body.departureTime}` : '',
+        body.managerNotes ?? '',
+      ]
+        .filter(Boolean)
+        .join(', ')
+        .replace(', saída prevista', ' e saída prevista')
+        .replace(', consulta', ' com consulta')
+        .trim(),
       session.operatorId,
     )
     .run()
@@ -188,14 +201,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     protocol: String(travelRequest.protocol),
     driverName: String(driver.name),
     driverPhone: String(driver.phone ?? ''),
-    vehicleName: String(vehicle.name),
+    vehicleName: String(vehicle?.name ?? ''),
     appointmentTime: body.appointmentTime ?? '',
-    departureTime: body.departureTime,
+    departureTime: body.departureTime ?? '',
     boardingLocationName: body.useCustomBoardingLocation ? body.boardingLocationName ?? '' : 'endereco_paciente',
     showDriverPhoneToPatient: body.showDriverPhoneToPatient === false ? 0 : 1,
   })
 
   return ok({
-    message: `Viagem atribuída para ${String(driver.name)} com o veículo ${String(vehicle.name)}.`,
+    message: vehicle?.name
+      ? `Viagem atribuída para ${String(driver.name)} com o veículo ${String(vehicle.name)}.`
+      : `Viagem atribuída para ${String(driver.name)}.`,
   })
 }

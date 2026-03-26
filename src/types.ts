@@ -298,9 +298,9 @@ export interface UpdatePatientInput {
 export interface AssignDriverInput {
   requestId: number
   driverId: number
-  vehicleId: number
-  departureTime: string
-  appointmentTime: string
+  vehicleId?: number
+  departureTime?: string
+  appointmentTime?: string
   managerNotes: string
   useCustomBoardingLocation: boolean
   boardingLocationName: string
