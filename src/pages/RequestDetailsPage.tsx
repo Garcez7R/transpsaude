@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { canAccessManager, canAccessOperator } from '../lib/access'
 import { createRequestMessage, fetchRequestDetails, markRequestPatientMessagesSeen, resetAccess, updateDriverPhoneVisibility, updateRequestSchedule, updateRequestStatus } from '../lib/api'
+import { getAdminSession } from '../lib/admin-session'
+import { getManagerSession } from '../lib/manager-session'
 import { getOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText } from '../lib/text-format'
-import type { RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '../types'
+import type { AdminSession, RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '../types'
 
 const statusOptions: Array<{ value: RequestStatus; label: string }> = [
   { value: 'recebida', label: 'Recebida' },
@@ -35,7 +37,13 @@ function formatDisplayTimestamp(value?: string | null) {
 export function RequestDetailsPage() {
   const params = useParams()
   const requestId = Number(params.id ?? '')
-  const [session, setSession] = useState(() => (typeof window !== 'undefined' ? getOperatorSession() : null))
+  const [session, setSession] = useState<AdminSession | null>(() => {
+    if (typeof window === 'undefined') {
+      return null
+    }
+
+    return getOperatorSession() ?? getManagerSession() ?? getAdminSession()
+  })
   const [details, setDetails] = useState<TravelRequestDetails | null>(null)
   const [history, setHistory] = useState<StatusHistoryEntry[]>([])
   const [status, setStatus] = useState<RequestStatus>('recebida')
@@ -58,9 +66,16 @@ export function RequestDetailsPage() {
   const [message, setMessage] = useState('')
   const patientMessages = details?.messages.filter((entry) => entry.createdByRole === 'patient') ?? []
   const teamMessages = details?.messages.filter((entry) => entry.createdByRole !== 'patient') ?? []
+  const accessMode = canAccessManager(session) ? 'internal' : 'operator'
+  const backTo = canAccessManager(session) ? '/gerente' : '/operador'
 
   useEffect(() => {
-    setSession(typeof window !== 'undefined' ? getOperatorSession() : null)
+    if (typeof window === 'undefined') {
+      setSession(null)
+      return
+    }
+
+    setSession(getOperatorSession() ?? getManagerSession() ?? getAdminSession())
   }, [])
 
   async function handleResetPatientAccess() {
@@ -69,7 +84,7 @@ export function RequestDetailsPage() {
     }
 
     try {
-      const result = await resetAccess('patient', details.patientId, 'operator')
+      const result = await resetAccess('patient', details.patientId, accessMode)
       setMessage(result.message)
       setError('')
     } catch (error) {
@@ -89,7 +104,7 @@ export function RequestDetailsPage() {
       setError('')
 
       try {
-        const data = await fetchRequestDetails(requestId, 'operator')
+        const data = await fetchRequestDetails(requestId, accessMode)
 
         if (!active) {
           return
@@ -119,17 +134,17 @@ export function RequestDetailsPage() {
     return () => {
       active = false
     }
-  }, [requestId, session])
+  }, [accessMode, requestId, session])
 
   useEffect(() => {
     if (!details || patientMessages.length === 0 || !session || !canAccessOperator(session)) {
       return
     }
 
-    void markRequestPatientMessagesSeen(details.id, 'operator').catch(() => {
+    void markRequestPatientMessagesSeen(details.id, accessMode).catch(() => {
       // O detalhe continua acessível mesmo se o registro de leitura falhar.
     })
-  }, [details, patientMessages.length, session])
+  }, [accessMode, details, patientMessages.length, session])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -147,9 +162,9 @@ export function RequestDetailsPage() {
         requestId: details.id,
         status,
         note,
-      }, 'operator')
+      }, accessMode)
 
-      const refreshed = await fetchRequestDetails(details.id, 'operator')
+      const refreshed = await fetchRequestDetails(details.id, accessMode)
       const { history: historyData, ...requestData } = refreshed
       setDetails(requestData)
       setHistory(historyData)
@@ -180,9 +195,9 @@ export function RequestDetailsPage() {
         departureTime: scheduleTime,
         appointmentTime,
         note: scheduleNote,
-      }, 'operator')
+      }, accessMode)
 
-      const refreshed = await fetchRequestDetails(details.id, 'operator')
+      const refreshed = await fetchRequestDetails(details.id, accessMode)
       const { history: historyData, ...requestData } = refreshed
       setDetails(requestData)
       setHistory(historyData)
@@ -216,9 +231,9 @@ export function RequestDetailsPage() {
         title: messageTitle,
         body: messageBody,
         visibleToCitizen,
-      }, 'operator')
+      }, accessMode)
 
-      const refreshed = await fetchRequestDetails(details.id, 'operator')
+      const refreshed = await fetchRequestDetails(details.id, accessMode)
       const { history: historyData, ...requestData } = refreshed
       setDetails(requestData)
       setHistory(historyData)
@@ -246,8 +261,8 @@ export function RequestDetailsPage() {
     setMessage('')
 
     try {
-      const result = await updateDriverPhoneVisibility(details.id, showDriverPhoneToPatient, 'operator')
-      const refreshed = await fetchRequestDetails(details.id, 'operator')
+      const result = await updateDriverPhoneVisibility(details.id, showDriverPhoneToPatient, accessMode)
+      const refreshed = await fetchRequestDetails(details.id, accessMode)
       const { history: historyData, ...requestData } = refreshed
       setDetails(requestData)
       setHistory(historyData)
@@ -267,8 +282,8 @@ export function RequestDetailsPage() {
           <h2>Sessão de operador necessária</h2>
           <p>Entre com um perfil autorizado para consultar ou atualizar solicitações.</p>
           <div className="form-actions">
-            <Link className="action-button primary" to="/operador">
-              Ir para operador
+            <Link className="action-button primary" to={backTo}>
+              Ir para a área interna
             </Link>
           </div>
         </article>
@@ -317,7 +332,7 @@ export function RequestDetailsPage() {
             <Printer size={16} />
             Imprimir comprovante
           </button>
-          <Link className="action-button secondary" to="/operador">
+          <Link className="action-button secondary" to={backTo}>
             <ArrowLeft size={16} />
             Voltar ao painel
           </Link>
