@@ -65,6 +65,24 @@ function formatDisplayDate(value?: string) {
   return `${match[3]}/${match[2]}/${match[1]}`
 }
 
+function isMeaningfulValue(value?: string | null) {
+  const text = String(value ?? '').trim()
+
+  if (!text) {
+    return false
+  }
+
+  if (/^\d{1,2}$/.test(text)) {
+    return false
+  }
+
+  return true
+}
+
+function getDisplayValue(value?: string | null, fallback = 'Não informado') {
+  return isMeaningfulValue(value) ? String(value).trim() : fallback
+}
+
 const initialFilters = {
   status: 'todos' as RequestStatus | 'todos',
   search: '',
@@ -579,7 +597,7 @@ export function DashboardPage() {
                       <p className="table-note">
                         {formatDisplayDate(request.travelDate)} • {request.destinationCity}/{request.destinationState}
                       </p>
-                      <p className="assignment-patient-name">Paciente: {request.patientName}</p>
+                      <p className="assignment-patient-name">Paciente: {getDisplayValue(request.patientName, 'Não informado')}</p>
                     </div>
                     <span className={`status-badge ${request.status}`}>
                       {labelByStatus[request.status]}
@@ -597,13 +615,13 @@ export function DashboardPage() {
                     </article>
                     <article className="travel-overview-card">
                       <span>Embarque</span>
-                      <strong>{request.boardingLocationLabel || request.addressLine || 'Não informado'}</strong>
+                      <strong>{getDisplayValue(request.boardingLocationLabel || request.addressLine)}</strong>
                     </article>
                   </div>
 
                   <div className="assignment-meta">
                     <span>CPF: {request.cpfMasked}</span>
-                    <span>Unidade: {request.treatmentUnit}</span>
+                    <span>Unidade: {getDisplayValue(request.treatmentUnit)}</span>
                     <span>Destino: {request.destinationCity}/{request.destinationState}</span>
                     {request.patientConfirmedAt ? <span>Agenda confirmada pelo paciente</span> : null}
                     {request.patientLastViewedAt ? <span>Consulta pública já visualizada</span> : null}

@@ -61,6 +61,24 @@ function formatDisplayDate(value?: string) {
   return match ? `${match[3]}/${match[2]}/${match[1]}` : value
 }
 
+function isMeaningfulValue(value?: string | null) {
+  const text = String(value ?? '').trim()
+
+  if (!text) {
+    return false
+  }
+
+  if (/^\d{1,2}$/.test(text)) {
+    return false
+  }
+
+  return true
+}
+
+function getDisplayValue(value?: string | null, fallback = 'Não informado') {
+  return isMeaningfulValue(value) ? String(value).trim() : fallback
+}
+
 export function ManagerPage() {
   const [session, setSession] = useState<AdminSession | null>(null)
   const [cpf, setCpf] = useState('')
@@ -678,12 +696,12 @@ export function ManagerPage() {
                   <article className="assignment-card manager-request-card" key={request.id}>
                     <div className="assignment-header">
                       <div>
-                        <strong>{request.patientName}</strong>
+                        <strong>{getDisplayValue(request.patientName, 'Paciente não informado')}</strong>
                         <p className="table-note">
                           {request.protocol} • {request.destinationCity}/{request.destinationState} • {formatDisplayDate(request.travelDate)}
                         </p>
                         <p className="assignment-patient-name">
-                          {request.accessCpfMasked ?? request.cpfMasked} • {request.treatmentUnit}
+                          {request.accessCpfMasked ?? request.cpfMasked} • {getDisplayValue(request.treatmentUnit)}
                         </p>
                         <p className="table-note">
                           <Link className="inline-link" to={`/operador/solicitacoes/${request.id}`}>
@@ -709,7 +727,7 @@ export function ManagerPage() {
                       </article>
                       <article className="travel-overview-card">
                         <span>Embarque</span>
-                        <strong>{request.boardingLocationLabel || request.addressLine || 'Não informado'}</strong>
+                        <strong>{getDisplayValue(request.boardingLocationLabel || request.addressLine)}</strong>
                       </article>
                     </div>
 

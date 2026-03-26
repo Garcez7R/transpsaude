@@ -90,6 +90,24 @@ function formatDisplayDate(value?: string) {
   return match ? `${match[3]}/${match[2]}/${match[1]}` : value
 }
 
+function isMeaningfulValue(value?: string | null) {
+  const text = String(value ?? '').trim()
+
+  if (!text) {
+    return false
+  }
+
+  if (/^\d{1,2}$/.test(text)) {
+    return false
+  }
+
+  return true
+}
+
+function getDisplayValue(value?: string | null, fallback = 'Não informado') {
+  return isMeaningfulValue(value) ? String(value).trim() : fallback
+}
+
 export function DriversPage() {
   const [session] = useState(() => (typeof window !== 'undefined' ? getManagerSession() : null))
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
@@ -540,7 +558,7 @@ export function DriversPage() {
                     <article className="assignment-card" key={trip.id}>
                       <div className="assignment-header">
                         <div>
-                          <strong>{trip.patientName}</strong>
+                          <strong>{getDisplayValue(trip.patientName, 'Paciente não informado')}</strong>
                           <p className="table-note">
                             {trip.protocol} • {trip.destinationCity}/{trip.destinationState}
                           </p>
@@ -558,11 +576,11 @@ export function DriversPage() {
                         </article>
                         <article className="travel-overview-card">
                           <span>Embarque</span>
-                          <strong>{trip.boardingLocationLabel || trip.addressLine || 'Não informado'}</strong>
+                          <strong>{getDisplayValue(trip.boardingLocationLabel || trip.addressLine)}</strong>
                         </article>
                         <article className="travel-overview-card">
                           <span>Acompanhante</span>
-                          <strong>{trip.companionRequired ? trip.companionName || 'Necessário' : 'Não necessário'}</strong>
+                          <strong>{trip.companionRequired ? getDisplayValue(trip.companionName, 'Necessário') : 'Não necessário'}</strong>
                         </article>
                       </div>
                     </article>
@@ -966,10 +984,10 @@ export function DriversPage() {
             <div className="assignment-list scroll-list">
               {patients.map((patient) => (
                 <article className="assignment-card" key={patient.id}>
-                  <strong>{patient.fullName}</strong>
+                  <strong>{getDisplayValue(patient.fullName, 'Paciente não informado')}</strong>
                   <p className="table-note">{patient.cpfMasked} • {patient.phone}</p>
                   <p className="table-note">Acesso: {patient.accessCpfMasked}</p>
-                  <p className="table-note">{patient.addressLine || 'Endereço não informado'}</p>
+                  <p className="table-note">{getDisplayValue(patient.addressLine, 'Endereço não informado')}</p>
                   <div className="form-actions">
                     <button
                       className="action-button secondary"
