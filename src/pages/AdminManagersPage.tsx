@@ -79,6 +79,24 @@ function formatDisplayDate(value?: string) {
   return match ? `${match[3]}/${match[2]}/${match[1]}` : value
 }
 
+function isMeaningfulValue(value?: string | null) {
+  const text = String(value ?? '').trim()
+
+  if (!text) {
+    return false
+  }
+
+  if (/^\d{1,2}$/.test(text)) {
+    return false
+  }
+
+  return true
+}
+
+function getDisplayValue(value?: string | null, fallback = 'Não informado') {
+  return isMeaningfulValue(value) ? String(value).trim() : fallback
+}
+
 export function AdminManagersPage() {
   const [session, setSession] = useState(() => (typeof window !== 'undefined' ? getAdminAreaSession() : null))
   const [cpf, setCpf] = useState('')
@@ -702,13 +720,15 @@ export function AdminManagersPage() {
                 <tr key={request.id}>
                   <td>{request.protocol}</td>
                   <td>
-                    <strong>{request.patientName}</strong>
+                    <strong>{getDisplayValue(request.patientName, 'Paciente não informado')}</strong>
                     <div className="table-note">{request.appointmentTime ? `Consulta às ${request.appointmentTime}` : 'Consulta a definir'}</div>
                   </td>
                   <td>{request.destinationCity}/{request.destinationState}</td>
                   <td>{formatDisplayDate(request.travelDate)}</td>
                   <td>{request.appointmentTime || 'A definir'}</td>
-                  <td>{request.status}</td>
+                  <td>
+                    <span className={`status-badge ${request.status}`}>{request.status}</span>
+                  </td>
                 </tr>
               ))}
               {!loadingRequests && requests.length === 0 ? (
