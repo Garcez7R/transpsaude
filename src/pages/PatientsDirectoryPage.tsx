@@ -309,7 +309,25 @@ export function PatientsDirectoryPage() {
               <Search size={14} />
               {loading ? 'Carregando base de pacientes...' : `${filteredPatients.length} cadastro(s) localizado(s)`}
             </span>
-            {error ? <span className="status-pill">{error}</span> : null}
+            <div className="page-actions">
+              {(search || phoneFilter || addressFilter || responsibleFilter || whatsappOnly || responsibleOnly) ? (
+                <button
+                  className="action-button secondary"
+                  type="button"
+                  onClick={() => {
+                    setSearch('')
+                    setPhoneFilter('')
+                    setAddressFilter('')
+                    setResponsibleFilter('')
+                    setWhatsappOnly(false)
+                    setResponsibleOnly(false)
+                  }}
+                >
+                  Limpar filtros
+                </button>
+              ) : null}
+              {error ? <span className="status-pill">{error}</span> : null}
+            </div>
           </div>
 
           {loading ? (

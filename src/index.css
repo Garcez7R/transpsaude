@@ -301,7 +301,9 @@ button {
   justify-content: center;
   gap: 8px;
   border-radius: 999px;
-  padding: 0.85rem 1.2rem;
+  padding: 0.78rem 1.05rem;
+  min-height: 42px;
+  line-height: 1.1;
   transition:
     transform 0.2s ease,
     background-color 0.2s ease,
@@ -328,6 +330,24 @@ button {
 .ghost-button:hover,
 .action-button:hover {
   transform: translateY(-1px);
+}
+
+.page-actions .action-button.secondary,
+.page-actions .ghost-button,
+.filter-actions .action-button.secondary,
+.operator-filter-actions .action-button.secondary,
+.operator-filter-actions .ghost-button,
+.assignment-actions .action-button.secondary,
+.assignment-actions .ghost-button,
+.lookup-button {
+  padding: 0.68rem 0.92rem;
+  min-height: 38px;
+  font-size: 0.95rem;
+}
+
+.page-actions .action-button.primary,
+.form-actions .action-button.primary {
+  padding-inline: 1.1rem;
 }
 
 .hero-card,
