@@ -1,5 +1,5 @@
 import { ArrowLeft, ShieldCheck, UserPlus2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { canAccessAdmin, isValidInternalRole } from '../lib/access'
 import {
@@ -133,6 +133,13 @@ export function AdminManagersPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [destination, setDestination] = useState('')
+  const managerFormRef = useRef<HTMLElement | null>(null)
+  const operatorFormRef = useRef<HTMLElement | null>(null)
+  const driverFormRef = useRef<HTMLElement | null>(null)
+
+  function scrollToSection(ref: { current: HTMLElement | null }) {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   function updateField<K extends keyof CreateManagerInput>(key: K, value: CreateManagerInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -713,6 +720,7 @@ export function AdminManagersPage() {
                 <th>Data</th>
                 <th>Consulta</th>
                 <th>Status</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -729,11 +737,16 @@ export function AdminManagersPage() {
                   <td>
                     <span className={`status-badge ${request.status}`}>{request.status}</span>
                   </td>
+                  <td>
+                    <Link className="inline-link" to={`/operador/solicitacoes/${request.id}`}>
+                      Abrir solicitação
+                    </Link>
+                  </td>
                 </tr>
               ))}
               {!loadingRequests && requests.length === 0 ? (
                 <tr>
-                  <td colSpan={6}>Nenhuma solicitação encontrada para esse recorte.</td>
+                  <td colSpan={7}>Nenhuma solicitação encontrada para esse recorte.</td>
                 </tr>
               ) : null}
             </tbody>
@@ -742,7 +755,7 @@ export function AdminManagersPage() {
       </section>
 
       <section className="dashboard-grid dashboard-grid-balanced">
-        <article className="content-card">
+        <article className="content-card" ref={managerFormRef}>
           <h2>{editingManagerId ? 'Editar gerente' : 'Novo gerente'}</h2>
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
@@ -805,7 +818,7 @@ export function AdminManagersPage() {
           {message ? <p className="table-note">{message}</p> : null}
         </article>
 
-        <article className="content-card">
+        <article className="content-card" ref={operatorFormRef}>
           <h2>{editingOperatorId ? 'Editar operador' : 'Novo operador'}</h2>
           <form onSubmit={handleOperatorSubmit}>
             <div className="form-grid">
@@ -873,7 +886,7 @@ export function AdminManagersPage() {
       </section>
 
       <section className="dashboard-grid dashboard-grid-main">
-        <article className="content-card">
+        <article className="content-card" ref={driverFormRef}>
           <h2>{editingDriverId ? 'Editar motorista' : 'Novo motorista'}</h2>
           <form onSubmit={handleDriverSubmit}>
             <div className="form-grid">
@@ -996,6 +1009,7 @@ export function AdminManagersPage() {
                           cpf: manager.cpfMasked,
                           email: manager.email,
                         })
+                        scrollToSection(managerFormRef)
                       }}
                     >
                       Editar
@@ -1035,6 +1049,7 @@ export function AdminManagersPage() {
                           cpf: operator.cpfMasked,
                           email: operator.email,
                         })
+                        scrollToSection(operatorFormRef)
                       }}
                     >
                       Editar
@@ -1080,6 +1095,7 @@ export function AdminManagersPage() {
                           isWhatsapp: driver.isWhatsapp,
                           vehicleId: driver.vehicleId ?? null,
                         })
+                        scrollToSection(driverFormRef)
                       }}
                     >
                       Editar
