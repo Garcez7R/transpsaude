@@ -1,6 +1,7 @@
 import { ArrowLeft, BusFront, CarFront, ShieldCheck, UserPlus2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AsyncActionButton } from '../components/AsyncActionButton'
 import { canAccessManager, getInternalRoleLabel } from '../lib/access'
 import {
   createDriver,
@@ -23,6 +24,7 @@ import {
 } from '../lib/api'
 import { getManagerSession } from '../lib/manager-session'
 import { toEmailCase, toInstitutionalText, toTitleCase } from '../lib/text-format'
+import { useToastOnChange } from '../lib/use-toast-on-change'
 import type {
   CreateDriverInput,
   CreateOperatorInput,
@@ -135,6 +137,9 @@ export function DriversPage() {
   const [savingPatient, setSavingPatient] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+
+  useToastOnChange(error, 'error')
+  useToastOnChange(message, 'success')
 
   const selectedDriver = useMemo(
     () => drivers.find((driver) => String(driver.id) === selectedDriverId) ?? null,
@@ -644,10 +649,9 @@ export function DriversPage() {
               </div>
             </div>
             <div className="form-actions">
-              <button className="action-button primary" disabled={savingVehicle} type="submit">
-                <CarFront size={16} />
-                {savingVehicle ? 'Salvando...' : editingVehicleId ? 'Salvar veículo' : 'Cadastrar veículo'}
-              </button>
+              <AsyncActionButton icon={CarFront} loading={savingVehicle} loadingLabel="Salvando..." type="submit">
+                {editingVehicleId ? 'Salvar veículo' : 'Cadastrar veículo'}
+              </AsyncActionButton>
               {editingVehicleId ? (
                 <button
                   className="action-button secondary"
@@ -733,10 +737,9 @@ export function DriversPage() {
             </div>
 
             <div className="form-actions">
-              <button className="action-button primary" disabled={savingDriver} type="submit">
-                <UserPlus2 size={16} />
-                {savingDriver ? 'Salvando...' : editingDriverId ? 'Salvar motorista' : 'Cadastrar motorista'}
-              </button>
+              <AsyncActionButton icon={UserPlus2} loading={savingDriver} loadingLabel="Salvando..." type="submit">
+                {editingDriverId ? 'Salvar motorista' : 'Cadastrar motorista'}
+              </AsyncActionButton>
               {editingDriverId ? (
                 <button
                   className="action-button secondary"
@@ -797,10 +800,9 @@ export function DriversPage() {
                 </div>
               </div>
               <div className="form-actions">
-                <button className="action-button primary" disabled={savingOperator} type="submit">
-                  <ShieldCheck size={16} />
-                  {savingOperator ? 'Salvando...' : editingOperatorId ? 'Salvar operador' : 'Cadastrar operador'}
-                </button>
+                <AsyncActionButton icon={ShieldCheck} loading={savingOperator} loadingLabel="Salvando..." type="submit">
+                  {editingOperatorId ? 'Salvar operador' : 'Cadastrar operador'}
+                </AsyncActionButton>
                 {editingOperatorId ? (
                   <button
                     className="action-button secondary"
@@ -969,9 +971,9 @@ export function DriversPage() {
                 </div>
               </div>
               <div className="form-actions">
-                <button className="action-button primary" disabled={savingPatient} type="submit">
-                  {savingPatient ? 'Salvando...' : 'Salvar paciente'}
-                </button>
+                <AsyncActionButton loading={savingPatient} loadingLabel="Salvando..." type="submit">
+                  Salvar paciente
+                </AsyncActionButton>
                 <button className="action-button secondary" type="button" onClick={() => {
                   setEditingPatientId(null)
                   setPatientForm(initialPatientForm)

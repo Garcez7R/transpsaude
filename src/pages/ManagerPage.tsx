@@ -1,12 +1,14 @@
 import { ArrowLeft, LockKeyhole, LogOut, RefreshCcw, Route, Save, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AsyncActionButton } from '../components/AsyncActionButton'
 import { canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
 import { activateAdminPassword, assignDriver, fetchDrivers, fetchRequests, fetchVehicles, loginAdmin, logoutSession } from '../lib/api'
 import { clearAdminSession, saveAdminSession } from '../lib/admin-session'
 import { clearAdminAreaSession } from '../lib/admin-area-session'
 import { clearManagerSession, getManagerSession, saveManagerSession } from '../lib/manager-session'
+import { useToastOnChange } from '../lib/use-toast-on-change'
 import type { AdminSession, DriverRecord, TravelRequest, VehicleRecord } from '../types'
 
 type AssignmentState = Record<
@@ -107,6 +109,10 @@ export function ManagerPage() {
   const [savingId, setSavingId] = useState<number | null>(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+
+  useToastOnChange(authError, 'error')
+  useToastOnChange(error, 'error')
+  useToastOnChange(message, 'success')
 
   const reports = useMemo(() => {
     const scheduledTotal = requests.filter((request) => request.status === 'agendada').length
@@ -427,10 +433,9 @@ export function ManagerPage() {
                 </div>
               </div>
               <div className="form-actions">
-                <button className="action-button primary" disabled={authLoading} type="submit">
-                  <ShieldCheck size={16} />
-                  {authLoading ? 'Entrando...' : 'Entrar na gerência'}
-                </button>
+                <AsyncActionButton icon={ShieldCheck} loading={authLoading} loadingLabel="Entrando..." type="submit">
+                  Entrar na gerência
+                </AsyncActionButton>
                 <Link className="action-button secondary" to="/operador">
                   Ir para operador
                 </Link>
@@ -463,9 +468,9 @@ export function ManagerPage() {
                   </div>
                 </div>
                 <div className="form-actions">
-                  <button className="action-button primary" disabled={authLoading || newPassword.length !== 4} type="submit">
-                    {authLoading ? 'Salvando novo PIN...' : 'Confirmar novo PIN'}
-                  </button>
+                  <AsyncActionButton disabled={newPassword.length !== 4} loading={authLoading} loadingLabel="Salvando novo PIN..." type="submit">
+                    Confirmar novo PIN
+                  </AsyncActionButton>
                 </div>
               </form>
             </article>
@@ -877,15 +882,15 @@ export function ManagerPage() {
                     </div>
 
                     <div className="form-actions">
-                      <button
-                        className="action-button primary"
-                        type="button"
-                        disabled={savingId === request.id}
+                      <AsyncActionButton
+                        icon={Save}
+                        loading={savingId === request.id}
+                        loadingLabel="Salvando..."
                         onClick={() => void handleAssign(request.id)}
+                        type="button"
                       >
-                        <Save size={16} />
-                        {savingId === request.id ? 'Salvando...' : request.assignedDriverId ? 'Salvar distribuição' : 'Atribuir motorista'}
-                      </button>
+                        {request.assignedDriverId ? 'Salvar distribuição' : 'Atribuir motorista'}
+                      </AsyncActionButton>
                     </div>
                   </article>
                 )

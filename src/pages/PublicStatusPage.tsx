@@ -1,8 +1,10 @@
 import { CalendarClock, Copy, KeyRound, Phone, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { AsyncActionButton } from '../components/AsyncActionButton'
 import { institutionContact } from '../config/institution'
 import { activateCitizenPin, confirmCitizenRequest, createCitizenRequestMessage, loginCitizen, markCitizenRequestViewed } from '../lib/api'
 import { toInstitutionalText } from '../lib/text-format'
+import { useToastOnChange } from '../lib/use-toast-on-change'
 import type { CitizenAccessResponse, PublicRequestDetails } from '../types'
 
 function formatCpf(value: string) {
@@ -170,6 +172,10 @@ export function PublicStatusPage() {
   const [copyMessage, setCopyMessage] = useState('')
   const [citizenMessageTitle, setCitizenMessageTitle] = useState('')
   const [citizenMessageBody, setCitizenMessageBody] = useState('')
+
+  useToastOnChange(error, 'error')
+  useToastOnChange(message, 'success')
+  useToastOnChange(copyMessage, 'success')
 
   const requests = useMemo(
     () =>
@@ -356,10 +362,9 @@ export function PublicStatusPage() {
             </div>
 
             <div className="form-actions">
-              <button className="action-button primary" disabled={loading} type="submit">
-                <Search size={16} />
-                {loading ? 'Validando acesso...' : 'Consultar'}
-              </button>
+              <AsyncActionButton icon={Search} loading={loading} loadingLabel="Validando acesso..." type="submit">
+                Consultar
+              </AsyncActionButton>
             </div>
           </form>
           <p className="public-helper-text">Primeiro acesso: utilize a senha temporária 0000 e depois cadastre um novo PIN numérico de 4 dígitos.</p>
@@ -405,9 +410,9 @@ export function PublicStatusPage() {
                 </div>
               </div>
               <div className="form-actions">
-                <button className="action-button primary" disabled={loading || newPin.length !== 4} type="submit">
-                  {loading ? 'Salvando novo PIN...' : 'Confirmar novo PIN'}
-                </button>
+                <AsyncActionButton disabled={newPin.length !== 4} loading={loading} loadingLabel="Salvando novo PIN..." type="submit">
+                  Confirmar novo PIN
+                </AsyncActionButton>
               </div>
             </form>
           </article>
@@ -543,9 +548,9 @@ export function PublicStatusPage() {
               </p>
               {!request.patientConfirmedAt ? (
                 <div className="form-actions">
-                  <button className="action-button primary" disabled={confirmingRequest} onClick={handleConfirmRequest} type="button">
-                    {confirmingRequest ? 'Confirmando...' : 'Confirmar recebimento da agenda'}
-                  </button>
+                  <AsyncActionButton loading={confirmingRequest} loadingLabel="Confirmando..." onClick={handleConfirmRequest} type="button">
+                    Confirmar recebimento da agenda
+                  </AsyncActionButton>
                 </div>
               ) : null}
             </article>
@@ -687,9 +692,9 @@ export function PublicStatusPage() {
                   </div>
                 </div>
                 <div className="form-actions">
-                  <button className="action-button primary" disabled={sendingMessage || !citizenMessageBody.trim()} type="submit">
-                    {sendingMessage ? 'Enviando...' : 'Enviar mensagem'}
-                  </button>
+                  <AsyncActionButton disabled={!citizenMessageBody.trim()} loading={sendingMessage} loadingLabel="Enviando..." type="submit">
+                    Enviar mensagem
+                  </AsyncActionButton>
                 </div>
               </form>
             </article>

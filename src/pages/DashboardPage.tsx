@@ -1,10 +1,12 @@
 import { Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AsyncActionButton } from '../components/AsyncActionButton'
 import { activateAdminPassword, loginAdmin, fetchDashboardSummary, fetchRequests, logoutSession } from '../lib/api'
 import { canAccessOperator, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { clearOperatorSession, getOperatorSession, saveOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText } from '../lib/text-format'
+import { useToastOnChange } from '../lib/use-toast-on-change'
 import type { AdminSession, DashboardSummary, RequestStatus, TravelRequest } from '../types'
 
 const statusOptions: Array<{ value: RequestStatus | 'todos'; label: string }> = [
@@ -107,6 +109,9 @@ export function DashboardPage() {
   const [filters, setFilters] = useState(initialFilters)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  useToastOnChange(authError, 'error')
+  useToastOnChange(error, 'error')
 
   useEffect(() => {
     setSession(getOperatorSession())
@@ -345,10 +350,9 @@ export function DashboardPage() {
                 </div>
               </div>
               <div className="form-actions">
-                <button className="action-button primary" disabled={authLoading} type="submit">
-                  <ShieldCheck size={16} />
-                  {authLoading ? 'Entrando...' : 'Entrar no ambiente interno'}
-                </button>
+                <AsyncActionButton icon={ShieldCheck} loading={authLoading} loadingLabel="Entrando..." type="submit">
+                  Entrar no ambiente interno
+                </AsyncActionButton>
                 <Link className="action-button secondary" to="/acompanhar">
                   Ver fluxo do cidadão
                 </Link>
@@ -381,9 +385,9 @@ export function DashboardPage() {
                   </div>
                 </div>
                 <div className="form-actions">
-                  <button className="action-button primary" disabled={authLoading || newPassword.length !== 4} type="submit">
-                    {authLoading ? 'Salvando novo PIN...' : 'Confirmar novo PIN'}
-                  </button>
+                  <AsyncActionButton disabled={newPassword.length !== 4} loading={authLoading} loadingLabel="Salvando novo PIN..." type="submit">
+                    Confirmar novo PIN
+                  </AsyncActionButton>
                 </div>
               </form>
             </article>

@@ -1,6 +1,7 @@
 import { ArrowLeft, ShieldCheck, UserPlus2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AsyncActionButton } from '../components/AsyncActionButton'
 import { canAccessAdmin, isValidInternalRole } from '../lib/access'
 import {
   createDriver,
@@ -26,6 +27,7 @@ import { clearAdminSession, saveAdminSession } from '../lib/admin-session'
 import { clearManagerSession } from '../lib/manager-session'
 import { clearAdminAreaSession, getAdminAreaSession, saveAdminAreaSession } from '../lib/admin-area-session'
 import { toEmailCase, toTitleCase } from '../lib/text-format'
+import { useToastOnChange } from '../lib/use-toast-on-change'
 import type {
   CreateDriverInput,
   CreateManagerInput,
@@ -150,6 +152,10 @@ export function AdminManagersPage() {
   const managerFormRef = useRef<HTMLElement | null>(null)
   const operatorFormRef = useRef<HTMLElement | null>(null)
   const driverFormRef = useRef<HTMLElement | null>(null)
+
+  useToastOnChange(authError, 'error')
+  useToastOnChange(error, 'error')
+  useToastOnChange(message, 'success')
 
   function scrollToSection(ref: { current: HTMLElement | null }) {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -531,9 +537,9 @@ export function AdminManagersPage() {
                 </div>
               </div>
               <div className="form-actions">
-                <button className="action-button primary" disabled={authLoading} type="submit">
-                  {authLoading ? 'Entrando...' : 'Entrar no admin'}
-                </button>
+                <AsyncActionButton loading={authLoading} loadingLabel="Entrando..." type="submit">
+                  Entrar no admin
+                </AsyncActionButton>
               </div>
             </form>
             {authError ? <p className="table-note">{authError}</p> : null}
@@ -563,9 +569,9 @@ export function AdminManagersPage() {
                   </div>
                 </div>
                 <div className="form-actions">
-                  <button className="action-button primary" disabled={authLoading || newPassword.length !== 4} type="submit">
-                    {authLoading ? 'Salvando novo PIN...' : 'Confirmar novo PIN'}
-                  </button>
+                  <AsyncActionButton disabled={newPassword.length !== 4} loading={authLoading} loadingLabel="Salvando novo PIN..." type="submit">
+                    Confirmar novo PIN
+                  </AsyncActionButton>
                 </div>
               </form>
             </article>
@@ -810,10 +816,9 @@ export function AdminManagersPage() {
               </div>
             </div>
             <div className="form-actions">
-              <button className="action-button primary" disabled={saving} type="submit">
-                <UserPlus2 size={16} />
-                {saving ? 'Salvando...' : editingManagerId ? 'Salvar gerente' : 'Cadastrar gerente'}
-              </button>
+              <AsyncActionButton icon={UserPlus2} loading={saving} loadingLabel="Salvando..." type="submit">
+                {editingManagerId ? 'Salvar gerente' : 'Cadastrar gerente'}
+              </AsyncActionButton>
               {editingManagerId ? (
                 <button
                   className="action-button secondary"
@@ -873,10 +878,9 @@ export function AdminManagersPage() {
               </div>
             </div>
             <div className="form-actions">
-              <button className="action-button primary" disabled={savingOperator} type="submit">
-                <UserPlus2 size={16} />
-                {savingOperator ? 'Salvando...' : editingOperatorId ? 'Salvar operador' : 'Cadastrar operador'}
-              </button>
+              <AsyncActionButton icon={UserPlus2} loading={savingOperator} loadingLabel="Salvando..." type="submit">
+                {editingOperatorId ? 'Salvar operador' : 'Cadastrar operador'}
+              </AsyncActionButton>
               {editingOperatorId ? (
                 <button
                   className="action-button secondary"
@@ -968,10 +972,9 @@ export function AdminManagersPage() {
               </div>
             </div>
             <div className="form-actions">
-              <button className="action-button primary" disabled={savingDriver} type="submit">
-                <UserPlus2 size={16} />
-                {savingDriver ? 'Salvando...' : editingDriverId ? 'Salvar motorista' : 'Cadastrar motorista'}
-              </button>
+              <AsyncActionButton icon={UserPlus2} loading={savingDriver} loadingLabel="Salvando..." type="submit">
+                {editingDriverId ? 'Salvar motorista' : 'Cadastrar motorista'}
+              </AsyncActionButton>
               {editingDriverId ? (
                 <button
                   className="action-button secondary"

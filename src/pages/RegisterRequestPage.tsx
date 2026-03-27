@@ -1,10 +1,12 @@
 import { ArrowLeft, CheckCircle2, FilePlus2, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AsyncActionButton } from '../components/AsyncActionButton'
 import { createTravelRequest, fetchPatients } from '../lib/api'
 import { canAccessOperator } from '../lib/access'
 import { getOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText, toTitleCase } from '../lib/text-format'
+import { useToastOnChange } from '../lib/use-toast-on-change'
 import type { CreateTravelRequestInput, PatientRecord } from '../types'
 
 const initialForm: CreateTravelRequestInput = {
@@ -63,6 +65,10 @@ export function RegisterRequestPage() {
   const [copyMessage, setCopyMessage] = useState('')
   const [lookupMessage, setLookupMessage] = useState('')
   const [lookupStatus, setLookupStatus] = useState<'idle' | 'success' | 'warning' | 'error'>('idle')
+
+  useToastOnChange(error, 'error')
+  useToastOnChange(copyMessage, 'success')
+  useToastOnChange(success?.message, 'success')
 
   function updateField<K extends keyof CreateTravelRequestInput>(key: K, value: CreateTravelRequestInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -283,10 +289,17 @@ export function RegisterRequestPage() {
                 <label htmlFor="cpf-register">CPF do paciente</label>
                 <div className="operator-search-inline">
                   <input id="cpf-register" value={form.cpf} onChange={(event) => updateField('cpf', formatCpf(event.target.value))} inputMode="numeric" placeholder="000.000.000-00" required />
-                  <button className="action-button secondary lookup-button" type="button" onClick={() => void handlePatientLookup()}>
-                    <Search size={16} />
-                    {lookupLoading ? 'Buscando...' : 'Buscar CPF'}
-                  </button>
+                  <AsyncActionButton
+                    className="lookup-button"
+                    icon={Search}
+                    loading={lookupLoading}
+                    loadingLabel="Buscando..."
+                    onClick={() => void handlePatientLookup()}
+                    type="button"
+                    variant="secondary"
+                  >
+                    Buscar CPF
+                  </AsyncActionButton>
                 </div>
               </div>
               <div className="field">
@@ -424,9 +437,9 @@ export function RegisterRequestPage() {
             </div>
 
             <div className="form-actions">
-              <button className="action-button primary" disabled={loading} type="submit">
-                {loading ? 'Salvando...' : 'Salvar solicitação'}
-              </button>
+              <AsyncActionButton loading={loading} loadingLabel="Salvando..." type="submit">
+                Salvar solicitação
+              </AsyncActionButton>
             </div>
           </form>
           {lookupMessage ? <p className={`table-note lookup-feedback ${lookupStatus}`}>{lookupMessage}</p> : null}

@@ -1,12 +1,14 @@
 import { ArrowLeft, CheckCircle2, Printer, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { AsyncActionButton } from '../components/AsyncActionButton'
 import { canAccessManager, canAccessOperator } from '../lib/access'
 import { createRequestMessage, fetchRequestDetails, markRequestPatientMessagesSeen, resetAccess, updateDriverPhoneVisibility, updateRequestSchedule, updateRequestStatus } from '../lib/api'
 import { getAdminSession } from '../lib/admin-session'
 import { getManagerSession } from '../lib/manager-session'
 import { getOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText } from '../lib/text-format'
+import { useToastOnChange } from '../lib/use-toast-on-change'
 import type { AdminSession, RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '../types'
 
 const statusOptions: Array<{ value: RequestStatus; label: string }> = [
@@ -68,6 +70,9 @@ export function RequestDetailsPage() {
   const teamMessages = details?.messages.filter((entry) => entry.createdByRole !== 'patient') ?? []
   const accessMode = canAccessManager(session) ? 'internal' : 'operator'
   const backTo = canAccessManager(session) ? '/gerente' : '/operador'
+
+  useToastOnChange(error, 'error')
+  useToastOnChange(message, 'success')
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -579,10 +584,9 @@ export function RequestDetailsPage() {
                   </div>
                 </div>
                 <div className="form-actions">
-                  <button className="action-button primary" disabled={savingDriverPhoneVisibility} type="submit">
-                    <Save size={16} />
-                    {savingDriverPhoneVisibility ? 'Salvando...' : 'Salvar visibilidade'}
-                  </button>
+                  <AsyncActionButton icon={Save} loading={savingDriverPhoneVisibility} loadingLabel="Salvando..." type="submit">
+                    Salvar visibilidade
+                  </AsyncActionButton>
                 </div>
               </form>
             </article>
@@ -617,10 +621,9 @@ export function RequestDetailsPage() {
                   </div>
                 </div>
                 <div className="form-actions">
-                  <button className="action-button primary" disabled={saving} type="submit">
-                    <Save size={16} />
-                    {saving ? 'Salvando...' : 'Salvar status'}
-                  </button>
+                  <AsyncActionButton icon={Save} loading={saving} loadingLabel="Salvando..." type="submit">
+                    Salvar status
+                  </AsyncActionButton>
                 </div>
               </form>
             </article>
@@ -672,10 +675,9 @@ export function RequestDetailsPage() {
                     </div>
                   </div>
                   <div className="form-actions">
-                    <button className="action-button primary" disabled={savingSchedule} type="submit">
-                      <Save size={16} />
-                      {savingSchedule ? 'Reagendando...' : 'Salvar nova data e horário'}
-                    </button>
+                    <AsyncActionButton icon={Save} loading={savingSchedule} loadingLabel="Reagendando..." type="submit">
+                      Salvar nova data e horário
+                    </AsyncActionButton>
                   </div>
                 </form>
               </article>
@@ -727,10 +729,9 @@ export function RequestDetailsPage() {
                   </div>
                 </div>
                 <div className="form-actions">
-                  <button className="action-button primary" disabled={savingMessage || !messageBody.trim()} type="submit">
-                    <Save size={16} />
-                    {savingMessage ? 'Registrando...' : 'Registrar mensagem'}
-                  </button>
+                  <AsyncActionButton disabled={!messageBody.trim()} icon={Save} loading={savingMessage} loadingLabel="Registrando..." type="submit">
+                    Registrar mensagem
+                  </AsyncActionButton>
                 </div>
               </form>
 
