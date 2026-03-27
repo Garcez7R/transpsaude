@@ -1387,54 +1387,110 @@ export async function listDriverTrips(env: Env, driverId: number) {
       throw error
     }
 
-    result = await db.prepare(
-      `
-        select
-          tr.id,
-          tr.protocol,
-          tr.patient_name as patientName,
-          tr.cpf_masked as cpfMasked,
-          p.phone,
-          p.address_line as addressLine,
-          0 as useCustomBoardingLocation,
-          '' as boardingLocationName,
-          p.address_line as boardingLocationLabel,
-          tr.access_cpf_masked as accessCpfMasked,
-          tr.destination_city as destinationCity,
-          tr.destination_state as destinationState,
-          tr.treatment_unit as treatmentUnit,
-          tr.specialty,
-          tr.travel_date as travelDate,
-          '' as appointmentTime,
-          tr.requested_at as requestedAt,
-          tr.status,
-          tr.companion_required as companionRequired,
-          tr.companion_name as companionName,
-          tr.companion_cpf_masked as companionCpfMasked,
-          tr.companion_phone as companionPhone,
-          tr.companion_is_whatsapp as companionIsWhatsapp,
-          tr.companion_address_line as companionAddressLine,
-          tr.assigned_driver_id as assignedDriverId,
-          tr.assigned_driver_name as assignedDriverName,
-          '' as assignedDriverPhone,
-          1 as showDriverPhoneToPatient,
-          null as assignedVehicleId,
-          '' as assignedVehicleName,
-          null as patientConfirmedAt,
-          null as patientLastViewedAt,
-          null as patientLastMessageSeenAt,
-          tr.departure_time as departureTime,
-          tr.manager_notes as managerNotes,
-          tr.scheduled_at as scheduledAt,
-          tr.notes
-        from travel_requests tr
-        inner join patients p on p.id = tr.patient_id
-        where tr.assigned_driver_id = ?1
-        order by travel_date asc, departure_time asc, created_at desc
-      `,
-    )
-      .bind(driverId)
-      .all()
+    try {
+      result = await db.prepare(
+        `
+          select
+            tr.id,
+            tr.protocol,
+            tr.patient_name as patientName,
+            tr.cpf_masked as cpfMasked,
+            p.phone,
+            p.address_line as addressLine,
+            0 as useCustomBoardingLocation,
+            '' as boardingLocationName,
+            p.address_line as boardingLocationLabel,
+            tr.access_cpf_masked as accessCpfMasked,
+            tr.destination_city as destinationCity,
+            tr.destination_state as destinationState,
+            tr.treatment_unit as treatmentUnit,
+            tr.specialty,
+            tr.travel_date as travelDate,
+            '' as appointmentTime,
+            tr.requested_at as requestedAt,
+            tr.status,
+            tr.companion_required as companionRequired,
+            tr.companion_name as companionName,
+            tr.companion_cpf_masked as companionCpfMasked,
+            tr.companion_phone as companionPhone,
+            tr.companion_is_whatsapp as companionIsWhatsapp,
+            tr.companion_address_line as companionAddressLine,
+            tr.assigned_driver_id as assignedDriverId,
+            tr.assigned_driver_name as assignedDriverName,
+            '' as assignedDriverPhone,
+            1 as showDriverPhoneToPatient,
+            null as assignedVehicleId,
+            '' as assignedVehicleName,
+            null as patientConfirmedAt,
+            null as patientLastViewedAt,
+            null as patientLastMessageSeenAt,
+            tr.departure_time as departureTime,
+            tr.manager_notes as managerNotes,
+            tr.scheduled_at as scheduledAt,
+            tr.notes
+          from travel_requests tr
+          inner join patients p on p.id = tr.patient_id
+          where tr.assigned_driver_id = ?1
+          order by travel_date asc, departure_time asc, created_at desc
+        `,
+      )
+        .bind(driverId)
+        .all()
+    } catch (fallbackError) {
+      const message = fallbackError instanceof Error ? fallbackError.message : ''
+
+      if (!message.includes('no such column:')) {
+        throw fallbackError
+      }
+
+      result = await db.prepare(
+        `
+          select
+            tr.id,
+            tr.protocol,
+            tr.patient_name as patientName,
+            tr.cpf_masked as cpfMasked,
+            '' as phone,
+            '' as addressLine,
+            0 as useCustomBoardingLocation,
+            '' as boardingLocationName,
+            '' as boardingLocationLabel,
+            '' as accessCpfMasked,
+            tr.destination_city as destinationCity,
+            tr.destination_state as destinationState,
+            tr.treatment_unit as treatmentUnit,
+            tr.specialty,
+            tr.travel_date as travelDate,
+            '' as appointmentTime,
+            tr.requested_at as requestedAt,
+            tr.status,
+            0 as companionRequired,
+            '' as companionName,
+            '' as companionCpfMasked,
+            '' as companionPhone,
+            0 as companionIsWhatsapp,
+            '' as companionAddressLine,
+            tr.assigned_driver_id as assignedDriverId,
+            tr.assigned_driver_name as assignedDriverName,
+            '' as assignedDriverPhone,
+            1 as showDriverPhoneToPatient,
+            null as assignedVehicleId,
+            '' as assignedVehicleName,
+            null as patientConfirmedAt,
+            null as patientLastViewedAt,
+            null as patientLastMessageSeenAt,
+            '' as departureTime,
+            '' as managerNotes,
+            '' as scheduledAt,
+            tr.notes
+          from travel_requests tr
+          where tr.assigned_driver_id = ?1
+          order by travel_date asc, requested_at desc
+        `,
+      )
+        .bind(driverId)
+        .all()
+    }
   }
 
   return Promise.all(
