@@ -127,6 +127,7 @@ export function DriverPortalPage() {
   const [error, setError] = useState('')
   const [firstAccess, setFirstAccess] = useState<{ cpf: string; name: string } | null>(null)
   const [activeFilter, setActiveFilter] = useState<DriverTripFilter>('today')
+  const [selectedDate, setSelectedDate] = useState('')
   const [expandedTripId, setExpandedTripId] = useState<number | null>(null)
   const [messageDrafts, setMessageDrafts] = useState<Record<number, { title: string; body: string; visibleToCitizen: boolean }>>({})
   const [messageSaveState, setMessageSaveState] = useState<Record<number, SaveState>>({})
@@ -198,6 +199,10 @@ export function DriverPortalPage() {
   }, [sortedTrips, todayKey])
 
   const filteredTrips = useMemo(() => {
+    if (selectedDate) {
+      return sortedTrips.filter((trip) => trip.travelDate === selectedDate)
+    }
+
     switch (activeFilter) {
       case 'today':
         return sortedTrips.filter((trip) => trip.travelDate === todayKey)
@@ -211,13 +216,26 @@ export function DriverPortalPage() {
       default:
         return sortedTrips
     }
-  }, [activeFilter, sortedTrips, todayKey])
+  }, [activeFilter, selectedDate, sortedTrips, todayKey])
 
   useEffect(() => {
     if (!filteredTrips.some((trip) => trip.id === expandedTripId)) {
       setExpandedTripId(null)
     }
   }, [expandedTripId, filteredTrips])
+
+  function handleSelectQuickFilter(filter: DriverTripFilter) {
+    setActiveFilter(filter)
+    setSelectedDate('')
+  }
+
+  function handleSelectedDateChange(value: string) {
+    setSelectedDate(value)
+
+    if (!value) {
+      setActiveFilter('today')
+    }
+  }
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -496,11 +514,25 @@ export function DriverPortalPage() {
               key={filter}
               className={`driver-filter-chip ${activeFilter === filter ? 'active' : ''}`}
               type="button"
-              onClick={() => setActiveFilter(filter)}
+              onClick={() => handleSelectQuickFilter(filter)}
             >
               {getFilterLabel(filter)}
             </button>
           ))}
+          <div className="driver-date-filter">
+            <label htmlFor="driver-specific-date">Data específica</label>
+            <input
+              id="driver-specific-date"
+              type="date"
+              value={selectedDate}
+              onChange={(event) => handleSelectedDateChange(event.target.value)}
+            />
+          </div>
+          {selectedDate ? (
+            <button className="driver-filter-chip" type="button" onClick={() => handleSelectedDateChange('')}>
+              Voltar para hoje
+            </button>
+          ) : null}
         </div>
       </section>
 
@@ -761,8 +793,8 @@ export function DriverPortalPage() {
         ) : sortedTrips.length > 0 ? (
           <article className="empty-state">
             <BusFront size={28} />
-            <h2>Nenhuma viagem em {getFilterLabel(activeFilter).toLowerCase()}</h2>
-            <p>Use outro filtro para visualizar viagens futuras, confirmadas ou com mensagem do paciente.</p>
+            <h2>{selectedDate ? `Nenhuma viagem em ${formatDisplayDate(selectedDate)}` : `Nenhuma viagem em ${getFilterLabel(activeFilter).toLowerCase()}`}</h2>
+            <p>Use outro filtro para visualizar viagens futuras, confirmadas, com mensagem do paciente ou escolha uma data específica.</p>
           </article>
         ) : (
           <article className="empty-state">
