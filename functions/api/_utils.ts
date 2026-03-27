@@ -1377,7 +1377,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
       from travel_requests tr
       inner join patients p on p.id = tr.patient_id
       where tr.assigned_driver_id = ?1
-      order by travel_date asc, appointment_time asc, departure_time asc, created_at desc
+      order by tr.travel_date asc, tr.appointment_time asc, tr.departure_time asc, tr.created_at desc
     `,
     )
       .bind(driverId)
@@ -1431,7 +1431,7 @@ export async function listDriverTrips(env: Env, driverId: number) {
           from travel_requests tr
           inner join patients p on p.id = tr.patient_id
           where tr.assigned_driver_id = ?1
-          order by travel_date asc, departure_time asc, created_at desc
+          order by tr.travel_date asc, tr.departure_time asc, tr.created_at desc
         `,
       )
         .bind(driverId)
