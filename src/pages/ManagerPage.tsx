@@ -68,6 +68,10 @@ function isMeaningfulValue(value?: string | null) {
     return false
   }
 
+  if (text.length === 1) {
+    return false
+  }
+
   if (/^\d{1,2}$/.test(text)) {
     return false
   }
@@ -732,16 +736,11 @@ export function ManagerPage() {
                     </div>
 
                     <div className="assignment-meta">
-                      <span>Veículo da viagem: {request.assignedVehicleName || 'Não definido'}</span>
-                      <span>Telefone do motorista ao paciente: {request.showDriverPhoneToPatient ? 'Visível' : 'Oculto'}</span>
-                      <span>Acompanhante: {request.companionRequired ? 'Sim' : 'Não'}</span>
+                      <span>CPF de acesso: {request.accessCpfMasked ?? request.cpfMasked}</span>
+                      {request.assignedVehicleName ? <span>Veículo da viagem: {request.assignedVehicleName}</span> : null}
+                      {request.companionRequired ? <span>Acompanhante: {request.companionName || 'Sim'}</span> : null}
                       {Number(request.patientMessageCount ?? 0) > 0 ? (
                         <span>{request.hasUnreadPatientMessage ? 'Nova mensagem do paciente' : 'Mensagem do paciente já lida'}</span>
-                      ) : null}
-                      {request.companionRequired && request.companionName ? (
-                        <span>
-                          Acompanhante: {request.companionName} {request.companionCpfMasked ? `• ${request.companionCpfMasked}` : ''}
-                        </span>
                       ) : null}
                     </div>
 
@@ -885,7 +884,7 @@ export function ManagerPage() {
                         onClick={() => void handleAssign(request.id)}
                       >
                         <Save size={16} />
-                        {savingId === request.id ? 'Salvando...' : 'Atribuir motorista'}
+                        {savingId === request.id ? 'Salvando...' : request.assignedDriverId ? 'Salvar distribuição' : 'Atribuir motorista'}
                       </button>
                     </div>
                   </article>

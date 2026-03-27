@@ -79,10 +79,24 @@ function formatDisplayDate(value?: string) {
   return match ? `${match[3]}/${match[2]}/${match[1]}` : value
 }
 
+const statusLabels: Record<RequestStatus, string> = {
+  recebida: 'Recebida',
+  em_analise: 'Em análise',
+  aguardando_documentos: 'Aguardando documentos',
+  aprovada: 'Aprovada',
+  agendada: 'Agendada',
+  cancelada: 'Cancelada',
+  concluida: 'Concluída',
+}
+
 function isMeaningfulValue(value?: string | null) {
   const text = String(value ?? '').trim()
 
   if (!text) {
+    return false
+  }
+
+  if (text.length === 1) {
     return false
   }
 
@@ -735,7 +749,7 @@ export function AdminManagersPage() {
                   <td>{formatDisplayDate(request.travelDate)}</td>
                   <td>{request.appointmentTime || 'A definir'}</td>
                   <td>
-                    <span className={`status-badge ${request.status}`}>{request.status}</span>
+                    <span className={`status-badge ${request.status}`}>{statusLabels[request.status]}</span>
                   </td>
                   <td>
                     <Link className="inline-link" to={`/operador/solicitacoes/${request.id}`}>
@@ -885,7 +899,7 @@ export function AdminManagersPage() {
 
       </section>
 
-      <section className="dashboard-grid dashboard-grid-main">
+      <section className="dashboard-grid dashboard-grid-single">
         <article className="content-card" ref={driverFormRef}>
           <h2>{editingDriverId ? 'Editar motorista' : 'Novo motorista'}</h2>
           <form onSubmit={handleDriverSubmit}>
@@ -972,17 +986,6 @@ export function AdminManagersPage() {
               ) : null}
             </div>
           </form>
-        </article>
-
-        <article className="content-card dashboard-side-sticky">
-          <h2>Permissões por perfil</h2>
-          <ul className="check-list">
-            <li>Administrador cria gerente e operador</li>
-            <li>Gerente e administrador criam, editam e desativam motoristas e operadores</li>
-            <li>Somente administrador cria novos gerentes</li>
-            <li>Redefinição de senha acontece pela edição do cadastro</li>
-            <li>O painel do admin concentra a governança dos acessos internos</li>
-          </ul>
         </article>
       </section>
 
