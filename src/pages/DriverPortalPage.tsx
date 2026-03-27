@@ -111,9 +111,9 @@ export function DriverPortalPage() {
         if (active) {
           setTrips(data)
         }
-      } catch {
+      } catch (loadError) {
         if (active) {
-          setError('Não foi possível carregar as viagens do motorista.')
+          setError(loadError instanceof Error ? loadError.message : 'Não foi possível carregar as viagens do motorista.')
         }
       } finally {
         if (active) {
