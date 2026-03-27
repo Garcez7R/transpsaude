@@ -1230,6 +1230,7 @@ export async function loginDriver(env: Env, cpf: string, password: string) {
         left join vehicles v on v.id = d.vehicle_id
         where d.cpf = ?1
           and d.active = 1
+        order by d.id desc
         limit 1
       `,
     )
@@ -1256,6 +1257,7 @@ export async function loginDriver(env: Env, cpf: string, password: string) {
         left join vehicles v on v.id = d.vehicle_id
         where d.cpf = ?1
           and d.active = 1
+        order by d.id desc
         limit 1
       `,
     )

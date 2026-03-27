@@ -185,6 +185,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
         from drivers d
         left join vehicles v on v.id = d.vehicle_id
         where d.cpf = ?1
+        order by d.id desc
         limit 1
       `,
     )
