@@ -104,6 +104,7 @@ export function ManagerPage() {
   const [dateTo, setDateTo] = useState('')
   const [destination, setDestination] = useState('')
   const [driverFilterId, setDriverFilterId] = useState('')
+  const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null)
   const [assignment, setAssignment] = useState<AssignmentState>({})
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<number | null>(null)
@@ -138,6 +139,12 @@ export function ManagerPage() {
 
     return `${requests.length} solicitação(ões) no recorte atual`
   }, [loading, requests.length])
+
+  const selectedRequest =
+    requests.find((request) => request.id === selectedRequestId) ??
+    requests[0] ??
+    null
+  const selectedAssignment = selectedRequest ? assignment[selectedRequest.id] ?? emptyAssignment : emptyAssignment
 
   useEffect(() => {
     setSession(getManagerSession())
@@ -192,6 +199,9 @@ export function ManagerPage() {
               },
             ]),
           ),
+        )
+        setSelectedRequestId((current) =>
+          requestData.some((request) => request.id === current) ? current : (requestData[0]?.id ?? null),
         )
       } catch {
         if (active) {
@@ -381,6 +391,9 @@ export function ManagerPage() {
         driverId: driverFilterId ? Number(driverFilterId) : null,
       })
       setRequests(refreshed)
+      setSelectedRequestId((current) =>
+        refreshed.some((request) => request.id === current) ? current : (refreshed[0]?.id ?? null),
+      )
     } catch {
       setError('Não foi possível atribuir o motorista para essa viagem.')
     } finally {
@@ -693,209 +706,233 @@ export function ManagerPage() {
 
       <section className="dashboard-grid dashboard-grid-single">
         <div className="content-card">
-          <h2>Distribuição das solicitações</h2>
+          <h2>Central de distribuição</h2>
           {loading ? (
             <p className="table-note">Carregando viagens...</p>
-          ) : (
-            <div className="assignment-list scroll-list">
-              {requests.map((request) => {
-                const data = assignment[request.id] ?? emptyAssignment
-
-                return (
-                  <article className="assignment-card manager-request-card" key={request.id}>
-                    <div className="assignment-header">
-                      <div>
-                        <strong>{getDisplayValue(request.patientName, 'Paciente não informado')}</strong>
-                        <p className="table-note">
-                          {request.protocol} • {request.destinationCity}/{request.destinationState} • {formatDisplayDate(request.travelDate)}
-                        </p>
-                        <p className="assignment-patient-name">
-                          {request.accessCpfMasked ?? request.cpfMasked} • {getDisplayValue(request.treatmentUnit)}
-                        </p>
-                        <p className="table-note">
-                          <Link className="inline-link" to={`/operador/solicitacoes/${request.id}`}>
-                            Abrir detalhe completo da solicitação
-                          </Link>
-                        </p>
-                      </div>
+          ) : requests.length > 0 && selectedRequest ? (
+            <div className="manager-workspace">
+              <div className="manager-request-list">
+                {requests.map((request) => (
+                  <button
+                    key={request.id}
+                    className={`manager-request-list-item ${selectedRequest.id === request.id ? 'active' : ''}`}
+                    type="button"
+                    onClick={() => setSelectedRequestId(request.id)}
+                  >
+                    <div className="request-list-header">
                       <span className={`status-badge ${request.status}`}>{statusLabels[request.status]}</span>
+                      <span className="status-pill">{formatDisplayDate(request.travelDate)}</span>
                     </div>
-
-                    <div className="travel-overview-grid">
-                      <article className="travel-overview-card">
-                        <span>Consulta</span>
-                        <strong>{request.appointmentTime || 'Não definido'}</strong>
-                      </article>
-                      <article className="travel-overview-card">
-                        <span>Saída</span>
-                        <strong>{request.departureTime || 'Não definido'}</strong>
-                      </article>
-                      <article className="travel-overview-card">
-                        <span>Motorista</span>
-                        <strong>{request.assignedDriverName || 'Não atribuído'}</strong>
-                      </article>
-                      <article className="travel-overview-card">
-                        <span>Embarque</span>
-                        <strong>{getDisplayValue(request.boardingLocationLabel || request.addressLine)}</strong>
-                      </article>
-                    </div>
-
-                    <div className="assignment-meta">
-                      <span>CPF de acesso: {request.accessCpfMasked ?? request.cpfMasked}</span>
-                      {request.assignedVehicleName ? <span>Veículo da viagem: {request.assignedVehicleName}</span> : null}
-                      {request.companionRequired ? <span>Acompanhante: {request.companionName || 'Sim'}</span> : null}
+                    <strong>{getDisplayValue(request.patientName, 'Paciente não informado')}</strong>
+                    <span>{request.protocol}</span>
+                    <span>{request.destinationCity}/{request.destinationState}</span>
+                    <span>
+                      Saída {request.departureTime || 'A definir'} • Consulta {request.appointmentTime || 'A definir'}
+                    </span>
+                    <div className="request-list-flags">
+                      {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada</span> : null}
+                      {request.assignedDriverName ? <span className="read-badge">{request.assignedDriverName}</span> : <span className="attention-badge">Sem motorista</span>}
                       {Number(request.patientMessageCount ?? 0) > 0 ? (
-                        <span>{request.hasUnreadPatientMessage ? 'Nova mensagem do paciente' : 'Mensagem do paciente já lida'}</span>
+                        <span className={request.hasUnreadPatientMessage ? 'attention-badge' : 'read-badge'}>
+                          {request.hasUnreadPatientMessage ? 'Mensagem nova' : 'Mensagem lida'}
+                        </span>
                       ) : null}
                     </div>
+                  </button>
+                ))}
+              </div>
 
-                    <div className="status-pill-row">
-                      {request.patientConfirmedAt ? <span className="confirmed-badge">Confirmada pelo paciente</span> : null}
-                      {request.patientLastViewedAt ? <span className="status-pill-live">Lida pelo paciente</span> : null}
-                      {Number(request.patientMessageCount ?? 0) > 0 ? (
-                        <Link
-                          className={`${request.hasUnreadPatientMessage ? 'attention-badge' : 'read-badge'} inline-link`}
-                          to={`/operador/solicitacoes/${request.id}#mensagens-paciente`}
-                        >
-                          {request.hasUnreadPatientMessage ? 'Nova mensagem do paciente' : 'Mensagem do paciente lida'}
-                        </Link>
-                      ) : null}
-                    </div>
+              <article className="assignment-card manager-request-card manager-request-focus">
+                <div className="assignment-header">
+                  <div>
+                    <strong>{getDisplayValue(selectedRequest.patientName, 'Paciente não informado')}</strong>
+                    <p className="table-note">
+                      {selectedRequest.protocol} • {selectedRequest.destinationCity}/{selectedRequest.destinationState} • {formatDisplayDate(selectedRequest.travelDate)}
+                    </p>
+                    <p className="assignment-patient-name">
+                      {selectedRequest.accessCpfMasked ?? selectedRequest.cpfMasked} • {getDisplayValue(selectedRequest.treatmentUnit)}
+                    </p>
+                    <p className="table-note">
+                      <Link className="inline-link" to={`/operador/solicitacoes/${selectedRequest.id}`}>
+                        Abrir detalhe completo da solicitação
+                      </Link>
+                    </p>
+                  </div>
+                  <span className={`status-badge ${selectedRequest.status}`}>{statusLabels[selectedRequest.status]}</span>
+                </div>
 
-                    <div className="form-grid">
-                      <div className="field">
-                        <label htmlFor={`driver-${request.id}`}>Motorista</label>
-                        <select
-                          id={`driver-${request.id}`}
-                          value={data.driverId}
-                          onChange={(event) => {
-                            const nextDriverId = event.target.value
-                            const selectedDriver = drivers.find((driver) => String(driver.id) === nextDriverId)
-                            updateAssignment(request.id, 'driverId', nextDriverId)
-
-                            if (selectedDriver?.vehicleId) {
-                              updateAssignment(request.id, 'vehicleId', String(selectedDriver.vehicleId))
-                            }
-                          }}
-                        >
-                          <option value="">Selecione</option>
-                          {drivers.map((driver) => (
-                            <option key={driver.id} value={driver.id}>
-                              {driver.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="field">
-                        <label htmlFor={`vehicle-${request.id}`}>Veículo da viagem</label>
-                        <select
-                          id={`vehicle-${request.id}`}
-                          value={data.vehicleId}
-                          onChange={(event) => updateAssignment(request.id, 'vehicleId', event.target.value)}
-                        >
-                          <option value="">Selecione</option>
-                          {vehicles.map((vehicle) => (
-                            <option key={vehicle.id} value={vehicle.id}>
-                              {vehicle.name} • {vehicle.plate}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="field">
-                        <label htmlFor={`appointment-${request.id}`}>Horário da consulta</label>
-                        <input
-                          id={`appointment-${request.id}`}
-                          type="time"
-                          value={data.appointmentTime}
-                          onChange={(event) => updateAssignment(request.id, 'appointmentTime', event.target.value)}
-                        />
-                      </div>
-                      <div className="field">
-                        <label htmlFor={`departure-${request.id}`}>Horário de saída</label>
-                        <input
-                          id={`departure-${request.id}`}
-                          type="time"
-                          value={data.departureTime}
-                          onChange={(event) => updateAssignment(request.id, 'departureTime', event.target.value)}
-                        />
-                      </div>
-                      <div className="field full">
-                        <label htmlFor={`notes-${request.id}`}>Observações do gerente</label>
-                        <textarea
-                          id={`notes-${request.id}`}
-                          rows={3}
-                          value={data.managerNotes}
-                          onChange={(event) => updateAssignment(request.id, 'managerNotes', event.target.value)}
-                          placeholder="Ponto de saída, observações de rota, documentos ou orientações para o motorista."
-                        />
-                      </div>
-                      <div className="field checkbox-field checkbox-field-inline">
-                        <label className="checkbox-row" htmlFor={`show-driver-phone-${request.id}`}>
-                          <input
-                            id={`show-driver-phone-${request.id}`}
-                            type="checkbox"
-                            checked={data.showDriverPhoneToPatient}
-                            onChange={(event) =>
-                              updateAssignment(request.id, 'showDriverPhoneToPatient', event.target.checked)
-                            }
-                          />
-                          <span>Exibir telefone do motorista para o paciente</span>
-                        </label>
-                      </div>
-                      <div className="field checkbox-field checkbox-field-inline">
-                        <label className="checkbox-row" htmlFor={`boarding-flag-${request.id}`}>
-                          <input
-                            id={`boarding-flag-${request.id}`}
-                            type="checkbox"
-                            checked={data.useCustomBoardingLocation}
-                            onChange={(event) =>
-                              updateAssignment(request.id, 'useCustomBoardingLocation', event.target.checked)
-                            }
-                          />
-                          <span>Usar ponto oficial de embarque em vez do endereço do paciente</span>
-                        </label>
-                      </div>
-                      {data.useCustomBoardingLocation ? (
-                        <div className="field full">
-                          <label htmlFor={`boarding-location-${request.id}`}>Ponto oficial de embarque</label>
-                          <select
-                            id={`boarding-location-${request.id}`}
-                            value={data.boardingLocationName}
-                            onChange={(event) =>
-                              updateAssignment(request.id, 'boardingLocationName', event.target.value)
-                            }
-                          >
-                            <option value="">Selecione um ponto</option>
-                            {boardingLocations.map((location) => (
-                              <option key={location} value={location}>
-                                {location}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      ) : (
-                        <div className="field full">
-                          <label>Endereço padrão de embarque</label>
-                          <input value={request.addressLine || 'Não informado'} readOnly />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="form-actions">
-                      <AsyncActionButton
-                        icon={Save}
-                        loading={savingId === request.id}
-                        loadingLabel="Salvando..."
-                        onClick={() => void handleAssign(request.id)}
-                        type="button"
-                      >
-                        {request.assignedDriverId ? 'Salvar distribuição' : 'Atribuir motorista'}
-                      </AsyncActionButton>
-                    </div>
+                <div className="travel-overview-grid">
+                  <article className="travel-overview-card">
+                    <span>Consulta</span>
+                    <strong>{selectedRequest.appointmentTime || 'Não definido'}</strong>
                   </article>
-                )
-              })}
+                  <article className="travel-overview-card">
+                    <span>Saída</span>
+                    <strong>{selectedRequest.departureTime || 'Não definido'}</strong>
+                  </article>
+                  <article className="travel-overview-card">
+                    <span>Motorista</span>
+                    <strong>{selectedRequest.assignedDriverName || 'Não atribuído'}</strong>
+                  </article>
+                  <article className="travel-overview-card">
+                    <span>Embarque</span>
+                    <strong>{getDisplayValue(selectedRequest.boardingLocationLabel || selectedRequest.addressLine)}</strong>
+                  </article>
+                </div>
+
+                <div className="assignment-meta">
+                  <span>CPF de acesso: {selectedRequest.accessCpfMasked ?? selectedRequest.cpfMasked}</span>
+                  {selectedRequest.assignedVehicleName ? <span>Veículo da viagem: {selectedRequest.assignedVehicleName}</span> : null}
+                  {selectedRequest.companionRequired ? <span>Acompanhante: {selectedRequest.companionName || 'Sim'}</span> : null}
+                  {Number(selectedRequest.patientMessageCount ?? 0) > 0 ? (
+                    <span>{selectedRequest.hasUnreadPatientMessage ? 'Nova mensagem do paciente' : 'Mensagem do paciente já lida'}</span>
+                  ) : null}
+                </div>
+
+                <div className="status-pill-row">
+                  {selectedRequest.patientConfirmedAt ? <span className="confirmed-badge">Confirmada pelo paciente</span> : null}
+                  {selectedRequest.patientLastViewedAt ? <span className="status-pill-live">Lida pelo paciente</span> : null}
+                  {Number(selectedRequest.patientMessageCount ?? 0) > 0 ? (
+                    <Link
+                      className={`${selectedRequest.hasUnreadPatientMessage ? 'attention-badge' : 'read-badge'} inline-link`}
+                      to={`/operador/solicitacoes/${selectedRequest.id}#mensagens-paciente`}
+                    >
+                      {selectedRequest.hasUnreadPatientMessage ? 'Nova mensagem do paciente' : 'Mensagem do paciente lida'}
+                    </Link>
+                  ) : null}
+                </div>
+
+                <div className="form-grid">
+                  <div className="field">
+                    <label htmlFor={`driver-${selectedRequest.id}`}>Motorista</label>
+                    <select
+                      id={`driver-${selectedRequest.id}`}
+                      value={selectedAssignment.driverId}
+                      onChange={(event) => {
+                        const nextDriverId = event.target.value
+                        const selectedDriver = drivers.find((driver) => String(driver.id) === nextDriverId)
+                        updateAssignment(selectedRequest.id, 'driverId', nextDriverId)
+
+                        if (selectedDriver?.vehicleId) {
+                          updateAssignment(selectedRequest.id, 'vehicleId', String(selectedDriver.vehicleId))
+                        }
+                      }}
+                    >
+                      <option value="">Selecione</option>
+                      {drivers.map((driver) => (
+                        <option key={driver.id} value={driver.id}>
+                          {driver.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`vehicle-${selectedRequest.id}`}>Veículo da viagem</label>
+                    <select
+                      id={`vehicle-${selectedRequest.id}`}
+                      value={selectedAssignment.vehicleId}
+                      onChange={(event) => updateAssignment(selectedRequest.id, 'vehicleId', event.target.value)}
+                    >
+                      <option value="">Selecione</option>
+                      {vehicles.map((vehicle) => (
+                        <option key={vehicle.id} value={vehicle.id}>
+                          {vehicle.name} • {vehicle.plate}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`appointment-${selectedRequest.id}`}>Horário da consulta</label>
+                    <input
+                      id={`appointment-${selectedRequest.id}`}
+                      type="time"
+                      value={selectedAssignment.appointmentTime}
+                      onChange={(event) => updateAssignment(selectedRequest.id, 'appointmentTime', event.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`departure-${selectedRequest.id}`}>Horário de saída</label>
+                    <input
+                      id={`departure-${selectedRequest.id}`}
+                      type="time"
+                      value={selectedAssignment.departureTime}
+                      onChange={(event) => updateAssignment(selectedRequest.id, 'departureTime', event.target.value)}
+                    />
+                  </div>
+                  <div className="field full">
+                    <label htmlFor={`notes-${selectedRequest.id}`}>Observações do gerente</label>
+                    <textarea
+                      id={`notes-${selectedRequest.id}`}
+                      rows={4}
+                      value={selectedAssignment.managerNotes}
+                      onChange={(event) => updateAssignment(selectedRequest.id, 'managerNotes', event.target.value)}
+                      placeholder="Ponto de saída, observações de rota, documentos ou orientações para o motorista."
+                    />
+                  </div>
+                  <div className="field checkbox-field checkbox-field-inline">
+                    <label className="checkbox-row" htmlFor={`show-driver-phone-${selectedRequest.id}`}>
+                      <input
+                        id={`show-driver-phone-${selectedRequest.id}`}
+                        type="checkbox"
+                        checked={selectedAssignment.showDriverPhoneToPatient}
+                        onChange={(event) => updateAssignment(selectedRequest.id, 'showDriverPhoneToPatient', event.target.checked)}
+                      />
+                      <span>Exibir telefone do motorista para o paciente</span>
+                    </label>
+                  </div>
+                  <div className="field checkbox-field checkbox-field-inline">
+                    <label className="checkbox-row" htmlFor={`boarding-flag-${selectedRequest.id}`}>
+                      <input
+                        id={`boarding-flag-${selectedRequest.id}`}
+                        type="checkbox"
+                        checked={selectedAssignment.useCustomBoardingLocation}
+                        onChange={(event) => updateAssignment(selectedRequest.id, 'useCustomBoardingLocation', event.target.checked)}
+                      />
+                      <span>Usar ponto oficial de embarque em vez do endereço do paciente</span>
+                    </label>
+                  </div>
+                  {selectedAssignment.useCustomBoardingLocation ? (
+                    <div className="field full">
+                      <label htmlFor={`boarding-location-${selectedRequest.id}`}>Ponto oficial de embarque</label>
+                      <select
+                        id={`boarding-location-${selectedRequest.id}`}
+                        value={selectedAssignment.boardingLocationName}
+                        onChange={(event) => updateAssignment(selectedRequest.id, 'boardingLocationName', event.target.value)}
+                      >
+                        <option value="">Selecione um ponto</option>
+                        {boardingLocations.map((location) => (
+                          <option key={location} value={location}>
+                            {location}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="field full">
+                      <label>Endereço padrão de embarque</label>
+                      <input value={selectedRequest.addressLine || 'Não informado'} readOnly />
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-actions">
+                  <AsyncActionButton
+                    icon={Save}
+                    loading={savingId === selectedRequest.id}
+                    loadingLabel="Salvando..."
+                    onClick={() => void handleAssign(selectedRequest.id)}
+                    type="button"
+                  >
+                    {selectedRequest.assignedDriverId ? 'Salvar distribuição' : 'Atribuir motorista'}
+                  </AsyncActionButton>
+                </div>
+              </article>
             </div>
+          ) : (
+            <article className="empty-state">
+              <h3>Nenhuma solicitação encontrada</h3>
+              <p>Ajuste os filtros para visualizar agendas e distribuir motoristas.</p>
+            </article>
           )}
         </div>
       </section>

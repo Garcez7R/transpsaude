@@ -1272,6 +1272,68 @@ th {
   padding: 16px;
 }
 
+.manager-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.manager-request-list {
+  display: grid;
+  gap: 12px;
+  max-height: 72vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.manager-request-list-item {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(18, 48, 58, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.manager-request-list-item:hover,
+.manager-request-list-item:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(22, 133, 83, 0.22);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+}
+
+.manager-request-list-item.active {
+  border-color: rgba(22, 133, 83, 0.28);
+  background:
+    linear-gradient(135deg, rgba(22, 133, 83, 0.09), rgba(255, 255, 255, 0.96)),
+    rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.1);
+}
+
+.manager-request-list-item strong {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.manager-request-list-item span {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.manager-request-focus {
+  position: sticky;
+  top: 110px;
+}
+
 .manager-request-card .assignment-header {
   margin-bottom: 10px;
 }
@@ -1637,6 +1699,19 @@ th {
 
   .driver-request-card .request-summary {
     grid-template-columns: 1fr;
+  }
+
+  .manager-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .manager-request-list {
+    max-height: none;
+    padding-right: 0;
+  }
+
+  .manager-request-focus {
+    position: static;
   }
 
   .driver-hero-row {
