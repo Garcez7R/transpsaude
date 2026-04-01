@@ -657,8 +657,8 @@ button {
 
 .saas-app-shell {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 22px;
+  grid-template-columns: 288px minmax(0, 1fr);
+  gap: 18px;
   align-items: start;
 }
 
@@ -877,13 +877,13 @@ button {
 .saas-main {
   min-width: 0;
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .internal-shell .topbar,
 .internal-shell .public-header {
   position: static;
-  padding: 20px 22px;
+  padding: 18px 20px;
   border: 1px solid rgba(49, 65, 70, 0.12);
   border-radius: 28px;
   background:
@@ -956,9 +956,9 @@ button {
 
 .internal-shell .metrics-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 18px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-top: 12px;
+  margin-bottom: 16px;
 }
 
 .internal-shell .metric-card {
@@ -981,11 +981,11 @@ button {
 }
 
 .internal-shell .dashboard-grid {
-  gap: 20px;
+  gap: 16px;
 }
 
 .internal-shell .dashboard-grid-main {
-  grid-template-columns: minmax(0, 1.82fr) minmax(340px, 0.9fr);
+  grid-template-columns: minmax(0, 2.16fr) minmax(360px, 0.9fr);
 }
 
 .internal-shell .dashboard-grid-balanced {
@@ -1007,6 +1007,7 @@ button {
   box-shadow:
     0 22px 42px rgba(49, 65, 70, 0.07),
     inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  padding: 20px;
 }
 
 .internal-shell .content-card::before,
@@ -1033,26 +1034,26 @@ button {
 .internal-shell .filter-stack {
   max-width: none;
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .internal-shell .filter-stack > .field {
-  grid-column: span 3;
+  grid-column: span 4;
 }
 
 .internal-shell .filter-stack > .field:first-child {
-  grid-column: span 6;
+  grid-column: span 8;
 }
 
 .internal-shell form.filter-stack {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .internal-shell form.filter-stack > .field {
-  grid-column: span 3;
+  grid-column: span 4;
 }
 
 .internal-shell form.filter-stack > .field:first-child,
@@ -1148,6 +1149,7 @@ button {
 .internal-shell .scroll-list,
 .internal-shell .manager-request-list {
   padding-right: 8px;
+  max-height: 70vh;
 }
 
 .internal-shell .dashboard-side-sticky,
@@ -1167,6 +1169,11 @@ button {
 
 .saas-main--operator .assignment-list,
 .saas-main--directory .assignment-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.saas-main--admin .assignment-list {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
 }
@@ -1194,16 +1201,34 @@ button {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.saas-main--fleet .dashboard-grid-main,
+.saas-main--details .dashboard-grid-main {
+  grid-template-columns: minmax(0, 2.02fr) minmax(340px, 0.92fr);
+}
+
 .saas-main--details .request-summary {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .saas-main--register .dashboard-grid {
-  grid-template-columns: minmax(0, 1.9fr) minmax(320px, 0.92fr);
+  grid-template-columns: minmax(0, 2.08fr) minmax(320px, 0.86fr);
 }
 
 .saas-main--register .dashboard-side {
   gap: 16px;
+}
+
+.saas-main--manager .manager-workspace {
+  grid-template-columns: minmax(360px, 430px) minmax(0, 1fr);
+}
+
+.saas-main--manager .manager-request-card .travel-overview-grid,
+.saas-main--fleet .travel-overview-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.saas-main--admin .table-wrapper table {
+  min-width: 1140px;
 }
 
 .saas-main--operator .operator-workspace-card,
@@ -1215,14 +1240,15 @@ button {
 @media (min-width: 1080px) {
   .internal-shell.dashboard-shell,
   .internal-shell.public-shell.driver-portal-shell {
-    width: min(calc(100% - 24px), 1720px);
+    width: min(calc(100% - 16px), 1880px);
     max-width: none;
     margin-inline: auto;
+    padding: 18px;
   }
 
   .saas-app-shell {
-    grid-template-columns: 258px minmax(0, 1fr);
-    gap: 26px;
+    grid-template-columns: 272px minmax(0, 1fr);
+    gap: 18px;
   }
 
   .saas-main--admin .content-card,
@@ -1231,7 +1257,33 @@ button {
   .saas-main--fleet .content-card,
   .saas-main--register .content-card,
   .saas-main--details .content-card {
-    padding: 22px;
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .saas-main--operator .assignment-list,
+  .saas-main--directory .assignment-list,
+  .saas-main--fleet .assignment-list,
+  .saas-main--driver .driver-trip-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .saas-main--admin .assignment-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .saas-main--driver .public-layout.driver-portal-layout {
+    grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr);
+  }
+
+  .saas-main--manager .manager-workspace {
+    grid-template-columns: minmax(390px, 460px) minmax(0, 1fr);
+  }
+
+  .saas-main--admin .dashboard-grid-balanced,
+  .saas-main--fleet .dashboard-grid-balanced {
+    grid-template-columns: repeat(2, minmax(360px, 1fr));
   }
 }
 
