@@ -750,8 +750,8 @@ export function ManagerPage() {
         </div>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-single">
-        <div className="content-card">
+      <section className="dashboard-grid dashboard-grid-single manager-distribution-shell">
+        <div className="content-card manager-distribution-card">
           <h2>Central de distribuição</h2>
           {loading ? (
             <p className="table-note">Carregando viagens...</p>

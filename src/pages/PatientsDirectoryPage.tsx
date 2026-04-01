@@ -283,8 +283,8 @@ export function PatientsDirectoryPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-single">
-        <div className="content-card">
+      <section className="dashboard-grid dashboard-grid-main directory-workspace">
+        <div className="content-card directory-results-card">
           <div className="filter-stack">
             <div className="form-grid">
               <div className="field full">
@@ -378,9 +378,9 @@ export function PatientsDirectoryPage() {
           {loading ? (
             <p className="table-note">Carregando pacientes...</p>
           ) : filteredPatients.length > 0 ? (
-            <div className="assignment-list scroll-list">
+            <div className="assignment-list scroll-list directory-patient-list">
               {filteredPatients.map((patient) => (
-                <article className="assignment-card" key={patient.id}>
+                <article className="assignment-card directory-patient-card" key={patient.id}>
                   <div className="assignment-header">
                     <div>
                       <strong>{patient.fullName}</strong>
@@ -395,7 +395,7 @@ export function PatientsDirectoryPage() {
                     </div>
                   ) : null}
 
-                  <div className="request-summary">
+                  <div className="request-summary directory-patient-summary">
                     <div>
                       <dt>Telefone</dt>
                       <dd>{patient.phone}</dd>
@@ -424,6 +424,32 @@ export function PatientsDirectoryPage() {
             </article>
           )}
         </div>
+        <aside className="dashboard-side">
+          <article className="content-card dashboard-side-sticky directory-summary-card">
+            <h2>Leitura rápida</h2>
+            <div className="travel-overview-grid directory-side-grid">
+              <article className="travel-overview-card">
+                <span>Pacientes</span>
+                <strong>{patients.length}</strong>
+              </article>
+              <article className="travel-overview-card">
+                <span>No filtro</span>
+                <strong>{filteredPatients.length}</strong>
+              </article>
+              <article className="travel-overview-card">
+                <span>WhatsApp</span>
+                <strong>{withWhatsappCount}</strong>
+              </article>
+              <article className="travel-overview-card">
+                <span>Responsável</span>
+                <strong>{withResponsibleCount}</strong>
+              </article>
+            </div>
+            <p className="table-note">
+              Revise CPF de acesso, telefone e endereço antes de abrir um novo cadastro ou corrigir dados do paciente.
+            </p>
+          </article>
+        </aside>
       </section>
         </main>
       </div>

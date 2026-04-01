@@ -1264,6 +1264,21 @@ button {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.saas-main--directory .directory-workspace,
+.saas-main--manager .manager-distribution-shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.saas-main--fleet .fleet-overview-shell,
+.saas-main--fleet .fleet-operators-shell,
+.saas-main--fleet .fleet-lists-shell {
+  grid-template-columns: minmax(0, 1.52fr) minmax(300px, 0.9fr);
+}
+
+.saas-main--fleet .fleet-forms-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .saas-main--admin .table-wrapper table {
   min-width: 1140px;
 }
@@ -2088,6 +2103,8 @@ th {
 .manager-request-focus {
   position: sticky;
   top: 110px;
+  align-self: start;
+  min-width: 0;
 }
 
 .manager-request-card .assignment-header {
@@ -2122,6 +2139,79 @@ th {
 
 .manager-request-card .assignment-meta {
   margin-bottom: 12px;
+}
+
+.manager-distribution-card {
+  padding-bottom: 18px;
+}
+
+.manager-distribution-card .manager-workspace {
+  grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.manager-distribution-card .manager-request-list {
+  max-height: 76vh;
+}
+
+.manager-distribution-card .manager-request-card .form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.manager-distribution-card .manager-request-card .field.full {
+  grid-column: 1 / -1;
+}
+
+.directory-results-card {
+  min-width: 0;
+}
+
+.directory-summary-card {
+  min-width: 0;
+}
+
+.directory-patient-list {
+  grid-template-columns: 1fr;
+  max-height: 76vh;
+}
+
+.directory-patient-card .assignment-header {
+  margin-bottom: 6px;
+}
+
+.directory-patient-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.directory-patient-summary > div {
+  padding: 12px 14px;
+}
+
+.directory-side-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 12px 0 14px;
+}
+
+.fleet-overview-card .travel-overview-grid,
+.fleet-list-card .travel-overview-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fleet-guidance-card ul {
+  margin: 0;
+}
+
+.fleet-form-card .form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fleet-list-card .assignment-list {
+  grid-template-columns: 1fr;
+}
+
+.fleet-list-card .assignment-card {
+  padding: 14px;
 }
 
 .manager-request-card .status-pill-row {

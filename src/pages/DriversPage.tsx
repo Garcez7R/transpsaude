@@ -547,8 +547,8 @@ export function DriversPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-main">
-        <article className="content-card">
+      <section className="dashboard-grid dashboard-grid-main fleet-overview-shell">
+        <article className="content-card fleet-overview-card">
           <h2>Viagens por motorista</h2>
           <div className="form-grid">
             <div className="field full">
@@ -633,7 +633,7 @@ export function DriversPage() {
         </article>
 
         <aside className="dashboard-side">
-          <article className="content-card dashboard-side-sticky">
+          <article className="content-card dashboard-side-sticky fleet-guidance-card">
             <h2>Leitura rápida</h2>
             <ul className="check-list">
               <li>O vínculo de veículo no cadastro do motorista é apenas preferencial.</li>
@@ -644,8 +644,8 @@ export function DriversPage() {
         </aside>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-balanced">
-        <article className="content-card">
+      <section className="dashboard-grid dashboard-grid-balanced fleet-forms-grid">
+        <article className="content-card fleet-form-card">
           <h2>{editingVehicleId ? 'Editar veículo' : 'Novo veículo'}</h2>
           <form onSubmit={handleVehicleSubmit}>
             <div className="form-grid">
@@ -700,7 +700,7 @@ export function DriversPage() {
           </form>
         </article>
 
-        <article className="content-card">
+        <article className="content-card fleet-form-card">
           <h2>{editingDriverId ? 'Editar motorista' : 'Novo motorista'}</h2>
           <form onSubmit={handleDriverSubmit}>
             <div className="form-grid">
@@ -789,9 +789,9 @@ export function DriversPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-main">
+      <section className="dashboard-grid dashboard-grid-main fleet-operators-shell">
         {canAccessManager(session) ? (
-          <article className="content-card">
+          <article className="content-card fleet-form-card">
             <h2>{editingOperatorId ? 'Editar operador' : 'Novo operador'}</h2>
             <form onSubmit={handleOperatorSubmit}>
               <div className="form-grid">
@@ -857,7 +857,7 @@ export function DriversPage() {
         ) : null}
 
         <aside className="dashboard-side">
-          <article className="content-card dashboard-side-sticky">
+          <article className="content-card dashboard-side-sticky fleet-guidance-card">
             <h2>Permissões nesta área</h2>
             <ul className="check-list">
               <li>Gerente e admin criam motoristas</li>
@@ -869,8 +869,8 @@ export function DriversPage() {
         </aside>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-main">
-        <article className="content-card">
+      <section className="dashboard-grid dashboard-grid-main fleet-lists-shell">
+        <article className="content-card fleet-list-card">
           <h2>Veículos cadastrados</h2>
           {loading ? (
             <p className="table-note">Carregando veículos...</p>
@@ -906,7 +906,7 @@ export function DriversPage() {
         </article>
 
         <aside className="dashboard-side">
-          <article className="content-card">
+          <article className="content-card fleet-list-card">
             <h2>Motoristas cadastrados</h2>
             {loading ? (
               <p className="table-note">Carregando base de motoristas...</p>
@@ -951,8 +951,8 @@ export function DriversPage() {
         </aside>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-main">
-        <article className="content-card">
+      <section className="dashboard-grid dashboard-grid-main fleet-lists-shell">
+        <article className="content-card fleet-list-card">
           <h2>{editingPatientId ? 'Editar paciente' : 'Pacientes cadastrados'}</h2>
           {editingPatientId ? (
             <form onSubmit={handlePatientSubmit}>
@@ -1059,7 +1059,7 @@ export function DriversPage() {
         </article>
 
         <aside className="dashboard-side">
-          <article className="content-card">
+          <article className="content-card fleet-list-card">
             <h2>Operadores cadastrados</h2>
             <div className="assignment-list scroll-list">
               {operators.map((operator) => (
