@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
 import { InternalSidebar } from '../components/InternalSidebar'
-import { createTravelRequest, fetchPatients } from '../lib/api'
+import { createTravelRequest, fetchPatients, logoutSession } from '../lib/api'
 import { canAccessOperator } from '../lib/access'
-import { getOperatorSession } from '../lib/operator-session'
+import { clearOperatorSession, getOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText, toTitleCase } from '../lib/text-format'
 import { useToastOnChange } from '../lib/use-toast-on-change'
 import type { CreateTravelRequestInput, PatientRecord } from '../types'
@@ -56,7 +56,7 @@ function formatPhone(value: string) {
 }
 
 export function RegisterRequestPage() {
-  const session = typeof window !== 'undefined' ? getOperatorSession() : null
+  const [session, setSession] = useState(() => (typeof window !== 'undefined' ? getOperatorSession() : null))
   const [form, setForm] = useState(initialForm)
   const [loading, setLoading] = useState(false)
   const [patients, setPatients] = useState<PatientRecord[]>([])
@@ -211,6 +211,19 @@ export function RegisterRequestPage() {
     setCopyMessage('Protocolo copiado.')
   }
 
+  async function handleLogout() {
+    if (session?.token) {
+      try {
+        await logoutSession(session.token)
+      } catch {
+        // A limpeza local continua mesmo se a API não responder.
+      }
+    }
+
+    clearOperatorSession()
+    setSession(null)
+  }
+
   if (!session || !canAccessOperator(session)) {
     return (
       <div className="dashboard-shell internal-shell">
@@ -242,10 +255,15 @@ export function RegisterRequestPage() {
       <div className="saas-app-shell">
         <InternalSidebar
           actions={
-            <Link className="action-button secondary" to="/operador">
-              <ArrowLeft size={16} />
-              Voltar ao painel
-            </Link>
+            <>
+              <Link className="action-button secondary" to="/operador">
+                <ArrowLeft size={16} />
+                Voltar ao painel
+              </Link>
+              <button className="action-button primary" type="button" onClick={handleLogout}>
+                Sair
+              </button>
+            </>
           }
           items={[
             { to: '/operador', label: 'Operador', icon: ArrowLeft },

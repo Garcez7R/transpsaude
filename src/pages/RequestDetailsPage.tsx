@@ -4,10 +4,11 @@ import { Link, useParams } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
 import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessManager, canAccessOperator } from '../lib/access'
-import { createRequestMessage, fetchRequestDetails, markRequestPatientMessagesSeen, resetAccess, updateDriverPhoneVisibility, updateRequestSchedule, updateRequestStatus } from '../lib/api'
-import { getAdminSession } from '../lib/admin-session'
-import { getManagerSession } from '../lib/manager-session'
-import { getOperatorSession } from '../lib/operator-session'
+import { createRequestMessage, fetchRequestDetails, logoutSession, markRequestPatientMessagesSeen, resetAccess, updateDriverPhoneVisibility, updateRequestSchedule, updateRequestStatus } from '../lib/api'
+import { clearAdminSession, getAdminSession } from '../lib/admin-session'
+import { clearAdminAreaSession } from '../lib/admin-area-session'
+import { clearManagerSession, getManagerSession } from '../lib/manager-session'
+import { clearOperatorSession, getOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText } from '../lib/text-format'
 import { useToastOnChange } from '../lib/use-toast-on-change'
 import type { AdminSession, RequestStatus, StatusHistoryEntry, TravelRequestDetails } from '../types'
@@ -70,8 +71,8 @@ export function RequestDetailsPage() {
   const patientMessages = details?.messages.filter((entry) => entry.createdByRole === 'patient') ?? []
   const teamMessages = details?.messages.filter((entry) => entry.createdByRole !== 'patient') ?? []
   const accessMode = canAccessManager(session) ? 'internal' : 'operator'
-  const backTo = canAccessManager(session) ? '/gerente' : '/operador'
-  const sidebarRole = session ? (canAccessManager(session) ? 'Gestão interna' : 'Operador') : 'Área interna'
+  const backTo = session?.role === 'admin' ? '/admin' : canAccessManager(session) ? '/gerente' : '/operador'
+  const sidebarRole = session ? (session.role === 'admin' ? 'Administrador' : canAccessManager(session) ? 'Gestão interna' : 'Operador') : 'Área interna'
 
   useToastOnChange(error, 'error')
   useToastOnChange(message, 'success')
@@ -97,6 +98,22 @@ export function RequestDetailsPage() {
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Não foi possível redefinir o acesso do paciente.')
     }
+  }
+
+  async function handleLogout() {
+    if (session?.token) {
+      try {
+        await logoutSession(session.token)
+      } catch {
+        // A limpeza local continua mesmo se a API não responder.
+      }
+    }
+
+    clearOperatorSession()
+    clearManagerSession()
+    clearAdminAreaSession()
+    clearAdminSession()
+    setSession(null)
   }
 
   useEffect(() => {
@@ -322,6 +339,9 @@ export function RequestDetailsPage() {
                 <ArrowLeft size={16} />
                 Voltar
               </Link>
+              <button className="action-button primary" type="button" onClick={handleLogout}>
+                Sair
+              </button>
             </>
           }
           items={[

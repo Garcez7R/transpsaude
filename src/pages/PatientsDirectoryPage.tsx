@@ -3,10 +3,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessOperator, getInternalRoleLabel } from '../lib/access'
-import { fetchPatients } from '../lib/api'
-import { getAdminSession } from '../lib/admin-session'
-import { getManagerSession } from '../lib/manager-session'
-import { getOperatorSession } from '../lib/operator-session'
+import { fetchPatients, logoutSession } from '../lib/api'
+import { clearAdminSession, getAdminSession } from '../lib/admin-session'
+import { clearAdminAreaSession } from '../lib/admin-area-session'
+import { clearManagerSession, getManagerSession } from '../lib/manager-session'
+import { clearOperatorSession, getOperatorSession } from '../lib/operator-session'
 import { toInstitutionalText } from '../lib/text-format'
 import type { AdminSession, PatientRecord } from '../types'
 
@@ -52,7 +53,8 @@ function getSessionContext() {
 }
 
 export function PatientsDirectoryPage() {
-  const [{ session, accessMode, backTo }] = useState(() => getSessionContext())
+  const [sessionContext, setSessionContext] = useState(() => getSessionContext())
+  const { session, accessMode, backTo } = sessionContext
   const [patients, setPatients] = useState<PatientRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -159,6 +161,22 @@ export function PatientsDirectoryPage() {
   const withResponsibleCount = patients.filter((patient) => patient.useResponsibleCpfForAccess).length
   const withWhatsappCount = patients.filter((patient) => patient.isWhatsapp).length
 
+  async function handleLogout() {
+    if (session?.token) {
+      try {
+        await logoutSession(session.token)
+      } catch {
+        // A limpeza local continua mesmo se a API não responder.
+      }
+    }
+
+    clearOperatorSession()
+    clearManagerSession()
+    clearAdminAreaSession()
+    clearAdminSession()
+    setSessionContext({ session: null, accessMode: 'operator', backTo: '/operador' })
+  }
+
   if (!session || !canAccessOperator(session)) {
     return (
       <div className="dashboard-shell internal-shell">
@@ -199,6 +217,9 @@ export function PatientsDirectoryPage() {
                 <FilePlus2 size={16} />
                 Nova solicitação
               </Link>
+              <button className="action-button secondary" type="button" onClick={handleLogout}>
+                Sair
+              </button>
             </>
           }
           items={[

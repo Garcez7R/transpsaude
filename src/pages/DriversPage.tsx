@@ -17,13 +17,16 @@ import {
   fetchOperators,
   fetchPatients,
   fetchVehicles,
+  logoutSession,
   resetAccess,
   updateDriver,
   updateOperator,
   updatePatient,
   updateVehicle,
 } from '../lib/api'
-import { getManagerSession } from '../lib/manager-session'
+import { clearManagerSession, getManagerSession } from '../lib/manager-session'
+import { clearAdminAreaSession } from '../lib/admin-area-session'
+import { clearAdminSession } from '../lib/admin-session'
 import { toEmailCase, toInstitutionalText, toTitleCase } from '../lib/text-format'
 import { useToastOnChange } from '../lib/use-toast-on-change'
 import type {
@@ -112,7 +115,7 @@ function getDisplayValue(value?: string | null, fallback = 'Não informado') {
 }
 
 export function DriversPage() {
-  const [session] = useState(() => (typeof window !== 'undefined' ? getManagerSession() : null))
+  const [session, setSession] = useState(() => (typeof window !== 'undefined' ? getManagerSession() : null))
   const [drivers, setDrivers] = useState<DriverRecord[]>([])
   const [vehicles, setVehicles] = useState<VehicleRecord[]>([])
   const [operators, setOperators] = useState<OperatorRecord[]>([])
@@ -427,6 +430,21 @@ export function DriversPage() {
     }
   }
 
+  async function handleLogout() {
+    if (session?.token) {
+      try {
+        await logoutSession(session.token)
+      } catch {
+        // A limpeza local continua mesmo se a API não responder.
+      }
+    }
+
+    clearManagerSession()
+    clearAdminAreaSession()
+    clearAdminSession()
+    setSession(null)
+  }
+
   if (!session) {
     return (
       <div className="dashboard-shell internal-shell">
@@ -464,10 +482,15 @@ export function DriversPage() {
       <div className="saas-app-shell">
         <InternalSidebar
           actions={
-            <Link className="action-button secondary" to="/gerente">
-              <ArrowLeft size={16} />
-              Voltar para gerência
-            </Link>
+            <>
+              <Link className="action-button secondary" to="/gerente">
+                <ArrowLeft size={16} />
+                Voltar para gerência
+              </Link>
+              <button className="action-button primary" type="button" onClick={handleLogout}>
+                Sair
+              </button>
+            </>
           }
           items={[
             { to: '/gerente', label: 'Gerência', icon: Route },

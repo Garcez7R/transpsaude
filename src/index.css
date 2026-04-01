@@ -45,6 +45,7 @@ html {
 body {
   margin: 0;
   padding-bottom: env(safe-area-inset-bottom, 0);
+  font-size: 15.5px;
 }
 
 a {
@@ -934,13 +935,15 @@ button {
 
 .internal-shell .page-title-block h1,
 .internal-shell .public-header h1 {
-  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-size: clamp(1.78rem, 2.6vw, 2.45rem);
+  line-height: 1.04;
 }
 
 .internal-shell .page-title-block p,
 .internal-shell .public-header p {
   margin-top: 0;
   max-width: 64ch;
+  font-size: 0.96rem;
 }
 
 .internal-shell .page-actions {
@@ -1366,11 +1369,11 @@ button {
 
 .metric-card p {
   margin: 4px 0 0;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
 }
 
 .metric-card strong {
-  font-size: 1.35rem;
+  font-size: 1.24rem;
   line-height: 1.1;
 }
 
@@ -1432,6 +1435,7 @@ button {
   margin-bottom: 6px;
   font-weight: 600;
   color: var(--text);
+  font-size: 0.9rem;
 }
 
 .checkbox-field {
@@ -1505,9 +1509,12 @@ button {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 0.95rem 1rem;
+  min-height: 44px;
+  padding: 0.82rem 0.92rem;
   background: #fff;
   color: var(--text);
+  font-size: 0.97rem;
+  line-height: 1.35;
 }
 
 .field input:focus,
@@ -1520,7 +1527,7 @@ button {
 
 .field textarea {
   resize: vertical;
-  min-height: 132px;
+  min-height: 116px;
 }
 
 .filter-stack .field label {
@@ -1552,7 +1559,7 @@ td {
 th {
   color: var(--muted);
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
 }
 
 .status-badge {
@@ -1796,7 +1803,7 @@ th {
 
 .travel-overview-card span {
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.8rem;
 }
 
 .travel-overview-card strong {
@@ -1969,7 +1976,11 @@ th {
 .assignment-meta {
   margin-bottom: 12px;
   color: var(--muted);
-  font-size: 0.94rem;
+  font-size: 0.89rem;
+}
+
+.table-note {
+  font-size: 0.92rem;
 }
 
 .assignment-actions {
