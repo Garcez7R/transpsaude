@@ -513,19 +513,19 @@ export function DashboardPage() {
             <div className="page-title-block">
               <div className="eyebrow">
                 <ListChecks size={16} />
-                Painel do operador
+                Painel do Operador
               </div>
-              <h1>Solicitações de transporte em saúde</h1>
+              <h1>Solicitações de Transporte em Saúde</h1>
               <p>Fluxo diário de atendimento, cadastro e acompanhamento das agendas.</p>
             </div>
 
             <div className="page-actions">
               <Link className="action-button secondary" to="/operador/pacientes">
-                Base de pacientes
+                Base de Pacientes
               </Link>
               <Link className="action-button primary" to="/operador/cadastro">
                 <Plus size={16} />
-                Nova solicitação
+                Nova Solicitação
               </Link>
             </div>
           </header>
