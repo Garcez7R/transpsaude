@@ -32,10 +32,32 @@ export function InternalSidebar({ title, subtitle, sessionName, sessionRole, ite
           </div>
         </div>
 
-        <div className="saas-sidebar-session">
-          <span className="subtle-label">Sessão ativa</span>
-          <strong>{sessionName}</strong>
-          <p>{sessionRole}</p>
+        <div className="saas-sidebar-meta">
+          <section className="saas-sidebar-module">
+            <span className="saas-module-label">Sistema</span>
+            <div className="saas-module-card">
+              <span>Canal principal</span>
+              <strong>Transporte em saúde</strong>
+            </div>
+          </section>
+
+          <section className="saas-sidebar-module">
+            <span className="saas-module-label">Status</span>
+            <div className="saas-sidebar-session">
+              <div className="saas-sidebar-row">
+                <span>Acesso</span>
+                <strong>Ativo</strong>
+              </div>
+              <div className="saas-sidebar-row">
+                <span>Perfil</span>
+                <strong>{sessionRole}</strong>
+              </div>
+              <div className="saas-sidebar-row">
+                <span>Operador</span>
+                <strong>{sessionName}</strong>
+              </div>
+            </div>
+          </section>
         </div>
 
         <nav className="saas-sidebar-nav" aria-label="Navegação interna">
