@@ -67,80 +67,130 @@ export type ExportDataType = 'patients' | 'requests' | 'drivers' | 'vehicles' | 
 /**
  * Configurações de colunas para cada tipo de exportação
  */
+interface PatientExport {
+  fullName: string
+  cpfMasked: string
+  accessCpfMasked: string
+  phone: string
+  cns: string
+  addressLine: string
+  responsibleName: string
+  isWhatsapp: boolean
+  useResponsibleCpfForAccess: boolean
+}
+
+interface RequestExport {
+  protocol: string
+  patientName: string
+  cpfMasked: string
+  destinationCity: string
+  destinationState: string
+  travelDate: string
+  appointmentTime: string
+  departureTime: string
+  status: string
+  assignedDriverName: string
+  companionRequired: boolean
+  treatmentUnit: string
+  specialty: string
+}
+
+interface DriverExport {
+  name: string
+  cpfMasked: string
+  phone: string
+  vehicleName: string
+  isWhatsapp: boolean
+}
+
+interface VehicleExport {
+  name: string
+  plate: string
+  category: string
+}
+
+interface OperatorExport {
+  name: string
+  cpfMasked: string
+  email: string
+  role: string
+}
+
 export const exportConfigs = {
   patients: {
     filename: 'pacientes',
     columns: [
-      { header: 'Nome', accessor: (p: { fullName: string }) => p.fullName },
-      { header: 'CPF', accessor: (p: { cpfMasked: string }) => p.cpfMasked },
-      { header: 'CPF de Acesso', accessor: (p: { accessCpfMasked: string }) => p.accessCpfMasked },
-      { header: 'Telefone', accessor: (p: { phone: string }) => p.phone },
-      { header: 'CNS', accessor: (p: { cns: string }) => p.cns },
-      { header: 'Endereço', accessor: (p: { addressLine: string }) => p.addressLine },
-      { header: 'Responsável', accessor: (p: { responsibleName: string }) => p.responsibleName },
-      { header: 'WhatsApp', accessor: (p: { isWhatsapp: boolean }) => (p.isWhatsapp ? 'Sim' : 'Não') },
-      { header: 'Acesso por Responsável', accessor: (p: { useResponsibleCpfForAccess: boolean }) => (p.useResponsibleCpfForAccess ? 'Sim' : 'Não') },
-    ] as CsvColumn<any>[],
+      { header: 'Nome', accessor: (p: PatientExport) => p.fullName },
+      { header: 'CPF', accessor: (p: PatientExport) => p.cpfMasked },
+      { header: 'CPF de Acesso', accessor: (p: PatientExport) => p.accessCpfMasked },
+      { header: 'Telefone', accessor: (p: PatientExport) => p.phone },
+      { header: 'CNS', accessor: (p: PatientExport) => p.cns },
+      { header: 'Endereço', accessor: (p: PatientExport) => p.addressLine },
+      { header: 'Responsável', accessor: (p: PatientExport) => p.responsibleName },
+      { header: 'WhatsApp', accessor: (p: PatientExport) => (p.isWhatsapp ? 'Sim' : 'Não') },
+      { header: 'Acesso por Responsável', accessor: (p: PatientExport) => (p.useResponsibleCpfForAccess ? 'Sim' : 'Não') },
+    ] as CsvColumn<PatientExport>[],
   },
 
   requests: {
     filename: 'solicitacoes',
     columns: [
-      { header: 'Protocolo', accessor: (r: { protocol: string }) => r.protocol },
-      { header: 'Paciente', accessor: (r: { patientName: string }) => r.patientName },
-      { header: 'CPF', accessor: (r: { cpfMasked: string }) => r.cpfMasked },
-      { header: 'Destino', accessor: (r: { destinationCity: string; destinationState: string }) => `${r.destinationCity}/${r.destinationState}` },
-      { header: 'Data da Viagem', accessor: (r: { travelDate: string }) => r.travelDate },
-      { header: 'Horário Consulta', accessor: (r: { appointmentTime: string }) => r.appointmentTime || 'A definir' },
-      { header: 'Horário Saída', accessor: (r: { departureTime: string }) => r.departureTime || 'A definir' },
-      { header: 'Status', accessor: (r: { status: string }) => r.status },
-      { header: 'Motorista', accessor: (r: { assignedDriverName: string }) => r.assignedDriverName || 'Não atribuído' },
-      { header: 'Acompanhante', accessor: (r: { companionRequired: boolean }) => (r.companionRequired ? 'Sim' : 'Não') },
-      { header: 'Unidade', accessor: (r: { treatmentUnit: string }) => r.treatmentUnit },
-      { header: 'Especialidade', accessor: (r: { specialty: string }) => r.specialty },
-    ] as CsvColumn<any>[],
+      { header: 'Protocolo', accessor: (r: RequestExport) => r.protocol },
+      { header: 'Paciente', accessor: (r: RequestExport) => r.patientName },
+      { header: 'CPF', accessor: (r: RequestExport) => r.cpfMasked },
+      { header: 'Destino', accessor: (r: RequestExport) => `${r.destinationCity}/${r.destinationState}` },
+      { header: 'Data da Viagem', accessor: (r: RequestExport) => r.travelDate },
+      { header: 'Horário Consulta', accessor: (r: RequestExport) => r.appointmentTime || 'A definir' },
+      { header: 'Horário Saída', accessor: (r: RequestExport) => r.departureTime || 'A definir' },
+      { header: 'Status', accessor: (r: RequestExport) => r.status },
+      { header: 'Motorista', accessor: (r: RequestExport) => r.assignedDriverName || 'Não atribuído' },
+      { header: 'Acompanhante', accessor: (r: RequestExport) => (r.companionRequired ? 'Sim' : 'Não') },
+      { header: 'Unidade', accessor: (r: RequestExport) => r.treatmentUnit },
+      { header: 'Especialidade', accessor: (r: RequestExport) => r.specialty },
+    ] as CsvColumn<RequestExport>[],
   },
 
   drivers: {
     filename: 'motoristas',
     columns: [
-      { header: 'Nome', accessor: (d: { name: string }) => d.name },
-      { header: 'CPF', accessor: (d: { cpfMasked: string }) => d.cpfMasked },
-      { header: 'Telefone', accessor: (d: { phone: string }) => d.phone },
-      { header: 'Veículo', accessor: (d: { vehicleName: string }) => d.vehicleName || 'Sem vínculo' },
-      { header: 'WhatsApp', accessor: (d: { isWhatsapp: boolean }) => (d.isWhatsapp ? 'Sim' : 'Não') },
-    ] as CsvColumn<any>[],
+      { header: 'Nome', accessor: (d: DriverExport) => d.name },
+      { header: 'CPF', accessor: (d: DriverExport) => d.cpfMasked },
+      { header: 'Telefone', accessor: (d: DriverExport) => d.phone },
+      { header: 'Veículo', accessor: (d: DriverExport) => d.vehicleName || 'Sem vínculo' },
+      { header: 'WhatsApp', accessor: (d: DriverExport) => (d.isWhatsapp ? 'Sim' : 'Não') },
+    ] as CsvColumn<DriverExport>[],
   },
 
   vehicles: {
     filename: 'veiculos',
     columns: [
-      { header: 'Nome', accessor: (v: { name: string }) => v.name },
-      { header: 'Placa', accessor: (v: { plate: string }) => v.plate },
-      { header: 'Categoria', accessor: (v: { category: string }) => v.category },
-    ] as CsvColumn<any>[],
+      { header: 'Nome', accessor: (v: VehicleExport) => v.name },
+      { header: 'Placa', accessor: (v: VehicleExport) => v.plate },
+      { header: 'Categoria', accessor: (v: VehicleExport) => v.category },
+    ] as CsvColumn<VehicleExport>[],
   },
 
   operators: {
     filename: 'operadores',
     columns: [
-      { header: 'Nome', accessor: (o: { name: string }) => o.name },
-      { header: 'CPF', accessor: (o: { cpfMasked: string }) => o.cpfMasked },
-      { header: 'E-mail', accessor: (o: { email: string }) => o.email },
-      { header: 'Perfil', accessor: (o: { role: string }) => o.role },
-    ] as CsvColumn<any>[],
+      { header: 'Nome', accessor: (o: OperatorExport) => o.name },
+      { header: 'CPF', accessor: (o: OperatorExport) => o.cpfMasked },
+      { header: 'E-mail', accessor: (o: OperatorExport) => o.email },
+      { header: 'Perfil', accessor: (o: OperatorExport) => o.role },
+    ] as CsvColumn<OperatorExport>[],
   },
 }
 
 /**
  * Exporta dados usando configuração pré-definida
  */
-export function exportData(type: ExportDataType, data: any[]): void {
+export function exportData(type: ExportDataType, data: unknown[]): void {
   const config = exportConfigs[type]
   if (!config) {
     console.error(`Configuração de exportação não encontrada para: ${type}`)
     return
   }
 
-  exportToCsv(data, config.columns, config.filename)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  exportToCsv(data as any[], config.columns as CsvColumn<any>[], config.filename)
 }
