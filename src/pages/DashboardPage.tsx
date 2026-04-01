@@ -508,7 +508,7 @@ export function DashboardPage() {
           title="Ambiente interno"
         />
 
-        <main className="saas-main saas-main--operator">
+        <main className="saas-main saas-main--admin">
           <header className="topbar">
             <div className="page-title-block">
               <div className="eyebrow">
@@ -549,8 +549,7 @@ export function DashboardPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-single">
-        <div className="content-card operator-workspace-card data-access-card">
+      <section className="content-card compact-workspace-card data-access-card">
           <h2>Agendamentos e solicitações</h2>
           <div className="filter-stack">
             <form className="filter-stack" onSubmit={handleFilterSubmit}>
@@ -761,8 +760,7 @@ export function DashboardPage() {
           ) : (
             <p className="table-note">Nenhuma solicitação encontrada para o filtro atual.</p>
           )}
-        </div>
-      </section>
+        </section>
         </main>
       </div>
     </div>
