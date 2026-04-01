@@ -1,4 +1,4 @@
-import { BusFront, Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, Route, Search, ShieldCheck, UserRoundSearch } from 'lucide-react'
+import { Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, Route, Search, ShieldCheck, UserRoundSearch } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
@@ -95,6 +95,8 @@ const initialFilters = {
   destination: '',
 }
 
+type PeriodPreset = 'custom' | 'today' | 'tomorrow' | 'week' | 'next15' | 'month'
+
 export function DashboardPage() {
   const [session, setSession] = useState<AdminSession | null>(null)
   const [cpf, setCpf] = useState('')
@@ -108,6 +110,7 @@ export function DashboardPage() {
   const [requests, setRequests] = useState<TravelRequest[]>([])
   const [draftFilters, setDraftFilters] = useState(initialFilters)
   const [filters, setFilters] = useState(initialFilters)
+  const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('custom')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -176,7 +179,7 @@ export function DashboardPage() {
     setFilters(draftFilters)
   }
 
-  function applyQuickPeriod(mode: 'today' | 'tomorrow' | 'week') {
+  function applyQuickPeriod(mode: Exclude<PeriodPreset, 'custom'>) {
     const now = new Date()
     const today = now.toISOString().slice(0, 10)
 
@@ -207,13 +210,40 @@ export function DashboardPage() {
       return
     }
 
-    const weekEnd = new Date(now)
-    weekEnd.setDate(weekEnd.getDate() + 7)
+    if (mode === 'week') {
+      const weekEnd = new Date(now)
+      weekEnd.setDate(weekEnd.getDate() + 7)
+      const nextFilters = {
+        ...draftFilters,
+        travelDate: '',
+        dateFrom: today,
+        dateTo: weekEnd.toISOString().slice(0, 10),
+      }
+      setDraftFilters(nextFilters)
+      setFilters(nextFilters)
+      return
+    }
+
+    if (mode === 'next15') {
+      const end = new Date(now)
+      end.setDate(end.getDate() + 15)
+      const nextFilters = {
+        ...draftFilters,
+        travelDate: '',
+        dateFrom: today,
+        dateTo: end.toISOString().slice(0, 10),
+      }
+      setDraftFilters(nextFilters)
+      setFilters(nextFilters)
+      return
+    }
+
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
     const nextFilters = {
       ...draftFilters,
       travelDate: '',
       dateFrom: today,
-      dateTo: weekEnd.toISOString().slice(0, 10),
+      dateTo: monthEnd.toISOString().slice(0, 10),
     }
     setDraftFilters(nextFilters)
     setFilters(nextFilters)
@@ -427,6 +457,18 @@ export function DashboardPage() {
     )
   }
 
+  const sidebarItems = [
+    { to: '/operador', label: 'Operador', icon: ListChecks, exact: true },
+    { to: '/operador/cadastro', label: 'Nova solicitação', icon: Plus },
+    { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
+    ...(session?.role === 'manager' || session?.role === 'admin'
+      ? [{ to: '/gerente', label: 'Gerência', icon: Route }]
+      : []),
+    ...(session?.role === 'admin'
+      ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
+      : []),
+  ]
+
   return (
     <div className="dashboard-shell internal-shell">
       <div className="saas-app-shell">
@@ -443,13 +485,7 @@ export function DashboardPage() {
               </button>
             </>
           }
-          items={[
-            { to: '/operador', label: 'Operador', icon: ListChecks, exact: true },
-            { to: '/operador/cadastro', label: 'Nova solicitação', icon: Plus },
-            { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
-            { to: '/gerente', label: 'Gerência', icon: Route },
-            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
-          ]}
+          items={sidebarItems}
           sessionName={session.name}
           sessionRole={getInternalRoleLabel(session.role)}
           subtitle="Acesso destinado a operador, regulação e apoio administrativo"
@@ -523,7 +559,10 @@ export function DashboardPage() {
                   id="request-date-filter"
                   type="date"
                   value={draftFilters.travelDate}
-                  onChange={(event) => updateDraftFilter('travelDate', event.target.value)}
+                  onChange={(event) => {
+                    setPeriodPreset('custom')
+                    updateDraftFilter('travelDate', event.target.value)
+                  }}
                 />
               </div>
               <div className="field">
@@ -532,7 +571,10 @@ export function DashboardPage() {
                   id="request-date-from"
                   type="date"
                   value={draftFilters.dateFrom}
-                  onChange={(event) => updateDraftFilter('dateFrom', event.target.value)}
+                  onChange={(event) => {
+                    setPeriodPreset('custom')
+                    updateDraftFilter('dateFrom', event.target.value)
+                  }}
                 />
               </div>
               <div className="field">
@@ -541,7 +583,10 @@ export function DashboardPage() {
                   id="request-date-to"
                   type="date"
                   value={draftFilters.dateTo}
-                  onChange={(event) => updateDraftFilter('dateTo', event.target.value)}
+                  onChange={(event) => {
+                    setPeriodPreset('custom')
+                    updateDraftFilter('dateTo', event.target.value)
+                  }}
                 />
               </div>
               <div className="field">
@@ -568,25 +613,39 @@ export function DashboardPage() {
                 </select>
               </div>
               <div className="form-actions operator-filter-actions">
+                <div className="field period-inline-field">
+                  <label htmlFor="operator-period-preset">Período rápido</label>
+                  <select
+                    id="operator-period-preset"
+                    value={periodPreset}
+                    onChange={(event) => {
+                      const value = event.target.value as PeriodPreset
+                      setPeriodPreset(value)
+                      if (value === 'custom') {
+                        return
+                      }
+                      applyQuickPeriod(value)
+                    }}
+                  >
+                    <option value="custom">Personalizado</option>
+                    <option value="today">Hoje</option>
+                    <option value="tomorrow">Amanhã</option>
+                    <option value="week">Esta semana</option>
+                    <option value="next15">Próximos 15 dias</option>
+                    <option value="month">Até o fim do mês</option>
+                  </select>
+                </div>
                 <button
                   className="action-button secondary"
                   type="button"
                   onClick={() => {
+                    setPeriodPreset('custom')
                     setDraftFilters(initialFilters)
                     setFilters(initialFilters)
                   }}
                 >
                   <Filter size={16} />
                   Limpar filtros
-                </button>
-                <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('today')}>
-                  Hoje
-                </button>
-                <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
-                  Amanhã
-                </button>
-                <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('week')}>
-                  Esta semana
                 </button>
               </div>
             </form>

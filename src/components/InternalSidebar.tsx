@@ -53,7 +53,7 @@ export function InternalSidebar({ title, subtitle, sessionName, sessionRole, ite
                 <strong>{sessionRole}</strong>
               </div>
               <div className="saas-sidebar-row">
-                <span>Operador</span>
+                <span>Usuário</span>
                 <strong>{sessionName}</strong>
               </div>
             </div>

@@ -26,6 +26,8 @@ type AssignmentState = Record<
   }
 >
 
+type PeriodPreset = 'custom' | 'today' | 'tomorrow' | 'week' | 'next15' | 'month'
+
 const emptyAssignment = {
   driverId: '',
   vehicleId: '',
@@ -103,6 +105,7 @@ export function ManagerPage() {
   const [travelDate, setTravelDate] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('custom')
   const [destination, setDestination] = useState('')
   const [driverFilterId, setDriverFilterId] = useState('')
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null)
@@ -222,7 +225,7 @@ export function ManagerPage() {
     }
   }, [dateFrom, dateTo, destination, driverFilterId, search, selectedStatus, session, travelDate])
 
-  function applyQuickPeriod(mode: 'today' | 'tomorrow' | 'week') {
+  function applyQuickPeriod(mode: Exclude<PeriodPreset, 'custom'>) {
     const now = new Date()
     const today = now.toISOString().slice(0, 10)
 
@@ -243,11 +246,28 @@ export function ManagerPage() {
       return
     }
 
-    const weekEnd = new Date(now)
-    weekEnd.setDate(weekEnd.getDate() + 7)
+    if (mode === 'week') {
+      const weekEnd = new Date(now)
+      weekEnd.setDate(weekEnd.getDate() + 7)
+      setTravelDate('')
+      setDateFrom(today)
+      setDateTo(weekEnd.toISOString().slice(0, 10))
+      return
+    }
+
+    if (mode === 'next15') {
+      const end = new Date(now)
+      end.setDate(end.getDate() + 15)
+      setTravelDate('')
+      setDateFrom(today)
+      setDateTo(end.toISOString().slice(0, 10))
+      return
+    }
+
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
     setTravelDate('')
     setDateFrom(today)
-    setDateTo(weekEnd.toISOString().slice(0, 10))
+    setDateTo(monthEnd.toISOString().slice(0, 10))
   }
 
   function updateAssignment(
@@ -600,11 +620,14 @@ export function ManagerPage() {
           </div>
           <div className="field">
             <label htmlFor="manager-date">Data da viagem</label>
-            <input
+              <input
               id="manager-date"
               type="date"
               value={travelDate}
-              onChange={(event) => setTravelDate(event.target.value)}
+              onChange={(event) => {
+                setPeriodPreset('custom')
+                setTravelDate(event.target.value)
+              }}
             />
           </div>
           <div className="field">
@@ -613,7 +636,10 @@ export function ManagerPage() {
               id="manager-date-from"
               type="date"
               value={dateFrom}
-              onChange={(event) => setDateFrom(event.target.value)}
+              onChange={(event) => {
+                setPeriodPreset('custom')
+                setDateFrom(event.target.value)
+              }}
             />
           </div>
           <div className="field">
@@ -622,7 +648,10 @@ export function ManagerPage() {
               id="manager-date-to"
               type="date"
               value={dateTo}
-              onChange={(event) => setDateTo(event.target.value)}
+              onChange={(event) => {
+                setPeriodPreset('custom')
+                setDateTo(event.target.value)
+              }}
             />
           </div>
           <div className="field">
@@ -668,19 +697,33 @@ export function ManagerPage() {
           </div>
         </div>
         <div className="filter-actions compact-filter-actions">
-          <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('today')}>
-            Hoje
-          </button>
-          <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
-            Amanhã
-          </button>
-          <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('week')}>
-            Esta semana
-          </button>
+          <div className="field period-inline-field">
+            <label htmlFor="manager-period-preset">Período rápido</label>
+            <select
+              id="manager-period-preset"
+              value={periodPreset}
+              onChange={(event) => {
+                const value = event.target.value as PeriodPreset
+                setPeriodPreset(value)
+                if (value === 'custom') {
+                  return
+                }
+                applyQuickPeriod(value)
+              }}
+            >
+              <option value="custom">Personalizado</option>
+              <option value="today">Hoje</option>
+              <option value="tomorrow">Amanhã</option>
+              <option value="week">Esta semana</option>
+              <option value="next15">Próximos 15 dias</option>
+              <option value="month">Até o fim do mês</option>
+            </select>
+          </div>
           <button
             className="action-button secondary"
             type="button"
             onClick={() => {
+              setPeriodPreset('custom')
               setSelectedStatus('todos')
               setSearch('')
               setTravelDate('')

@@ -1,4 +1,4 @@
-import { ArrowLeft, BusFront, FilePlus2, Route, Search, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
+import { ArrowLeft, FilePlus2, Route, Search, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { InternalSidebar } from '../components/InternalSidebar'
@@ -205,9 +205,15 @@ export function PatientsDirectoryPage() {
             { to: backTo, label: backTo === '/gerente' || backTo === '/admin' ? 'Painel principal' : 'Operador', icon: ArrowLeft, exact: true },
             { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch, exact: true },
             { to: '/operador/cadastro', label: 'Nova solicitação', icon: FilePlus2 },
-            { to: '/gerente', label: 'Gerência', icon: Route },
-            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
-            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
+            ...(session.role === 'manager' || session.role === 'admin'
+              ? [{ to: '/gerente', label: 'Gerência', icon: Route }]
+              : []),
+            ...(session.role === 'manager' || session.role === 'admin'
+              ? [{ to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users }]
+              : []),
+            ...(session.role === 'admin'
+              ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
+              : []),
           ]}
           sessionName={session.name}
           sessionRole={getInternalRoleLabel(session.role)}

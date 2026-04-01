@@ -3,15 +3,11 @@ import {
   CalendarClock,
   ChevronDown,
   ChevronUp,
-  ListChecks,
   LogOut,
   MapPin,
   MessageSquare,
   Phone,
-  Route,
   Search,
-  ShieldCheck,
-  Users,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { AsyncActionButton } from '../components/AsyncActionButton'
@@ -469,10 +465,6 @@ export function DriverPortalPage() {
           }
           items={[
             { to: '/motorista', label: 'Portal do motorista', icon: BusFront, exact: true },
-            { to: '/operador', label: 'Operador', icon: ListChecks },
-            { to: '/gerente', label: 'Gerência', icon: Route },
-            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
-            { to: '/admin', label: 'Admin', icon: ShieldCheck },
           ]}
           sessionName={session.name}
           sessionRole="Motorista"

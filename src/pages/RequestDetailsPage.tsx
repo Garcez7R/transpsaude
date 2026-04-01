@@ -1,4 +1,4 @@
-import { ArrowLeft, BusFront, CheckCircle2, ListChecks, Printer, Route, Save, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, ListChecks, Printer, Route, Save, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
@@ -325,11 +325,14 @@ export function RequestDetailsPage() {
             </>
           }
           items={[
-            { to: backTo, label: backTo === '/gerente' ? 'Gerência' : 'Operador', icon: backTo === '/gerente' ? Route : ListChecks },
+            { to: backTo, label: session.role === 'admin' ? 'Admin' : session.role === 'manager' ? 'Gerência' : 'Operador', icon: session.role === 'admin' ? ShieldCheck : session.role === 'manager' ? Route : ListChecks },
             { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
-            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
-            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
-            { to: '/admin', label: 'Admin', icon: ShieldCheck },
+            ...(session.role === 'manager' || session.role === 'admin'
+              ? [{ to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users }]
+              : []),
+            ...(session.role === 'admin'
+              ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
+              : []),
           ]}
           sessionName={session.name}
           sessionRole={sidebarRole}

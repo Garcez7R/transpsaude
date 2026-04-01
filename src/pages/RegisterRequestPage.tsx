@@ -1,4 +1,4 @@
-import { ArrowLeft, BusFront, CheckCircle2, FilePlus2, Route, Search, UserRoundSearch, Users } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, FilePlus2, Route, Search, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
@@ -251,9 +251,15 @@ export function RegisterRequestPage() {
             { to: '/operador', label: 'Operador', icon: ArrowLeft },
             { to: '/operador/cadastro', label: 'Nova solicitação', icon: FilePlus2, exact: true },
             { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
-            { to: '/gerente', label: 'Gerência', icon: Route },
-            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
-            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
+            ...(session.role === 'manager' || session.role === 'admin'
+              ? [{ to: '/gerente', label: 'Gerência', icon: Route }]
+              : []),
+            ...(session.role === 'manager' || session.role === 'admin'
+              ? [{ to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users }]
+              : []),
+            ...(session.role === 'admin'
+              ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
+              : []),
           ]}
           sessionName={session.name}
           sessionRole="Operador"

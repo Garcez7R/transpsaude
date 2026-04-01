@@ -474,6 +474,9 @@ export function DriversPage() {
             { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users, exact: true },
             { to: '/gerente/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
             { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
+            ...(session.role === 'admin'
+              ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
+              : []),
           ]}
           sessionName={session.name}
           sessionRole={getInternalRoleLabel(session.role)}

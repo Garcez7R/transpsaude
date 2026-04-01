@@ -1084,6 +1084,23 @@ button {
   gap: 8px;
 }
 
+.period-inline-field {
+  min-width: 220px;
+  display: grid;
+  gap: 6px;
+}
+
+.period-inline-field label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.period-inline-field select {
+  min-height: 38px;
+}
+
 .internal-shell .content-card > h2:first-child,
 .internal-shell .public-card > h2:first-child,
 .internal-shell .request-card > h2:first-child {
