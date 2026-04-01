@@ -365,7 +365,7 @@ export function DriverPortalPage() {
 
   if (!session) {
     return (
-      <div className="public-shell driver-portal-shell">
+      <div className="public-shell driver-portal-shell internal-shell">
         <section className="institutional-bar institutional-bar-inner">
           <div className="crest-mark" aria-hidden="true">
             <span />
@@ -453,7 +453,7 @@ export function DriverPortalPage() {
   }
 
   return (
-    <div className="public-shell driver-portal-shell">
+    <div className="public-shell driver-portal-shell internal-shell">
       <section className="institutional-bar institutional-bar-inner">
         <div className="crest-mark" aria-hidden="true">
           <span />

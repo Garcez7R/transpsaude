@@ -307,7 +307,7 @@ export function DashboardPage() {
 
   if (!session) {
     return (
-      <div className="dashboard-shell">
+      <div className="dashboard-shell internal-shell">
         <section className="institutional-bar institutional-bar-inner">
           <div className="crest-mark" aria-hidden="true">
             <span />
@@ -408,7 +408,7 @@ export function DashboardPage() {
 
   if (!canAccessOperator(session)) {
     return (
-      <div className="dashboard-shell">
+      <div className="dashboard-shell internal-shell">
         <article className="content-card">
           <h2>Acesso negado</h2>
           <p>Esse perfil não tem permissão para entrar na área do operador.</p>
@@ -427,7 +427,7 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="dashboard-shell">
+    <div className="dashboard-shell internal-shell">
       <section className="institutional-bar institutional-bar-inner">
         <div className="crest-mark" aria-hidden="true">
           <span />

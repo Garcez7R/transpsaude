@@ -596,6 +596,285 @@ button {
   width: min(1280px, calc(100% - 24px));
 }
 
+.internal-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.internal-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 32px;
+  background:
+    linear-gradient(rgba(22, 133, 83, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 133, 83, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at top left, rgba(22, 133, 83, 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(212, 171, 24, 0.1), transparent 22%);
+  background-size:
+    28px 28px,
+    28px 28px,
+    auto,
+    auto;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.82), transparent 92%);
+  opacity: 0.55;
+}
+
+.internal-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.internal-shell .institutional-bar {
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px;
+  border-color: rgba(22, 133, 83, 0.14);
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 247, 245, 0.96) 58%, rgba(235, 240, 238, 0.94) 100%);
+  box-shadow:
+    0 22px 44px rgba(49, 65, 70, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.internal-shell .institutional-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 1.15rem 1.1rem, rgba(22, 133, 83, 0.9) 0 1.5px, transparent 1.8px),
+    radial-gradient(circle at 1.6rem 1.1rem, rgba(212, 171, 24, 0.82) 0 1.5px, transparent 1.8px),
+    radial-gradient(circle at 2.05rem 1.1rem, rgba(87, 102, 107, 0.46) 0 1.5px, transparent 1.8px),
+    linear-gradient(180deg, rgba(22, 133, 83, 0.07) 0 2.35rem, rgba(22, 133, 83, 0.1) 2.35rem 2.42rem, transparent 2.42rem);
+  opacity: 0.9;
+}
+
+.internal-shell .institutional-copy {
+  padding-left: 6px;
+}
+
+.internal-shell .topbar,
+.internal-shell .public-header {
+  position: sticky;
+  top: 108px;
+  z-index: 24;
+  padding: 20px 22px;
+  border: 1px solid rgba(49, 65, 70, 0.12);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 247, 246, 0.9) 100%);
+  box-shadow:
+    0 24px 48px rgba(49, 65, 70, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px);
+}
+
+.internal-shell .topbar::before,
+.internal-shell .public-header::before {
+  content: '';
+  position: absolute;
+  inset: auto 22px 12px 22px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(22, 133, 83, 0.38),
+    rgba(212, 171, 24, 0.24),
+    rgba(22, 133, 83, 0.08),
+    transparent 86%
+  );
+  pointer-events: none;
+}
+
+.internal-shell .page-title-block {
+  gap: 10px;
+}
+
+.internal-shell .page-title-block h1,
+.internal-shell .public-header h1 {
+  font-size: clamp(2rem, 3vw, 2.8rem);
+}
+
+.internal-shell .page-title-block p,
+.internal-shell .public-header p {
+  margin-top: 0;
+  max-width: 64ch;
+}
+
+.internal-shell .page-actions {
+  gap: 10px;
+}
+
+.internal-shell .action-button.primary,
+.internal-shell .primary-link {
+  box-shadow: 0 12px 28px rgba(22, 133, 83, 0.18);
+}
+
+.internal-shell .action-button.secondary,
+.internal-shell .ghost-button,
+.internal-shell .secondary-link {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 245, 244, 0.94) 100%);
+  border-color: rgba(49, 65, 70, 0.12);
+}
+
+.internal-shell .metrics-grid {
+  gap: 14px;
+  margin-top: 18px;
+  margin-bottom: 20px;
+}
+
+.internal-shell .metric-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(49, 65, 70, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 247, 245, 0.94) 100%);
+  box-shadow:
+    0 18px 34px rgba(49, 65, 70, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.internal-shell .metric-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(22, 133, 83, 0.92), rgba(212, 171, 24, 0.72), transparent 86%);
+}
+
+.internal-shell .dashboard-grid {
+  gap: 20px;
+}
+
+.internal-shell .dashboard-grid-main {
+  grid-template-columns: minmax(0, 1.68fr) minmax(300px, 0.82fr);
+}
+
+.internal-shell .dashboard-grid-balanced {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.internal-shell .content-card,
+.internal-shell .request-card,
+.internal-shell .assignment-card,
+.internal-shell .public-card,
+.internal-shell .empty-state {
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px;
+  border: 1px solid rgba(49, 65, 70, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(244, 247, 245, 0.92) 100%);
+  box-shadow:
+    0 22px 42px rgba(49, 65, 70, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+}
+
+.internal-shell .content-card::before,
+.internal-shell .request-card::before,
+.internal-shell .assignment-card::before,
+.internal-shell .public-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top right, rgba(22, 133, 83, 0.08), transparent 24%),
+    radial-gradient(circle at top left, rgba(212, 171, 24, 0.06), transparent 18%);
+}
+
+.internal-shell .content-card > *,
+.internal-shell .request-card > *,
+.internal-shell .assignment-card > *,
+.internal-shell .public-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.internal-shell .filter-stack {
+  max-width: none;
+  gap: 16px;
+}
+
+.internal-shell .table-wrapper {
+  border: 1px solid rgba(49, 65, 70, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  overflow: auto;
+}
+
+.internal-shell table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: rgba(244, 247, 245, 0.97);
+  backdrop-filter: blur(16px);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+}
+
+.internal-shell .request-summary > div,
+.internal-shell .travel-overview-card,
+.internal-shell .detail-section-card,
+.internal-shell .driver-date-filter {
+  border-color: rgba(49, 65, 70, 0.1);
+  background:
+    linear-gradient(180deg, rgba(250, 251, 250, 0.96) 0%, rgba(242, 245, 243, 0.9) 100%);
+}
+
+.internal-shell .travel-overview-card {
+  min-height: 100px;
+  align-content: start;
+}
+
+.internal-shell .assignment-card,
+.internal-shell .manager-request-list-item,
+.internal-shell .request-list-item,
+.internal-shell .driver-filter-chip,
+.internal-shell .driver-date-filter {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.internal-shell .assignment-card:hover,
+.internal-shell .manager-request-list-item:hover,
+.internal-shell .request-list-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 34px rgba(49, 65, 70, 0.08);
+  border-color: rgba(22, 133, 83, 0.18);
+}
+
+.internal-shell .status-line {
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.internal-shell .scroll-list,
+.internal-shell .manager-request-list {
+  padding-right: 8px;
+}
+
+.internal-shell .dashboard-side-sticky,
+.internal-shell .manager-request-focus {
+  top: 192px;
+}
+
+.internal-shell .driver-filter-bar {
+  gap: 12px;
+}
+
+.internal-shell .driver-filter-chip.active,
+.internal-shell .manager-request-list-item.active,
+.internal-shell .request-list-item.active {
+  box-shadow: 0 18px 30px rgba(49, 65, 70, 0.08);
+}
+
 .auth-shell {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
@@ -1736,6 +2015,22 @@ th {
 
   .topbar {
     flex-direction: column;
+  }
+
+  .internal-shell .topbar,
+  .internal-shell .public-header {
+    position: static;
+    padding: 18px;
+  }
+
+  .internal-shell .dashboard-grid-main,
+  .internal-shell .dashboard-grid-balanced {
+    grid-template-columns: 1fr;
+  }
+
+  .internal-shell .dashboard-side-sticky,
+  .internal-shell .manager-request-focus {
+    position: static;
   }
 
   .mini-metrics {

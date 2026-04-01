@@ -212,7 +212,7 @@ export function RegisterRequestPage() {
 
   if (!session || !canAccessOperator(session)) {
     return (
-      <div className="dashboard-shell">
+      <div className="dashboard-shell internal-shell">
         <section className="institutional-bar institutional-bar-inner">
           <div className="crest-mark" aria-hidden="true">
             <span />
@@ -237,7 +237,7 @@ export function RegisterRequestPage() {
   }
 
   return (
-    <div className="dashboard-shell">
+    <div className="dashboard-shell internal-shell">
       <section className="institutional-bar institutional-bar-inner">
         <div className="crest-mark" aria-hidden="true">
           <span />

@@ -282,7 +282,7 @@ export function RequestDetailsPage() {
 
   if (!session || !canAccessOperator(session)) {
     return (
-      <div className="dashboard-shell">
+      <div className="dashboard-shell internal-shell">
         <article className="content-card">
           <h2>Sessão de operador necessária</h2>
           <p>Entre com um perfil autorizado para consultar ou atualizar solicitações.</p>
@@ -298,7 +298,7 @@ export function RequestDetailsPage() {
 
   if (!Number.isFinite(requestId) || requestId <= 0) {
     return (
-      <div className="dashboard-shell">
+      <div className="dashboard-shell internal-shell">
         <article className="content-card">
           <h2>Solicitação inválida</h2>
           <p>O identificador informado não é válido.</p>
@@ -308,7 +308,7 @@ export function RequestDetailsPage() {
   }
 
   return (
-    <div className="dashboard-shell">
+    <div className="dashboard-shell internal-shell">
       <section className="institutional-bar institutional-bar-inner">
         <div className="crest-mark" aria-hidden="true">
           <span />

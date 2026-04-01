@@ -428,7 +428,7 @@ export function DriversPage() {
 
   if (!session) {
     return (
-      <div className="dashboard-shell">
+      <div className="dashboard-shell internal-shell">
         <article className="content-card">
           <h2>Sessão administrativa necessária</h2>
           <p>Cadastros de motoristas e veículos ficam disponíveis somente para a equipe interna.</p>
@@ -444,7 +444,7 @@ export function DriversPage() {
 
   if (!canAccessManager(session)) {
     return (
-      <div className="dashboard-shell">
+      <div className="dashboard-shell internal-shell">
         <article className="content-card">
           <h2>Acesso negado</h2>
           <p>Somente gerente e administrador podem cadastrar ou gerenciar motoristas e veículos.</p>
@@ -459,7 +459,7 @@ export function DriversPage() {
   }
 
   return (
-    <div className="dashboard-shell">
+    <div className="dashboard-shell internal-shell">
       <section className="institutional-bar institutional-bar-inner">
         <div className="crest-mark" aria-hidden="true">
           <span />

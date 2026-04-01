@@ -403,7 +403,7 @@ export function ManagerPage() {
 
   if (!session) {
     return (
-      <div className="dashboard-shell">
+      <div className="dashboard-shell internal-shell">
         <section className="institutional-bar institutional-bar-inner">
           <div className="crest-mark" aria-hidden="true">
             <span />
@@ -495,7 +495,7 @@ export function ManagerPage() {
 
   if (!canAccessManager(session)) {
     return (
-      <div className="dashboard-shell">
+      <div className="dashboard-shell internal-shell">
         <article className="content-card">
           <h2>Acesso negado</h2>
           <p>Seu perfil atual não tem permissão para entrar na gerência.</p>
@@ -514,7 +514,7 @@ export function ManagerPage() {
   }
 
   return (
-    <div className="dashboard-shell">
+    <div className="dashboard-shell internal-shell">
       <section className="institutional-bar institutional-bar-inner">
         <div className="crest-mark" aria-hidden="true">
           <span />
