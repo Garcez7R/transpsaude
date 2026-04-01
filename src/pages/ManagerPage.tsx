@@ -1,7 +1,8 @@
-import { ArrowLeft, LockKeyhole, LogOut, RefreshCcw, Route, Save, Search, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, BusFront, LockKeyhole, LogOut, RefreshCcw, Route, Save, Search, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
+import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
 import { activateAdminPassword, assignDriver, fetchDrivers, fetchRequests, fetchVehicles, loginAdmin, logoutSession } from '../lib/api'
@@ -515,50 +516,58 @@ export function ManagerPage() {
 
   return (
     <div className="dashboard-shell internal-shell">
-      <section className="institutional-bar institutional-bar-inner">
-        <div className="crest-mark" aria-hidden="true">
-          <span />
-        </div>
-        <div className="institutional-copy">
-          <strong>Gerência de transporte em saúde</strong>
-          <span>Análise, organização de viagens e atribuição de motoristas</span>
-        </div>
-      </section>
+      <div className="saas-app-shell">
+        <InternalSidebar
+          actions={
+            <>
+              <Link className="action-button secondary" to="/operador">
+                <ArrowLeft size={16} />
+                Operador
+              </Link>
+              <button className="action-button primary" type="button" onClick={handleLogout}>
+                <LogOut size={16} />
+                Sair
+              </button>
+            </>
+          }
+          items={[
+            { to: '/gerente', label: 'Gerência', icon: Route, exact: true },
+            { to: '/gerente/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
+            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
+            { to: '/operador', label: 'Operador', icon: ArrowLeft },
+            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
+          ]}
+          sessionName={session.name}
+          sessionRole={getInternalRoleLabel(session.role)}
+          subtitle="Análise, organização de viagens e atribuição de motoristas"
+          title="Gerência de transporte"
+        />
 
-      <header className="topbar">
-        <div className="page-title-block">
-          <div className="eyebrow">
-            <Route size={16} />
-            Painel do gerente
-          </div>
-          <h1>Distribuir viagens para os motoristas</h1>
-          <p>
-            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>{getInternalRoleLabel(session.role)}</strong>.
-          </p>
-        </div>
+        <main className="saas-main">
+          <header className="topbar">
+            <div className="page-title-block">
+              <div className="eyebrow">
+                <Route size={16} />
+                Painel do gerente
+              </div>
+              <h1>Distribuir viagens para os motoristas</h1>
+              <p>Planeje a operação do dia, defina a ordem das agendas e distribua a rota com mais clareza.</p>
+            </div>
 
-        <div className="page-actions">
-          <Link className="action-button secondary" to="/gerente/pacientes">
-            Base de pacientes
-          </Link>
-          <Link className="action-button secondary" to="/gerente/equipe">
-            Equipe e veículos
-          </Link>
-          <Link className="action-button secondary" to="/operador">
-            <ArrowLeft size={16} />
-            Operador
-          </Link>
-          <button className="action-button primary" type="button" onClick={handleLogout}>
-            <LogOut size={16} />
-            Sair
-          </button>
-        </div>
-      </header>
+            <div className="page-actions">
+              <Link className="action-button secondary" to="/gerente/pacientes">
+                Base de pacientes
+              </Link>
+              <Link className="action-button primary" to="/gerente/equipe">
+                Equipe e veículos
+              </Link>
+            </div>
+          </header>
 
-      {error ? <p className="table-note">{error}</p> : null}
-      {message ? <p className="table-note">{message}</p> : null}
+          {error ? <p className="table-note">{error}</p> : null}
+          {message ? <p className="table-note">{message}</p> : null}
 
-      <section className="metrics-grid">
+          <section className="metrics-grid">
         <article className="metric-card">
           <strong>{reports.total}</strong>
           <p>solicitações no relatório</p>
@@ -936,6 +945,8 @@ export function ManagerPage() {
           )}
         </div>
       </section>
+        </main>
+      </div>
     </div>
   )
 }

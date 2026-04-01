@@ -1,6 +1,7 @@
-import { ArrowLeft, Search, ShieldCheck, UserRoundSearch } from 'lucide-react'
+import { ArrowLeft, BusFront, FilePlus2, Route, Search, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessOperator, getInternalRoleLabel } from '../lib/access'
 import { fetchPatients } from '../lib/api'
 import { getAdminSession } from '../lib/admin-session'
@@ -186,38 +187,55 @@ export function PatientsDirectoryPage() {
 
   return (
     <div className="dashboard-shell internal-shell">
-      <section className="institutional-bar institutional-bar-inner">
-        <div className="crest-mark" aria-hidden="true">
-          <span />
-        </div>
-        <div className="institutional-copy">
-          <strong>Base de pacientes do transporte em saúde</strong>
-          <span>Consulta refinada e auditoria de cadastros internos</span>
-        </div>
-      </section>
+      <div className="saas-app-shell">
+        <InternalSidebar
+          actions={
+            <>
+              <Link className="action-button secondary" to={backTo}>
+                <ArrowLeft size={16} />
+                Voltar
+              </Link>
+              <Link className="action-button primary" to="/operador/cadastro">
+                <FilePlus2 size={16} />
+                Nova solicitação
+              </Link>
+            </>
+          }
+          items={[
+            { to: backTo, label: backTo === '/gerente' || backTo === '/admin' ? 'Painel principal' : 'Operador', icon: ArrowLeft, exact: true },
+            { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch, exact: true },
+            { to: '/operador/cadastro', label: 'Nova solicitação', icon: FilePlus2 },
+            { to: '/gerente', label: 'Gerência', icon: Route },
+            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
+            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
+          ]}
+          sessionName={session.name}
+          sessionRole={getInternalRoleLabel(session.role)}
+          subtitle="Consulta refinada e auditoria de cadastros internos"
+          title="Base de pacientes"
+        />
 
-      <header className="topbar">
-        <div className="page-title-block">
-          <div className="eyebrow">
-            <UserRoundSearch size={16} />
-            Base de pacientes
-          </div>
-          <h1>Consulta e auditoria de cadastros</h1>
-          <p>
-            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>{getInternalRoleLabel(session.role)}</strong>.
-          </p>
-        </div>
+        <main className="saas-main">
+          <header className="topbar">
+            <div className="page-title-block">
+              <div className="eyebrow">
+                <UserRoundSearch size={16} />
+                Base de pacientes
+              </div>
+              <h1>Consulta e auditoria de cadastros</h1>
+              <p>Localize rapidamente pacientes por nome, CPF, telefone, endereço e dados do responsável.</p>
+            </div>
 
-        <div className="page-actions">
-          <Link className="action-button secondary" to={backTo}>
-            <ArrowLeft size={16} />
-            Voltar
-          </Link>
-          <Link className="action-button primary" to="/operador/cadastro">
-            Nova solicitação
-          </Link>
-        </div>
-      </header>
+            <div className="page-actions">
+              <Link className="action-button secondary" to={backTo}>
+                <ArrowLeft size={16} />
+                Voltar
+              </Link>
+              <Link className="action-button primary" to="/operador/cadastro">
+                Nova solicitação
+              </Link>
+            </div>
+          </header>
 
       <section className="metrics-grid">
         <article className="metric-card">
@@ -380,6 +398,8 @@ export function PatientsDirectoryPage() {
           )}
         </div>
       </section>
+        </main>
+      </div>
     </div>
   )
 }

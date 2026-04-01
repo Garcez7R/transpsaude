@@ -1,7 +1,8 @@
-import { ArrowLeft, ShieldCheck, UserPlus2 } from 'lucide-react'
+import { ArrowLeft, BusFront, Route, ShieldCheck, UserPlus2, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
+import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessAdmin, isValidInternalRole } from '../lib/access'
 import {
   createDriver,
@@ -583,61 +584,64 @@ export function AdminManagersPage() {
 
   return (
     <div className="dashboard-shell internal-shell">
-      <section className="institutional-bar institutional-bar-inner">
-        <div className="crest-mark" aria-hidden="true">
-          <span />
-        </div>
-        <div className="institutional-copy">
-          <strong>Área administrativa do sistema</strong>
-          <span>Cadastro de gerentes com permissão de gestão total</span>
-        </div>
-      </section>
-
-      <header className="topbar">
-        <div className="page-title-block">
-          <div className="eyebrow">
-            <ShieldCheck size={16} />
-            Painel do admin
-          </div>
-          <h1>Gestão administrativa do sistema</h1>
-          <p>
-            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>administrador</strong>.
-          </p>
-        </div>
-
-        <div className="page-actions">
-          <Link className="action-button secondary" to="/gerente">
-            Gerência
-          </Link>
-          <Link className="action-button secondary" to="/gerente/equipe">
-            Equipe e veículos
-          </Link>
-          <Link className="action-button secondary" to="/operador">
-            <ArrowLeft size={16} />
-            Voltar ao painel
-          </Link>
-          <button
-            className="action-button primary"
-            type="button"
-            onClick={async () => {
-              if (session?.token) {
-                try {
-                  await logoutSession(session.token)
-                } catch {
-                  // A limpeza local continua mesmo se a API não responder.
+      <div className="saas-app-shell">
+        <InternalSidebar
+          actions={
+            <button
+              className="action-button primary"
+              type="button"
+              onClick={async () => {
+                if (session?.token) {
+                  try {
+                    await logoutSession(session.token)
+                  } catch {
+                    // A limpeza local continua mesmo se a API não responder.
+                  }
                 }
-              }
 
-              clearAdminSession()
-              clearAdminAreaSession()
-              clearManagerSession()
-              setSession(null)
-            }}
-          >
-            Sair
-          </button>
-        </div>
-      </header>
+                clearAdminSession()
+                clearAdminAreaSession()
+                clearManagerSession()
+                setSession(null)
+              }}
+            >
+              Sair
+            </button>
+          }
+          items={[
+            { to: '/admin', label: 'Admin', icon: ShieldCheck, exact: true },
+            { to: '/gerente', label: 'Gerência', icon: Route },
+            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
+            { to: '/operador', label: 'Operador', icon: ArrowLeft },
+            { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
+            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
+          ]}
+          sessionName={session.name}
+          sessionRole="Administrador"
+          subtitle="Governança dos acessos internos e visão administrativa do sistema"
+          title="Área administrativa"
+        />
+
+        <main className="saas-main">
+          <header className="topbar">
+            <div className="page-title-block">
+              <div className="eyebrow">
+                <ShieldCheck size={16} />
+                Painel do admin
+              </div>
+              <h1>Gestão administrativa do sistema</h1>
+              <p>Central de cadastros internos, governança de acessos e acompanhamento amplo da operação.</p>
+            </div>
+
+            <div className="page-actions">
+              <Link className="action-button secondary" to="/gerente">
+                Gerência
+              </Link>
+              <Link className="action-button primary" to="/gerente/equipe">
+                Equipe e veículos
+              </Link>
+            </div>
+          </header>
 
       <section className="content-card">
         <h2>Agendamentos e solicitações</h2>
@@ -1119,6 +1123,8 @@ export function AdminManagersPage() {
           )}
         </article>
       </section>
+        </main>
+      </div>
     </div>
   )
 }

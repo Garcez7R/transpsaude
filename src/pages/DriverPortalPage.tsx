@@ -3,14 +3,19 @@ import {
   CalendarClock,
   ChevronDown,
   ChevronUp,
+  ListChecks,
   LogOut,
   MapPin,
   MessageSquare,
   Phone,
+  Route,
   Search,
+  ShieldCheck,
+  Users,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { AsyncActionButton } from '../components/AsyncActionButton'
+import { InternalSidebar } from '../components/InternalSidebar'
 import { activateDriverPassword, createDriverRequestMessage, fetchDriverTrips, loginDriver, logoutSession } from '../lib/api'
 import { useAppToast } from '../lib/app-toast'
 import { clearDriverSession, getDriverSession, saveDriverSession } from '../lib/driver-session'
@@ -454,41 +459,45 @@ export function DriverPortalPage() {
 
   return (
     <div className="public-shell driver-portal-shell internal-shell">
-      <section className="institutional-bar institutional-bar-inner">
-        <div className="crest-mark" aria-hidden="true">
-          <span />
-        </div>
-        <div className="institutional-copy">
-          <strong>Portal do motorista</strong>
-          <span>Viagens atribuídas pela gerência do transporte em saúde</span>
-        </div>
-      </section>
-
-      <header className="public-header driver-portal-header">
-        <div className="eyebrow">
-          <BusFront size={16} />
-          Motorista autenticado
-        </div>
-        <div className="driver-hero-row">
-          <div>
-            <h1>{session.name}</h1>
-            <p>
-              Sessão ativa para <strong>{session.name}</strong> com perfil <strong>motorista</strong>.
-            </p>
-            <p>Veículo preferencial: <strong>{session.vehicleName || 'Não definido'}</strong></p>
-          </div>
-          <div className="form-actions driver-header-actions">
-            <button className="action-button secondary" type="button" onClick={handleLogout}>
+      <div className="saas-app-shell">
+        <InternalSidebar
+          actions={
+            <button className="action-button primary" type="button" onClick={handleLogout}>
               <LogOut size={16} />
               Sair
             </button>
-          </div>
-        </div>
-      </header>
+          }
+          items={[
+            { to: '/motorista', label: 'Portal do motorista', icon: BusFront, exact: true },
+            { to: '/operador', label: 'Operador', icon: ListChecks },
+            { to: '/gerente', label: 'Gerência', icon: Route },
+            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
+            { to: '/admin', label: 'Admin', icon: ShieldCheck },
+          ]}
+          sessionName={session.name}
+          sessionRole="Motorista"
+          subtitle="Viagens atribuídas pela gerência do transporte em saúde"
+          title="Portal do motorista"
+        />
 
-      {error ? <p className="table-note">{error}</p> : null}
+        <main className="saas-main">
+          <header className="public-header driver-portal-header">
+            <div className="eyebrow">
+              <BusFront size={16} />
+              Motorista autenticado
+            </div>
+            <div className="driver-hero-row">
+              <div>
+                <h1>{session.name}</h1>
+                <p>Consulte sua rota, acompanhe mensagens e organize o embarque do dia.</p>
+                <p>Veículo preferencial: <strong>{session.vehicleName || 'Não definido'}</strong></p>
+              </div>
+            </div>
+          </header>
 
-      <section className="driver-toolbar">
+          {error ? <p className="table-note">{error}</p> : null}
+
+          <section className="driver-toolbar">
         <div className="metrics-grid driver-metrics-grid" aria-label="Resumo do portal do motorista">
           <article className="metric-card">
             <strong>{summary.total}</strong>
@@ -803,6 +812,8 @@ export function DriverPortalPage() {
             <p>Quando a gerência vincular um roteiro ao seu CPF, ele aparecerá aqui com passageiros, embarque e orientações.</p>
           </article>
         )}
+      </div>
+        </main>
       </div>
     </div>
   )

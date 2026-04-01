@@ -1,7 +1,8 @@
-import { ArrowLeft, BusFront, CarFront, ShieldCheck, UserPlus2 } from 'lucide-react'
+import { ArrowLeft, BusFront, CarFront, Route, ShieldCheck, UserPlus2, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
+import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessManager, getInternalRoleLabel } from '../lib/access'
 import {
   createDriver,
@@ -460,38 +461,43 @@ export function DriversPage() {
 
   return (
     <div className="dashboard-shell internal-shell">
-      <section className="institutional-bar institutional-bar-inner">
-        <div className="crest-mark" aria-hidden="true">
-          <span />
-        </div>
-        <div className="institutional-copy">
-          <strong>Gerência de motoristas e veículos</strong>
-          <span>Cadastros administrativos e visão operacional das viagens por motorista</span>
-        </div>
-      </section>
+      <div className="saas-app-shell">
+        <InternalSidebar
+          actions={
+            <Link className="action-button secondary" to="/gerente">
+              <ArrowLeft size={16} />
+              Voltar para gerência
+            </Link>
+          }
+          items={[
+            { to: '/gerente', label: 'Gerência', icon: Route },
+            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users, exact: true },
+            { to: '/gerente/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
+            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
+          ]}
+          sessionName={session.name}
+          sessionRole={getInternalRoleLabel(session.role)}
+          subtitle="Cadastros administrativos e visão operacional das viagens por motorista"
+          title="Equipe e veículos"
+        />
 
-      <header className="topbar">
-        <div className="page-title-block">
-          <div className="eyebrow">
-            <BusFront size={16} />
-            Equipe e veículos
-          </div>
-          <h1>Gestão da equipe de transporte</h1>
-          <p>
-            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>{getInternalRoleLabel(session.role)}</strong>.
-          </p>
-        </div>
+        <main className="saas-main">
+          <header className="topbar">
+            <div className="page-title-block">
+              <div className="eyebrow">
+                <BusFront size={16} />
+                Equipe e veículos
+              </div>
+              <h1>Gestão da equipe de transporte</h1>
+              <p>Mantenha motoristas, veículos, operadores e pacientes com visão mais operacional da frota.</p>
+            </div>
 
-        <div className="page-actions">
-          <Link className="action-button secondary" to="/motorista">
-            Painel do motorista
-          </Link>
-          <Link className="action-button secondary" to="/gerente">
-            <ArrowLeft size={16} />
-            Voltar para gerência
-          </Link>
-        </div>
-      </header>
+            <div className="page-actions">
+              <Link className="action-button primary" to="/motorista">
+                Painel do motorista
+              </Link>
+            </div>
+          </header>
 
       {error ? <p className="table-note">{error}</p> : null}
       {message ? <p className="table-note">{message}</p> : null}
@@ -1063,6 +1069,8 @@ export function DriversPage() {
           </article>
         </aside>
       </section>
+        </main>
+      </div>
     </div>
   )
 }

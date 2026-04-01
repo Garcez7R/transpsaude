@@ -1,7 +1,8 @@
-import { ArrowLeft, CheckCircle2, Printer, Save } from 'lucide-react'
+import { ArrowLeft, BusFront, CheckCircle2, ListChecks, Printer, Route, Save, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
+import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessManager, canAccessOperator } from '../lib/access'
 import { createRequestMessage, fetchRequestDetails, markRequestPatientMessagesSeen, resetAccess, updateDriverPhoneVisibility, updateRequestSchedule, updateRequestStatus } from '../lib/api'
 import { getAdminSession } from '../lib/admin-session'
@@ -70,6 +71,7 @@ export function RequestDetailsPage() {
   const teamMessages = details?.messages.filter((entry) => entry.createdByRole !== 'patient') ?? []
   const accessMode = canAccessManager(session) ? 'internal' : 'operator'
   const backTo = canAccessManager(session) ? '/gerente' : '/operador'
+  const sidebarRole = session ? (canAccessManager(session) ? 'Gestão interna' : 'Operador') : 'Área interna'
 
   useToastOnChange(error, 'error')
   useToastOnChange(message, 'success')
@@ -309,43 +311,57 @@ export function RequestDetailsPage() {
 
   return (
     <div className="dashboard-shell internal-shell">
-      <section className="institutional-bar institutional-bar-inner">
-        <div className="crest-mark" aria-hidden="true">
-          <span />
-        </div>
-        <div className="institutional-copy">
-          <strong>Detalhe da solicitação</strong>
-          <span>Consulta completa, andamento e histórico interno</span>
-        </div>
-      </section>
+      <div className="saas-app-shell">
+        <InternalSidebar
+          actions={
+            <>
+              <button className="action-button secondary" type="button" onClick={() => void handleResetPatientAccess()}>
+                Resetar acesso
+              </button>
+              <Link className="action-button secondary" to={backTo}>
+                <ArrowLeft size={16} />
+                Voltar
+              </Link>
+            </>
+          }
+          items={[
+            { to: backTo, label: backTo === '/gerente' ? 'Gerência' : 'Operador', icon: backTo === '/gerente' ? Route : ListChecks },
+            { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
+            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
+            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
+            { to: '/admin', label: 'Admin', icon: ShieldCheck },
+          ]}
+          sessionName={session.name}
+          sessionRole={sidebarRole}
+          subtitle="Consulta completa, andamento e histórico interno"
+          title="Detalhe da solicitação"
+        />
 
-      <header className="topbar">
-        <div className="page-title-block">
-          <div className="eyebrow">
-            <CheckCircle2 size={16} />
-            Solicitação #{requestId}
-          </div>
-          <h1>{details?.patientName ?? 'Carregando solicitação'}</h1>
-          <p>Use essa tela para revisar os dados do cadastro e movimentar o status operacional.</p>
-        </div>
+        <main className="saas-main">
+          <header className="topbar">
+            <div className="page-title-block">
+              <div className="eyebrow">
+                <CheckCircle2 size={16} />
+                Solicitação #{requestId}
+              </div>
+              <h1>{details?.patientName ?? 'Carregando solicitação'}</h1>
+              <p>Revise o cadastro, registre mensagens e movimente o status operacional com mais contexto.</p>
+            </div>
 
-        <div className="page-actions">
-          <button className="action-button secondary" type="button" onClick={() => void handleResetPatientAccess()}>
-            Resetar acesso do paciente
-          </button>
-          <button className="action-button secondary" type="button" onClick={() => window.print()}>
-            <Printer size={16} />
-            Imprimir comprovante
-          </button>
-          <Link className="action-button secondary" to={backTo}>
-            <ArrowLeft size={16} />
-            Voltar ao painel
-          </Link>
-        </div>
-      </header>
+            <div className="page-actions">
+              <button className="action-button secondary" type="button" onClick={() => window.print()}>
+                <Printer size={16} />
+                Imprimir comprovante
+              </button>
+              <Link className="action-button secondary" to={backTo}>
+                <ArrowLeft size={16} />
+                Voltar ao painel
+              </Link>
+            </div>
+          </header>
 
-      {error ? <p className="table-note">{error}</p> : null}
-      {message ? <p className="table-note">{message}</p> : null}
+          {error ? <p className="table-note">{error}</p> : null}
+          {message ? <p className="table-note">{message}</p> : null}
 
       {loading || !details ? (
         <article className="content-card">
@@ -782,6 +798,8 @@ export function RequestDetailsPage() {
           </aside>
         </section>
       )}
+        </main>
+      </div>
     </div>
   )
 }

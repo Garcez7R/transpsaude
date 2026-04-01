@@ -1,7 +1,8 @@
-import { ArrowLeft, CheckCircle2, FilePlus2, Search } from 'lucide-react'
+import { ArrowLeft, BusFront, CheckCircle2, FilePlus2, Route, Search, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
+import { InternalSidebar } from '../components/InternalSidebar'
 import { createTravelRequest, fetchPatients } from '../lib/api'
 import { canAccessOperator } from '../lib/access'
 import { getOperatorSession } from '../lib/operator-session'
@@ -238,39 +239,49 @@ export function RegisterRequestPage() {
 
   return (
     <div className="dashboard-shell internal-shell">
-      <section className="institutional-bar institutional-bar-inner">
-        <div className="crest-mark" aria-hidden="true">
-          <span />
-        </div>
-        <div className="institutional-copy">
-          <strong>Cadastro interno da Prefeitura Municipal de Capão do Leão</strong>
-          <span>Nova solicitação de transporte para tratamento</span>
-        </div>
-      </section>
+      <div className="saas-app-shell">
+        <InternalSidebar
+          actions={
+            <Link className="action-button secondary" to="/operador">
+              <ArrowLeft size={16} />
+              Voltar ao painel
+            </Link>
+          }
+          items={[
+            { to: '/operador', label: 'Operador', icon: ArrowLeft },
+            { to: '/operador/cadastro', label: 'Nova solicitação', icon: FilePlus2, exact: true },
+            { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
+            { to: '/gerente', label: 'Gerência', icon: Route },
+            { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
+            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
+          ]}
+          sessionName={session.name}
+          sessionRole="Operador"
+          subtitle="Nova solicitação de transporte para tratamento"
+          title="Cadastro interno"
+        />
 
-      <header className="topbar">
-        <div className="page-title-block">
-          <div className="eyebrow">
-            <FilePlus2 size={16} />
-            Nova solicitação
-          </div>
-          <h1>Cadastrar viagem de paciente</h1>
-          <p>
-            O operador registra os dados do atendimento e define qual CPF será usado pelo cidadão
-            ou responsável para acessar o acompanhamento.
-          </p>
-        </div>
+        <main className="saas-main">
+          <header className="topbar">
+            <div className="page-title-block">
+              <div className="eyebrow">
+                <FilePlus2 size={16} />
+                Nova solicitação
+              </div>
+              <h1>Cadastrar viagem de paciente</h1>
+              <p>Registre o atendimento, reaproveite o cadastro por CPF e organize a agenda com mais segurança.</p>
+            </div>
 
-        <div className="page-actions">
-          <Link className="action-button secondary" to="/operador/pacientes">
-            Base de pacientes
-          </Link>
-          <Link className="action-button secondary" to="/operador">
-            <ArrowLeft size={16} />
-            Voltar ao painel
-          </Link>
-        </div>
-      </header>
+            <div className="page-actions">
+              <Link className="action-button secondary" to="/operador/pacientes">
+                Base de pacientes
+              </Link>
+              <Link className="action-button secondary" to="/operador">
+                <ArrowLeft size={16} />
+                Voltar ao painel
+              </Link>
+            </div>
+          </header>
 
       <section className="dashboard-grid">
         <article className="content-card">
@@ -548,6 +559,8 @@ export function RegisterRequestPage() {
           )}
         </aside>
       </section>
+        </main>
+      </div>
     </div>
   )
 }

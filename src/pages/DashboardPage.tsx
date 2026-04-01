@@ -1,7 +1,8 @@
-import { Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, Search, ShieldCheck } from 'lucide-react'
+import { BusFront, Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, Route, Search, ShieldCheck, UserRoundSearch } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
+import { InternalSidebar } from '../components/InternalSidebar'
 import { activateAdminPassword, loginAdmin, fetchDashboardSummary, fetchRequests, logoutSession } from '../lib/api'
 import { canAccessOperator, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { clearOperatorSession, getOperatorSession, saveOperatorSession } from '../lib/operator-session'
@@ -428,42 +429,54 @@ export function DashboardPage() {
 
   return (
     <div className="dashboard-shell internal-shell">
-      <section className="institutional-bar institutional-bar-inner">
-        <div className="crest-mark" aria-hidden="true">
-          <span />
-        </div>
-        <div className="institutional-copy">
-          <strong>Ambiente interno da Prefeitura Municipal de Capão do Leão</strong>
-          <span>Acesso destinado a operador, regulação e apoio administrativo</span>
-        </div>
-      </section>
+      <div className="saas-app-shell">
+        <InternalSidebar
+          actions={
+            <>
+              <Link className="action-button secondary" to="/operador/cadastro">
+                <Plus size={16} />
+                Nova solicitação
+              </Link>
+              <button className="action-button primary" type="button" onClick={handleLogout}>
+                <LogOut size={16} />
+                Sair
+              </button>
+            </>
+          }
+          items={[
+            { to: '/operador', label: 'Operador', icon: ListChecks, exact: true },
+            { to: '/operador/cadastro', label: 'Nova solicitação', icon: Plus },
+            { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
+            { to: '/gerente', label: 'Gerência', icon: Route },
+            { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
+          ]}
+          sessionName={session.name}
+          sessionRole={getInternalRoleLabel(session.role)}
+          subtitle="Acesso destinado a operador, regulação e apoio administrativo"
+          title="Ambiente interno"
+        />
 
-      <header className="topbar">
-        <div className="page-title-block">
-          <div className="eyebrow">
-            <ListChecks size={16} />
-            Painel do operador
-          </div>
-          <h1>Solicitações de transporte em saúde</h1>
-          <p>
-            Sessão ativa para <strong>{session.name}</strong> com perfil <strong>{getInternalRoleLabel(session.role)}</strong>.
-          </p>
-        </div>
+        <main className="saas-main">
+          <header className="topbar">
+            <div className="page-title-block">
+              <div className="eyebrow">
+                <ListChecks size={16} />
+                Painel do operador
+              </div>
+              <h1>Solicitações de transporte em saúde</h1>
+              <p>Fluxo diário de atendimento, cadastro e acompanhamento das agendas.</p>
+            </div>
 
-        <div className="page-actions">
-          <Link className="action-button secondary" to="/operador/pacientes">
-            Base de pacientes
-          </Link>
-          <Link className="action-button secondary" to="/operador/cadastro">
-            <Plus size={16} />
-            Nova solicitação
-          </Link>
-          <button className="action-button primary" type="button" onClick={handleLogout}>
-            <LogOut size={16} />
-            Sair
-          </button>
-        </div>
-      </header>
+            <div className="page-actions">
+              <Link className="action-button secondary" to="/operador/pacientes">
+                Base de pacientes
+              </Link>
+              <Link className="action-button primary" to="/operador/cadastro">
+                <Plus size={16} />
+                Nova solicitação
+              </Link>
+            </div>
+          </header>
 
       <section className="metrics-grid">
         <article className="metric-card">
@@ -665,6 +678,8 @@ export function DashboardPage() {
           )}
         </div>
       </section>
+        </main>
+      </div>
     </div>
   )
 }
