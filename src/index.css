@@ -325,6 +325,12 @@ button {
   color: var(--text);
 }
 
+.action-button.danger {
+  border: 1px solid rgba(179, 67, 67, 0.22);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 239, 239, 0.98) 100%);
+  color: var(--danger);
+}
+
 .primary-link:hover,
 .secondary-link:hover,
 .ghost-button:hover,
@@ -970,6 +976,8 @@ button {
   box-shadow:
     0 18px 34px rgba(49, 65, 70, 0.07),
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  padding: 14px 15px;
+  min-height: 0;
 }
 
 .internal-shell .metric-card::before {
@@ -1008,6 +1016,10 @@ button {
     0 22px 42px rgba(49, 65, 70, 0.07),
     inset 0 1px 0 rgba(255, 255, 255, 0.68);
   padding: 20px;
+}
+
+.internal-shell .compact-workspace-card {
+  padding: 18px;
 }
 
 .internal-shell .content-card::before,
@@ -1067,6 +1079,11 @@ button {
   justify-content: flex-end;
 }
 
+.internal-shell .compact-filter-actions {
+  margin-top: 10px;
+  gap: 8px;
+}
+
 .internal-shell .content-card > h2:first-child,
 .internal-shell .public-card > h2:first-child,
 .internal-shell .request-card > h2:first-child {
@@ -1117,7 +1134,7 @@ button {
 }
 
 .internal-shell .travel-overview-card {
-  min-height: 100px;
+  min-height: 0;
   align-content: start;
 }
 
@@ -1754,7 +1771,7 @@ th {
 .travel-overview-card {
   display: grid;
   gap: 6px;
-  padding: 14px 16px;
+  padding: 11px 13px;
   border-radius: 16px;
   background: rgba(22, 133, 83, 0.07);
   border: 1px solid rgba(22, 133, 83, 0.1);
@@ -1767,8 +1784,8 @@ th {
 
 .travel-overview-card strong {
   color: var(--text);
-  font-size: 1.05rem;
-  line-height: 1.35;
+  font-size: 0.98rem;
+  line-height: 1.28;
 }
 
 .compact-list {
@@ -1902,8 +1919,12 @@ th {
 .assignment-card {
   border: 1px solid rgba(18, 48, 58, 0.08);
   border-radius: 20px;
-  padding: 14px;
+  padding: 12px;
   background: rgba(255, 255, 255, 0.88);
+}
+
+.compact-assignment-card {
+  padding: 14px;
 }
 
 .operator-request-card .inline-link {
@@ -2041,6 +2062,18 @@ th {
 
 .manager-request-card .travel-overview-card strong {
   font-size: 1rem;
+}
+
+.manager-request-card .form-grid {
+  gap: 12px;
+}
+
+.manager-request-card .field label {
+  font-size: 0.9rem;
+}
+
+.manager-request-card textarea {
+  min-height: 104px;
 }
 
 .manager-request-card .assignment-meta {

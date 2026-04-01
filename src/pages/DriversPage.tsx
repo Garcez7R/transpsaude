@@ -869,7 +869,7 @@ export function DriversPage() {
                     >
                       Editar
                     </button>
-                    <button className="action-button primary" type="button" onClick={() => void handleDeleteVehicle(vehicle.id)}>
+                    <button className="action-button danger" type="button" onClick={() => void handleDeleteVehicle(vehicle.id)}>
                       Excluir
                     </button>
                   </div>
@@ -913,7 +913,7 @@ export function DriversPage() {
                     <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('driver', driver.id)}>
                       Resetar PIN
                     </button>
-                    <button className="action-button primary" type="button" onClick={() => void handleDeleteDriver(driver.id)}>
+                    <button className="action-button danger" type="button" onClick={() => void handleDeleteDriver(driver.id)}>
                       Excluir
                     </button>
                     </div>
@@ -1022,7 +1022,7 @@ export function DriversPage() {
                     <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('patient', patient.id)}>
                       Resetar acesso
                     </button>
-                    <button className="action-button primary" type="button" onClick={() => void handleDeletePatient(patient.id)}>
+                    <button className="action-button danger" type="button" onClick={() => void handleDeletePatient(patient.id)}>
                       Excluir
                     </button>
                   </div>
@@ -1059,7 +1059,7 @@ export function DriversPage() {
                     <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('operator', operator.id)}>
                       Resetar senha
                     </button>
-                    <button className="action-button primary" type="button" onClick={() => void handleDeleteOperator(operator.id)}>
+                    <button className="action-button danger" type="button" onClick={() => void handleDeleteOperator(operator.id)}>
                       Excluir
                     </button>
                   </div>

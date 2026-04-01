@@ -586,23 +586,17 @@ export function ManagerPage() {
         </article>
       </section>
 
-      <section className="content-card">
+          <section className="content-card compact-workspace-card">
         <h2>Agendamentos e solicitações</h2>
         <div className="filter-stack">
-          <div className="field">
+          <div className="field full">
             <label htmlFor="manager-search">Buscar</label>
-            <div className="operator-search-inline">
-              <input
-                id="manager-search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Paciente, protocolo, CPF, unidade..."
-              />
-              <button className="action-button primary" type="button" onClick={() => setSearch((current) => current.trimStart())}>
-                <Search size={16} />
-                Buscar
-              </button>
-            </div>
+            <input
+              id="manager-search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value.trimStart())}
+              placeholder="Paciente, protocolo, CPF, unidade..."
+            />
           </div>
           <div className="field">
             <label htmlFor="manager-date">Data da viagem</label>
@@ -673,14 +667,14 @@ export function ManagerPage() {
             </select>
           </div>
         </div>
-        <div className="filter-actions">
-          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('today')}>
+        <div className="filter-actions compact-filter-actions">
+          <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('today')}>
             Hoje
           </button>
-          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
+          <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
             Amanhã
           </button>
-          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('week')}>
+          <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('week')}>
             Esta semana
           </button>
           <button
@@ -751,7 +745,7 @@ export function ManagerPage() {
                 ))}
               </div>
 
-              <article className="assignment-card manager-request-card manager-request-focus">
+              <article className="assignment-card manager-request-card manager-request-focus compact-assignment-card">
                 <div className="assignment-header">
                   <div>
                     <strong>{getDisplayValue(selectedRequest.patientName, 'Paciente não informado')}</strong>

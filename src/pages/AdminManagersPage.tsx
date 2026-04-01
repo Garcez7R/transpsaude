@@ -643,15 +643,15 @@ export function AdminManagersPage() {
             </div>
           </header>
 
-      <section className="content-card">
+      <section className="content-card compact-workspace-card">
         <h2>Agendamentos e solicitações</h2>
         <div className="filter-stack">
-          <div className="field">
+          <div className="field full">
             <label htmlFor="admin-request-search">Buscar</label>
             <input
               id="admin-request-search"
               value={requestSearch}
-              onChange={(event) => setRequestSearch(event.target.value)}
+              onChange={(event) => setRequestSearch(event.target.value.trimStart())}
               placeholder="Paciente, protocolo, CPF, unidade..."
             />
           </div>
@@ -709,14 +709,14 @@ export function AdminManagersPage() {
             </select>
           </div>
         </div>
-        <div className="filter-actions">
-          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('today')}>
+        <div className="filter-actions compact-filter-actions">
+          <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('today')}>
             Hoje
           </button>
-          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
+          <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('tomorrow')}>
             Amanhã
           </button>
-          <button className="action-button secondary" type="button" onClick={() => applyQuickPeriod('week')}>
+          <button className="ghost-button" type="button" onClick={() => applyQuickPeriod('week')}>
             Esta semana
           </button>
           <button
@@ -1027,7 +1027,7 @@ export function AdminManagersPage() {
                     <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('manager', manager.id)}>
                       Resetar senha
                     </button>
-                    <button className="action-button primary" type="button" onClick={() => void handleDeleteManager(manager.id)}>
+                    <button className="action-button danger" type="button" onClick={() => void handleDeleteManager(manager.id)}>
                       Excluir
                     </button>
                   </div>
@@ -1067,7 +1067,7 @@ export function AdminManagersPage() {
                     <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('operator', operator.id)}>
                       Resetar senha
                     </button>
-                    <button className="action-button primary" type="button" onClick={() => void handleDeleteOperator(operator.id)}>
+                    <button className="action-button danger" type="button" onClick={() => void handleDeleteOperator(operator.id)}>
                       Excluir
                     </button>
                   </div>
@@ -1113,7 +1113,7 @@ export function AdminManagersPage() {
                     <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('driver', driver.id)}>
                       Resetar PIN
                     </button>
-                    <button className="action-button primary" type="button" onClick={() => void handleDeleteDriver(driver.id)}>
+                    <button className="action-button danger" type="button" onClick={() => void handleDeleteDriver(driver.id)}>
                       Excluir
                     </button>
                   </div>
