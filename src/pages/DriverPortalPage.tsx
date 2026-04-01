@@ -19,6 +19,7 @@ import type { DriverSession, TravelRequest } from '../types'
 
 type DriverTripFilter = 'today' | 'upcoming' | 'confirmed' | 'withMessages' | 'all'
 type SaveState = 'idle' | 'saving' | 'success'
+type DriverPeriodPreset = 'custom' | 'today' | 'tomorrow' | 'week' | 'next15' | 'month'
 
 function formatCpf(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -129,6 +130,9 @@ export function DriverPortalPage() {
   const [firstAccess, setFirstAccess] = useState<{ cpf: string; name: string } | null>(null)
   const [activeFilter, setActiveFilter] = useState<DriverTripFilter>('today')
   const [selectedDate, setSelectedDate] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [periodPreset, setPeriodPreset] = useState<DriverPeriodPreset>('today')
   const [expandedTripId, setExpandedTripId] = useState<number | null>(null)
   const [messageDrafts, setMessageDrafts] = useState<Record<number, { title: string; body: string; visibleToCitizen: boolean }>>({})
   const [messageSaveState, setMessageSaveState] = useState<Record<number, SaveState>>({})
@@ -204,6 +208,22 @@ export function DriverPortalPage() {
       return sortedTrips.filter((trip) => trip.travelDate === selectedDate)
     }
 
+    if (dateFrom || dateTo) {
+      return sortedTrips.filter((trip) => {
+        const tripDate = String(trip.travelDate ?? '')
+        if (!tripDate) {
+          return false
+        }
+        if (dateFrom && tripDate < dateFrom) {
+          return false
+        }
+        if (dateTo && tripDate > dateTo) {
+          return false
+        }
+        return true
+      })
+    }
+
     switch (activeFilter) {
       case 'today':
         return sortedTrips.filter((trip) => trip.travelDate === todayKey)
@@ -217,7 +237,7 @@ export function DriverPortalPage() {
       default:
         return sortedTrips
     }
-  }, [activeFilter, selectedDate, sortedTrips, todayKey])
+  }, [activeFilter, dateFrom, dateTo, selectedDate, sortedTrips, todayKey])
 
   useEffect(() => {
     if (!filteredTrips.some((trip) => trip.id === expandedTripId)) {
@@ -228,14 +248,62 @@ export function DriverPortalPage() {
   function handleSelectQuickFilter(filter: DriverTripFilter) {
     setActiveFilter(filter)
     setSelectedDate('')
+    setDateFrom('')
+    setDateTo('')
+    setPeriodPreset(filter === 'today' ? 'today' : 'custom')
   }
 
   function handleSelectedDateChange(value: string) {
     setSelectedDate(value)
+    setDateFrom('')
+    setDateTo('')
+    setPeriodPreset('custom')
 
     if (!value) {
       setActiveFilter('today')
     }
+  }
+
+  function applyQuickPeriod(mode: Exclude<DriverPeriodPreset, 'custom'>) {
+    const now = new Date()
+    const today = now.toISOString().slice(0, 10)
+    setSelectedDate('')
+    setActiveFilter('all')
+
+    if (mode === 'today') {
+      setDateFrom(today)
+      setDateTo(today)
+      return
+    }
+
+    if (mode === 'tomorrow') {
+      const tomorrow = new Date(now)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const value = tomorrow.toISOString().slice(0, 10)
+      setDateFrom(value)
+      setDateTo(value)
+      return
+    }
+
+    if (mode === 'week') {
+      const weekEnd = new Date(now)
+      weekEnd.setDate(weekEnd.getDate() + 7)
+      setDateFrom(today)
+      setDateTo(weekEnd.toISOString().slice(0, 10))
+      return
+    }
+
+    if (mode === 'next15') {
+      const end = new Date(now)
+      end.setDate(end.getDate() + 15)
+      setDateFrom(today)
+      setDateTo(end.toISOString().slice(0, 10))
+      return
+    }
+
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    setDateFrom(today)
+    setDateTo(monthEnd.toISOString().slice(0, 10))
   }
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
@@ -521,6 +589,28 @@ export function DriverPortalPage() {
             </button>
           ))}
           <div className="driver-date-filter">
+            <label htmlFor="driver-period-preset">Período rápido</label>
+            <select
+              id="driver-period-preset"
+              value={periodPreset}
+              onChange={(event) => {
+                const value = event.target.value as DriverPeriodPreset
+                setPeriodPreset(value)
+                if (value === 'custom') {
+                  return
+                }
+                applyQuickPeriod(value)
+              }}
+            >
+              <option value="custom">Personalizado</option>
+              <option value="today">Hoje</option>
+              <option value="tomorrow">Amanhã</option>
+              <option value="week">Esta semana</option>
+              <option value="next15">Próximos 15 dias</option>
+              <option value="month">Até o fim do mês</option>
+            </select>
+          </div>
+          <div className="driver-date-filter">
             <label htmlFor="driver-specific-date">Data específica</label>
             <input
               id="driver-specific-date"
@@ -529,9 +619,47 @@ export function DriverPortalPage() {
               onChange={(event) => handleSelectedDateChange(event.target.value)}
             />
           </div>
-          {selectedDate ? (
-            <button className="driver-filter-chip" type="button" onClick={() => handleSelectedDateChange('')}>
-              Voltar para hoje
+          <div className="driver-date-filter">
+            <label htmlFor="driver-date-from">Período inicial</label>
+            <input
+              id="driver-date-from"
+              type="date"
+              value={dateFrom}
+              onChange={(event) => {
+                setPeriodPreset('custom')
+                setSelectedDate('')
+                setActiveFilter('all')
+                setDateFrom(event.target.value)
+              }}
+            />
+          </div>
+          <div className="driver-date-filter">
+            <label htmlFor="driver-date-to">Período final</label>
+            <input
+              id="driver-date-to"
+              type="date"
+              value={dateTo}
+              onChange={(event) => {
+                setPeriodPreset('custom')
+                setSelectedDate('')
+                setActiveFilter('all')
+                setDateTo(event.target.value)
+              }}
+            />
+          </div>
+          {selectedDate || dateFrom || dateTo ? (
+            <button
+              className="driver-filter-chip"
+              type="button"
+              onClick={() => {
+                setSelectedDate('')
+                setDateFrom('')
+                setDateTo('')
+                setPeriodPreset('today')
+                setActiveFilter('today')
+              }}
+            >
+              Limpar datas
             </button>
           ) : null}
         </div>
