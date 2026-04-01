@@ -2045,6 +2045,30 @@ th {
   align-items: center;
 }
 
+.data-access-card {
+  display: grid;
+  gap: 16px;
+}
+
+.data-access-card > h2 {
+  margin-bottom: -2px;
+}
+
+.data-access-card .filter-stack {
+  gap: 14px;
+}
+
+.data-access-card .status-line {
+  margin-top: -2px;
+}
+
+.status-line-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
 .operator-request-card .travel-overview-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
@@ -2166,18 +2190,14 @@ th {
   margin-bottom: 12px;
 }
 
-.manager-distribution-card {
-  padding-bottom: 18px;
-}
-
 .manager-distribution-card .manager-workspace {
-  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+  gap: 18px;
   align-items: start;
 }
 
 .manager-distribution-card .manager-request-list {
-  max-height: 76vh;
+  max-height: 80vh;
 }
 
 .manager-distribution-card .manager-request-card .form-grid {
@@ -2192,13 +2212,9 @@ th {
   min-width: 0;
 }
 
-.directory-summary-card {
-  min-width: 0;
-}
-
 .directory-patient-list {
   grid-template-columns: 1fr;
-  max-height: 76vh;
+  max-height: 80vh;
 }
 
 .directory-patient-card .assignment-header {
@@ -2213,15 +2229,6 @@ th {
   padding: 12px 14px;
 }
 
-.directory-side-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 12px 0 14px;
-}
-
-.directory-summary-card {
-  align-self: start;
-}
-
 .fleet-overview-card .travel-overview-grid,
 .fleet-list-card .travel-overview-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2231,10 +2238,6 @@ th {
 .fleet-operators-shell,
 .fleet-lists-shell {
   align-items: start;
-}
-
-.fleet-guidance-card ul {
-  margin: 0;
 }
 
 .fleet-form-card .form-grid {
@@ -2251,6 +2254,15 @@ th {
 
 .fleet-list-card .form-actions {
   justify-content: flex-start;
+}
+
+.fleet-overview-card .assignment-list {
+  grid-template-columns: 1fr;
+  max-height: 76vh;
+}
+
+.fleet-overview-card .form-grid {
+  grid-template-columns: minmax(280px, 440px);
 }
 
 .manager-request-card .status-pill-row {

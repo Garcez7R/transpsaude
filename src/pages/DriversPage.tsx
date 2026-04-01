@@ -547,8 +547,8 @@ export function DriversPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-main fleet-overview-shell">
-        <article className="content-card fleet-overview-card">
+      <section className="dashboard-grid dashboard-grid-single fleet-overview-shell">
+        <article className="content-card fleet-overview-card data-access-card">
           <h2>Viagens por motorista</h2>
           <div className="form-grid">
             <div className="field full">
@@ -565,6 +565,18 @@ export function DriversPage() {
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <div className="status-line">
+            <span className="subtle-label">
+              <Route size={14} />
+              {selectedDriver ? `${driverTrips.length} viagem(ns) vinculada(s) a ${selectedDriver.name}` : 'Selecione um motorista para abrir a agenda'}
+            </span>
+            <div className="status-line-actions">
+              <span className="status-pill">Motoristas: {drivers.length}</span>
+              <span className="status-pill">Veículos: {vehicles.length}</span>
+              <span className="status-pill">Operadores: {operators.length}</span>
             </div>
           </div>
 
@@ -631,17 +643,6 @@ export function DriversPage() {
             <p className="table-note">Selecione um motorista para ver as viagens atribuídas a ele.</p>
           )}
         </article>
-
-        <aside className="dashboard-side">
-          <article className="content-card dashboard-side-sticky fleet-guidance-card">
-            <h2>Leitura rápida</h2>
-            <ul className="check-list">
-              <li>O vínculo de veículo no cadastro do motorista é apenas preferencial.</li>
-              <li>A viagem pode usar outro veículo conforme rodízio, folga ou manutenção.</li>
-              <li>Use esta área para manter equipe, frota e base operacional em dia.</li>
-            </ul>
-          </article>
-        </aside>
       </section>
 
       <section className="dashboard-grid dashboard-grid-balanced fleet-forms-grid">

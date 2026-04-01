@@ -283,8 +283,8 @@ export function PatientsDirectoryPage() {
         </article>
       </section>
 
-      <section className="dashboard-grid dashboard-grid-main directory-workspace">
-        <div className="content-card directory-results-card">
+      <section className="dashboard-grid dashboard-grid-single directory-workspace">
+        <div className="content-card directory-results-card data-access-card">
           <div className="filter-stack">
             <div className="form-grid">
               <div className="field full">
@@ -354,7 +354,9 @@ export function PatientsDirectoryPage() {
               <Search size={14} />
               {loading ? 'Carregando base de pacientes...' : `${filteredPatients.length} cadastro(s) localizado(s)`}
             </span>
-            <div className="page-actions">
+            <div className="status-line-actions">
+              <span className="status-pill">WhatsApp: {withWhatsappCount}</span>
+              <span className="status-pill">Com responsável: {withResponsibleCount}</span>
               {(search || phoneFilter || addressFilter || responsibleFilter || whatsappOnly || responsibleOnly) ? (
                 <button
                   className="action-button secondary"
@@ -424,32 +426,6 @@ export function PatientsDirectoryPage() {
             </article>
           )}
         </div>
-        <aside className="dashboard-side">
-          <article className="content-card dashboard-side-sticky directory-summary-card">
-            <h2>Leitura rápida</h2>
-            <div className="travel-overview-grid directory-side-grid">
-              <article className="travel-overview-card">
-                <span>Pacientes</span>
-                <strong>{patients.length}</strong>
-              </article>
-              <article className="travel-overview-card">
-                <span>No filtro</span>
-                <strong>{filteredPatients.length}</strong>
-              </article>
-              <article className="travel-overview-card">
-                <span>WhatsApp</span>
-                <strong>{withWhatsappCount}</strong>
-              </article>
-              <article className="travel-overview-card">
-                <span>Responsável</span>
-                <strong>{withResponsibleCount}</strong>
-              </article>
-            </div>
-            <p className="table-note">
-              Revise CPF de acesso, telefone e endereço antes de abrir um novo cadastro ou corrigir dados do paciente.
-            </p>
-          </article>
-        </aside>
       </section>
         </main>
       </div>

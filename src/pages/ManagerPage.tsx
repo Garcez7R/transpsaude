@@ -606,7 +606,7 @@ export function ManagerPage() {
         </article>
       </section>
 
-          <section className="content-card compact-workspace-card">
+      <section className="content-card compact-workspace-card data-access-card">
         <h2>Agendamentos e solicitações</h2>
         <div className="filter-stack">
           <div className="field full">
@@ -751,7 +751,7 @@ export function ManagerPage() {
       </section>
 
       <section className="dashboard-grid dashboard-grid-single manager-distribution-shell">
-        <div className="content-card manager-distribution-card">
+        <div className="content-card manager-distribution-card data-access-card">
           <h2>Central de distribuição</h2>
           {loading ? (
             <p className="table-note">Carregando viagens...</p>

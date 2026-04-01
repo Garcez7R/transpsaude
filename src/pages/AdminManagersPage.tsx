@@ -1,5 +1,5 @@
-import { ArrowLeft, BusFront, Route, ShieldCheck, UserPlus2, UserRoundSearch, Users } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { ArrowLeft, BusFront, RefreshCcw, Route, ShieldCheck, UserPlus2, UserRoundSearch, Users } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
 import { InternalSidebar } from '../components/InternalSidebar'
@@ -156,6 +156,14 @@ export function AdminManagersPage() {
   const managerFormRef = useRef<HTMLElement | null>(null)
   const operatorFormRef = useRef<HTMLElement | null>(null)
   const driverFormRef = useRef<HTMLElement | null>(null)
+
+  const visibleCountLabel = useMemo(() => {
+    if (loadingRequests) {
+      return 'Carregando solicitações...'
+    }
+
+    return `${requests.length} solicitação(ões) encontradas`
+  }, [loadingRequests, requests.length])
 
   useToastOnChange(authError, 'error')
   useToastOnChange(error, 'error')
@@ -663,7 +671,7 @@ export function AdminManagersPage() {
             </div>
           </header>
 
-      <section className="content-card compact-workspace-card">
+      <section className="content-card compact-workspace-card data-access-card">
         <h2>Agendamentos e solicitações</h2>
         <div className="filter-stack">
           <div className="field full">
@@ -776,6 +784,13 @@ export function AdminManagersPage() {
           >
             Limpar filtros
           </button>
+        </div>
+        <div className="status-line">
+          <span className="subtle-label">
+            {requestSearch || travelDate || dateFrom || dateTo || destination ? <Route size={14} /> : <RefreshCcw size={14} />}
+            {visibleCountLabel}
+          </span>
+          {loadingRequests ? <span className="status-pill">Atualizando lista</span> : null}
         </div>
         <div className="table-wrapper">
           <table>
