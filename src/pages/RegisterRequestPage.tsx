@@ -261,7 +261,7 @@ export function RegisterRequestPage() {
           title="Cadastro interno"
         />
 
-        <main className="saas-main">
+        <main className="saas-main saas-main--register">
           <header className="topbar">
             <div className="page-title-block">
               <div className="eyebrow">

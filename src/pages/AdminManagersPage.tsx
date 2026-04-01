@@ -622,7 +622,7 @@ export function AdminManagersPage() {
           title="Área administrativa"
         />
 
-        <main className="saas-main">
+        <main className="saas-main saas-main--admin">
           <header className="topbar">
             <div className="page-title-block">
               <div className="eyebrow">

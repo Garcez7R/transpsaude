@@ -456,7 +456,7 @@ export function DashboardPage() {
           title="Ambiente interno"
         />
 
-        <main className="saas-main">
+        <main className="saas-main saas-main--operator">
           <header className="topbar">
             <div className="page-title-block">
               <div className="eyebrow">
@@ -498,7 +498,7 @@ export function DashboardPage() {
       </section>
 
       <section className="dashboard-grid dashboard-grid-single">
-        <div className="content-card">
+        <div className="content-card operator-workspace-card">
           <h2>Agendamentos e solicitações</h2>
           <div className="filter-stack">
             <form className="filter-stack" onSubmit={handleFilterSubmit}>

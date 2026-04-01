@@ -877,7 +877,7 @@ button {
 .saas-main {
   min-width: 0;
   display: grid;
-  gap: 18px;
+  gap: 20px;
 }
 
 .internal-shell .topbar,
@@ -955,6 +955,7 @@ button {
 }
 
 .internal-shell .metrics-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin-top: 18px;
   margin-bottom: 20px;
@@ -984,11 +985,12 @@ button {
 }
 
 .internal-shell .dashboard-grid-main {
-  grid-template-columns: minmax(0, 1.68fr) minmax(300px, 0.82fr);
+  grid-template-columns: minmax(0, 1.82fr) minmax(340px, 0.9fr);
 }
 
 .internal-shell .dashboard-grid-balanced {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
 }
 
 .internal-shell .content-card,
@@ -1030,7 +1032,38 @@ button {
 
 .internal-shell .filter-stack {
   max-width: none;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.internal-shell .filter-stack > .field {
+  grid-column: span 3;
+}
+
+.internal-shell .filter-stack > .field:first-child {
+  grid-column: span 6;
+}
+
+.internal-shell form.filter-stack {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.internal-shell form.filter-stack > .field {
+  grid-column: span 3;
+}
+
+.internal-shell form.filter-stack > .field:first-child,
+.internal-shell form.filter-stack > .field.full {
+  grid-column: 1 / -1;
+}
+
+.internal-shell .filter-stack > .form-actions,
+.internal-shell form.filter-stack > .form-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
 }
 
 .internal-shell .content-card > h2:first-child,
@@ -1132,17 +1165,73 @@ button {
   box-shadow: 0 18px 30px rgba(49, 65, 70, 0.08);
 }
 
+.saas-main--operator .assignment-list,
+.saas-main--directory .assignment-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.saas-main--fleet .assignment-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.saas-main--driver .public-layout.driver-portal-layout {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.saas-main--driver .driver-trip-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.saas-main--admin .dashboard-grid-balanced,
+.saas-main--fleet .dashboard-grid-balanced {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.saas-main--admin .dashboard-grid-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.saas-main--details .request-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.saas-main--register .dashboard-grid {
+  grid-template-columns: minmax(0, 1.9fr) minmax(320px, 0.92fr);
+}
+
+.saas-main--register .dashboard-side {
+  gap: 16px;
+}
+
+.saas-main--operator .operator-workspace-card,
+.saas-main--manager .content-card:first-of-type,
+.saas-main--admin .content-card:first-of-type {
+  min-height: 0;
+}
+
 @media (min-width: 1080px) {
   .internal-shell.dashboard-shell,
   .internal-shell.public-shell.driver-portal-shell {
-    width: min(calc(100% - 40px), 1500px);
+    width: min(calc(100% - 24px), 1720px);
     max-width: none;
     margin-inline: auto;
   }
 
   .saas-app-shell {
-    grid-template-columns: 260px minmax(0, 1fr);
-    gap: 24px;
+    grid-template-columns: 258px minmax(0, 1fr);
+    gap: 26px;
+  }
+
+  .saas-main--admin .content-card,
+  .saas-main--manager .content-card,
+  .saas-main--operator .content-card,
+  .saas-main--fleet .content-card,
+  .saas-main--register .content-card,
+  .saas-main--details .content-card {
+    padding: 22px;
   }
 }
 
@@ -2292,6 +2381,23 @@ th {
   .internal-shell .public-header {
     position: static;
     padding: 18px;
+  }
+
+  .internal-shell .metrics-grid,
+  .internal-shell .filter-stack,
+  .internal-shell form.filter-stack,
+  .saas-main--driver .public-layout.driver-portal-layout,
+  .saas-main--driver .driver-trip-list,
+  .saas-main--operator .assignment-list,
+  .saas-main--directory .assignment-list,
+  .saas-main--fleet .assignment-list,
+  .saas-main--details .request-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .internal-shell .filter-stack > .field,
+  .internal-shell form.filter-stack > .field {
+    grid-column: 1 / -1;
   }
 
   .saas-app-shell {

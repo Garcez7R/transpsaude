@@ -337,7 +337,7 @@ export function RequestDetailsPage() {
           title="Detalhe da solicitação"
         />
 
-        <main className="saas-main">
+        <main className="saas-main saas-main--details">
           <header className="topbar">
             <div className="page-title-block">
               <div className="eyebrow">
