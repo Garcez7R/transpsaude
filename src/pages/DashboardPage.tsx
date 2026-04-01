@@ -2,6 +2,7 @@ import { Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, Route, Searc
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
+import { Pagination } from '../components/Pagination'
 import { InternalSidebar } from '../components/InternalSidebar'
 import { activateAdminPassword, loginAdmin, fetchDashboardSummary, fetchRequests, logoutSession } from '../lib/api'
 import { canAccessOperator, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
@@ -113,9 +114,24 @@ export function DashboardPage() {
   const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('custom')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 10
 
   useToastOnChange(authError, 'error')
   useToastOnChange(error, 'error')
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filters])
+
+  const paginatedRequests = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    const end = start + ITEMS_PER_PAGE
+    return requests.slice(start, end)
+  }, [requests, currentPage])
+
+  const totalPages = Math.ceil(requests.length / ITEMS_PER_PAGE)
 
   useEffect(() => {
     setSession(getOperatorSession())
@@ -662,8 +678,9 @@ export function DashboardPage() {
           {loading ? (
             <p className="table-note">Carregando solicitações...</p>
           ) : requests.length > 0 ? (
-            <div className="assignment-list scroll-list">
-              {requests.map((request) => (
+            <>
+              <div className="assignment-list scroll-list">
+                {paginatedRequests.map((request) => (
                 <article className="assignment-card operator-request-card" key={request.id}>
                   <div className="assignment-header">
                     <div>
@@ -731,7 +748,16 @@ export function DashboardPage() {
                   </div>
                 </article>
               ))}
-            </div>
+              </div>
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={requests.length}
+                  onPageChange={setCurrentPage}
+                />
+              )}
+            </>
           ) : (
             <p className="table-note">Nenhuma solicitação encontrada para o filtro atual.</p>
           )}

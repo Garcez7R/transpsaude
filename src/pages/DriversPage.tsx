@@ -2,6 +2,7 @@ import { ArrowLeft, BusFront, CarFront, Route, ShieldCheck, UserPlus2, UserRound
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AsyncActionButton } from '../components/AsyncActionButton'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessManager, getInternalRoleLabel } from '../lib/access'
 import {
@@ -141,6 +142,7 @@ export function DriversPage() {
   const [savingPatient, setSavingPatient] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: string; id: number; name: string } | null>(null)
 
   useToastOnChange(error, 'error')
   useToastOnChange(message, 'success')
@@ -360,63 +362,70 @@ export function DriversPage() {
     }
   }
 
-  async function handleDeleteOperator(id: number) {
-    try {
-      const result = await deleteOperator(id)
-      setOperators(await fetchOperators())
-      if (editingOperatorId === id) {
-        setEditingOperatorId(null)
-        setOperatorForm({ name: '', cpf: '', email: '' })
-      }
-      setMessage(result.message)
-      setError('')
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Não foi possível excluir o operador.')
-    }
+  function requestDeleteVehicle(id: number) {
+    const vehicle = vehicles.find(v => v.id === id)
+    setDeleteConfirm({ type: 'veículo', id, name: vehicle?.name || '' })
   }
 
-  async function handleDeleteDriver(id: number) {
-    try {
-      const result = await deleteDriver(id)
-      setDrivers(await fetchDrivers())
-      if (editingDriverId === id) {
-        setEditingDriverId(null)
-        setDriverForm(initialDriverForm)
-      }
-      setMessage(result.message)
-      setError('')
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Não foi possível excluir o motorista.')
-    }
+  function requestDeleteDriver(id: number) {
+    const driver = drivers.find(d => d.id === id)
+    setDeleteConfirm({ type: 'motorista', id, name: driver?.name || '' })
   }
 
-  async function handleDeleteVehicle(id: number) {
-    try {
-      const result = await deleteVehicle(id)
-      setVehicles(await fetchVehicles())
-      if (editingVehicleId === id) {
-        setEditingVehicleId(null)
-        setVehicleForm(initialVehicleForm)
-      }
-      setMessage(result.message)
-      setError('')
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Não foi possível excluir o veículo.')
-    }
+  function requestDeleteOperator(id: number) {
+    const operator = operators.find(o => o.id === id)
+    setDeleteConfirm({ type: 'operador', id, name: operator?.name || '' })
   }
 
-  async function handleDeletePatient(id: number) {
+  function requestDeletePatient(id: number) {
+    const patient = patients.find(p => p.id === id)
+    setDeleteConfirm({ type: 'paciente', id, name: patient?.fullName || '' })
+  }
+
+  async function executeDelete() {
+    if (!deleteConfirm) return
+
     try {
-      const result = await deletePatient(id)
-      setPatients(await fetchPatients())
-      if (editingPatientId === id) {
-        setEditingPatientId(null)
-        setPatientForm(initialPatientForm)
+      switch (deleteConfirm.type) {
+        case 'veículo':
+          await deleteVehicle(deleteConfirm.id)
+          setVehicles(await fetchVehicles())
+          if (editingVehicleId === deleteConfirm.id) {
+            setEditingVehicleId(null)
+            setVehicleForm(initialVehicleForm)
+          }
+          break
+        case 'motorista':
+          await deleteDriver(deleteConfirm.id)
+          setDrivers(await fetchDrivers())
+          if (editingDriverId === deleteConfirm.id) {
+            setEditingDriverId(null)
+            setDriverForm(initialDriverForm)
+          }
+          break
+        case 'operador':
+          await deleteOperator(deleteConfirm.id)
+          setOperators(await fetchOperators())
+          if (editingOperatorId === deleteConfirm.id) {
+            setEditingOperatorId(null)
+            setOperatorForm({ name: '', cpf: '', email: '' })
+          }
+          break
+        case 'paciente':
+          await deletePatient(deleteConfirm.id)
+          setPatients(await fetchPatients())
+          if (editingPatientId === deleteConfirm.id) {
+            setEditingPatientId(null)
+            setPatientForm(initialPatientForm)
+          }
+          break
       }
-      setMessage(result.message)
+      setMessage(`${deleteConfirm.type.charAt(0).toUpperCase() + deleteConfirm.type.slice(1)} excluído com sucesso.`)
       setError('')
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Não foi possível excluir o paciente.')
+      setError(error instanceof Error ? error.message : `Não foi possível excluir o ${deleteConfirm.type}.`)
+    } finally {
+      setDeleteConfirm(null)
     }
   }
 
@@ -896,7 +905,7 @@ export function DriversPage() {
                     >
                       Editar
                     </button>
-                    <button className="action-button danger" type="button" onClick={() => void handleDeleteVehicle(vehicle.id)}>
+                    <button className="action-button danger" type="button" onClick={() => requestDeleteVehicle(vehicle.id)}>
                       Excluir
                     </button>
                   </div>
@@ -940,7 +949,7 @@ export function DriversPage() {
                     <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('driver', driver.id)}>
                       Resetar PIN
                     </button>
-                    <button className="action-button danger" type="button" onClick={() => void handleDeleteDriver(driver.id)}>
+                    <button className="action-button danger" type="button" onClick={() => requestDeleteDriver(driver.id)}>
                       Excluir
                     </button>
                     </div>
@@ -1049,7 +1058,7 @@ export function DriversPage() {
                     <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('patient', patient.id)}>
                       Resetar acesso
                     </button>
-                    <button className="action-button danger" type="button" onClick={() => void handleDeletePatient(patient.id)}>
+                    <button className="action-button danger" type="button" onClick={() => requestDeletePatient(patient.id)}>
                       Excluir
                     </button>
                   </div>
@@ -1086,7 +1095,7 @@ export function DriversPage() {
                     <button className="action-button secondary" type="button" onClick={() => void handleResetAccess('operator', operator.id)}>
                       Resetar senha
                     </button>
-                    <button className="action-button danger" type="button" onClick={() => void handleDeleteOperator(operator.id)}>
+                    <button className="action-button danger" type="button" onClick={() => requestDeleteOperator(operator.id)}>
                       Excluir
                     </button>
                   </div>
@@ -1097,6 +1106,16 @@ export function DriversPage() {
         </aside>
       </section>
         </main>
+
+        <ConfirmDialog
+          isOpen={!!deleteConfirm}
+          title={`Excluir ${deleteConfirm?.type}`}
+          message={deleteConfirm?.name 
+            ? `Tem certeza que deseja excluir ${deleteConfirm.type} "${deleteConfirm.name}"? Esta ação não pode ser desfeita.`
+            : `Tem certeza que deseja excluir este ${deleteConfirm?.type}? Esta ação não pode ser desfeita.`}
+          onConfirm={executeDelete}
+          onCancel={() => setDeleteConfirm(null)}
+        />
       </div>
     </div>
   )
