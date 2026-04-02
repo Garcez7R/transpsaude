@@ -1,9 +1,10 @@
-import { ArrowLeft, FilePlus2, Route, Search, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
+import { ArrowLeft, Download, FilePlus2, Route, Search, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessOperator, getInternalRoleLabel } from '../lib/access'
 import { fetchPatients, logoutSession } from '../lib/api'
+import { exportData } from '../lib/csv-export'
 import { clearAdminSession, getAdminSession } from '../lib/admin-session'
 import { clearAdminAreaSession } from '../lib/admin-area-session'
 import { clearManagerSession, getManagerSession } from '../lib/manager-session'
@@ -357,6 +358,15 @@ export function PatientsDirectoryPage() {
             <div className="status-line-actions">
               <span className="status-pill">WhatsApp: {withWhatsappCount}</span>
               <span className="status-pill">Com responsável: {withResponsibleCount}</span>
+              <button
+                className="action-button secondary"
+                type="button"
+                onClick={() => exportData('patients', filteredPatients)}
+                disabled={filteredPatients.length === 0}
+              >
+                <Download size={14} />
+                Exportar CSV
+              </button>
               {(search || phoneFilter || addressFilter || responsibleFilter || whatsappOnly || responsibleOnly) ? (
                 <button
                   className="action-button secondary"
