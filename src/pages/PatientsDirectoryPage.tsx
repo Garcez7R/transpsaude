@@ -242,7 +242,7 @@ export function PatientsDirectoryPage() {
           title="Base de pacientes"
         />
 
-        <main className="saas-main saas-main--directory">
+        <main className="saas-main saas-main--admin">
           <header className="topbar">
             <div className="page-title-block">
               <div className="eyebrow">

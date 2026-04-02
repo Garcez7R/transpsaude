@@ -540,7 +540,7 @@ export function DriverPortalPage() {
           title="Portal do motorista"
         />
 
-        <main className="saas-main saas-main--driver">
+        <main className="saas-main saas-main--admin">
           <header className="public-header driver-portal-header">
             <div className="eyebrow">
               <BusFront size={16} />

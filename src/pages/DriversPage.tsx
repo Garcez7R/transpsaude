@@ -516,7 +516,7 @@ export function DriversPage() {
           title="Equipe e veículos"
         />
 
-        <main className="saas-main saas-main--fleet">
+        <main className="saas-main saas-main--admin">
           <header className="topbar">
             <div className="page-title-block">
               <div className="eyebrow">
