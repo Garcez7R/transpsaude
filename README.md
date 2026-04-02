@@ -339,7 +339,22 @@ Estado atual do produto neste repositório:
 - gerência com distribuição de viagens mais direta, foco em motorista, consulta, saída e embarque;
 - base refinada de pacientes para busca, auditoria e conferência por dados críticos;
 - badges, flags e métricas mais compactas e consistentes entre as telas internas;
+- **paginação implementada** para listas longas (10 itens por página);
+- **confirmação de exclusão** com modal para ações destrutivas;
+- **exportação CSV** de dados de pacientes;
+- **atalhos de teclado** globais para produtividade;
+- **validação de formulários** com verificação de datas, horários, CPF e telefone;
+- **layout padronizado** em todas as páginas com design system consistente;
 - compatibilidade operacional mantida com Cloudflare Pages + Functions + D1.
+
+### Componentes reutilizáveis implementados
+
+- **Pagination** - Paginação para listas longas com navegação por página
+- **ConfirmDialog** - Modal de confirmação para ações destrutivas
+- **AdvancedFilters** - Filtros avançados colapsáveis
+- **validation.ts** - Biblioteca de validação de formulários
+- **csv-export.ts** - Exportação de dados em formato CSV
+- **keyboard-shortcuts.ts** - Gerenciador de atalhos de teclado
 
 Pontos já maduros:
 
@@ -347,7 +362,10 @@ Pontos já maduros:
 - cadastro inicial da solicitação;
 - painel operacional do operador;
 - distribuição da gerência;
-- base de pacientes.
+- base de pacientes;
+- paginação e filtros;
+- exportação de dados;
+- atalhos de teclado.
 
 Próximos passos mais naturais:
 
