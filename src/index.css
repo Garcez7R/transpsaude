@@ -1540,13 +1540,23 @@ button {
   width: 100%;
   max-width: 100%;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 12px;
   min-height: 44px;
-  padding: 0.82rem 0.92rem;
+  padding: 0.75rem 1rem;
   background: #fff;
   color: var(--text);
-  font-size: 0.97rem;
-  line-height: 1.35;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.select-field select:focus {
+  outline: 2px solid rgba(22, 133, 83, 0.15);
+  border-color: rgba(22, 133, 83, 0.45);
+  box-shadow: 0 0 0 3px rgba(22, 133, 83, 0.08);
 }
 
 .field input[type='date'],
