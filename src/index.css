@@ -1051,16 +1051,17 @@ button {
 .internal-shell .filter-stack {
   max-width: none;
   display: grid;
-  grid-template-columns: repeat(16, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
 .internal-shell .filter-stack > .field {
-  grid-column: span 4;
+  grid-column: span 1;
 }
 
-.internal-shell .filter-stack > .field:first-child {
-  grid-column: span 8;
+.internal-shell .filter-stack > .field:first-child,
+.internal-shell .filter-stack > .field.full {
+  grid-column: 1 / -1;
 }
 
 .internal-shell form.filter-stack {
