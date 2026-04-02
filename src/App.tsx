@@ -10,8 +10,12 @@ import { PatientsDirectoryPage } from './pages/PatientsDirectoryPage'
 import { PublicStatusPage } from './pages/PublicStatusPage'
 import { RequestDetailsPage } from './pages/RequestDetailsPage'
 import { RegisterRequestPage } from './pages/RegisterRequestPage'
+import { useKeyboardShortcuts } from './lib/keyboard-shortcuts'
 
 export default function App() {
+  // Initialize global keyboard shortcuts
+  useKeyboardShortcuts()
+
   return (
     <AppToastProvider>
       <>

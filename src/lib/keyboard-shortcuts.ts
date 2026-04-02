@@ -209,10 +209,14 @@ export const defaultShortcuts: KeyboardShortcut[] = [
 /**
  * Hook personalizado para usar atalhos de teclado em componentes
  */
-export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]): void {
-  // Em um componente React, você usaria useEffect para registrar/desregistrar
-  // Esta é uma versão simplificada
-  shortcuts.forEach((shortcut) => {
+export function useKeyboardShortcuts(shortcuts?: KeyboardShortcut[]): void {
+  // Se nenhum atalho for fornecido, usa os atalhos padrão
+  const shortcutsToRegister = shortcuts ?? defaultShortcuts
+
+  shortcutsToRegister.forEach((shortcut) => {
     keyboardShortcuts.register(shortcut)
   })
+
+  // Inicializa o listener global
+  keyboardShortcuts.init()
 }
