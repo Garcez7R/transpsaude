@@ -266,16 +266,6 @@ export function RegisterRequestPage() {
       : null,
   ].filter(Boolean) as string[]
 
-  const liveSummary = {
-    patientName: form.patientName.trim() || 'Aguardando nome do paciente',
-    accessCpf: form.accessCpf || 'A definir',
-    destination: form.destinationCity.trim() ? `${form.destinationCity}/${form.destinationState || 'RS'}` : 'Destino a definir',
-    treatmentUnit: form.treatmentUnit.trim() || 'Unidade a definir',
-    travelDate: form.travelDate || 'Data a definir',
-    appointmentTime: form.appointmentTime || 'Horário da consulta a definir',
-    companion: form.companionRequired ? form.companionName.trim() || 'Acompanhante necessário' : 'Não necessário',
-  }
-
   async function handleCopyProtocol() {
     if (!success?.protocol || typeof navigator === 'undefined' || !navigator.clipboard) {
       return

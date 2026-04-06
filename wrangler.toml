@@ -1,7 +1,6 @@
 name = "transpsaude"
 compatibility_date = "2026-03-20"
 pages_build_output_dir = "dist"
-migrations_dir = "db/migrations"
 
 [[d1_databases]]
 binding = "DB"
