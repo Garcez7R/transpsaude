@@ -1,7 +1,9 @@
 import { ArrowLeft, BusFront, LockKeyhole, LogOut, RefreshCcw, Route, Save, Search, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AdvancedFilters } from '../components/AdvancedFilters'
 import { AsyncActionButton } from '../components/AsyncActionButton'
+import { Pagination } from '../components/Pagination'
 import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
@@ -114,10 +116,23 @@ export function ManagerPage() {
   const [savingId, setSavingId] = useState<number | null>(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 12
 
   useToastOnChange(authError, 'error')
   useToastOnChange(error, 'error')
   useToastOnChange(message, 'success')
+
+  const hasAdvancedFilters =
+    Boolean(travelDate) ||
+    Boolean(dateFrom) ||
+    Boolean(dateTo) ||
+    Boolean(destination) ||
+    Boolean(driverFilterId)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, selectedStatus, travelDate, dateFrom, dateTo, destination, driverFilterId])
 
   const reports = useMemo(() => {
     const scheduledTotal = requests.filter((request) => request.status === 'agendada').length
@@ -143,6 +158,14 @@ export function ManagerPage() {
 
     return `${requests.length} solicitação(ões) no recorte atual`
   }, [loading, requests.length])
+
+  const paginatedRequests = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    const end = start + ITEMS_PER_PAGE
+    return requests.slice(start, end)
+  }, [currentPage, requests])
+
+  const totalPages = Math.ceil(requests.length / ITEMS_PER_PAGE)
 
   const selectedRequest =
     requests.find((request) => request.id === selectedRequestId) ??
@@ -608,94 +631,106 @@ export function ManagerPage() {
 
       <section className="content-card compact-workspace-card data-access-card">
         <h2>Agendamentos e solicitações</h2>
-        <div className="filter-stack">
-          <div className="field full">
-            <label htmlFor="manager-search">Buscar</label>
-            <input
-              id="manager-search"
+          <div className="filter-stack">
+            <div className="field full">
+              <label htmlFor="manager-search">Buscar</label>
+              <input
+                id="manager-search"
               value={search}
               onChange={(event) => setSearch(event.target.value.trimStart())}
               placeholder="Paciente, protocolo, CPF, unidade..."
             />
-          </div>
-          <div className="field">
-            <label htmlFor="manager-date">Data da viagem</label>
-              <input
-              id="manager-date"
-              type="date"
-              value={travelDate}
-              onChange={(event) => {
-                setPeriodPreset('custom')
-                setTravelDate(event.target.value)
+            </div>
+            <div className="field">
+              <label htmlFor="manager-status">Status</label>
+              <select
+                id="manager-status"
+                value={selectedStatus}
+                onChange={(event) => setSelectedStatus(event.target.value as 'todos' | TravelRequest['status'])}
+              >
+                <option value="todos">Todos os status</option>
+                <option value="recebida">Recebida</option>
+                <option value="em_analise">Em análise</option>
+                <option value="aguardando_documentos">Aguardando documentos</option>
+                <option value="aprovada">Aprovada</option>
+                <option value="agendada">Agendada</option>
+                <option value="cancelada">Cancelada</option>
+                <option value="concluida">Concluída</option>
+              </select>
+            </div>
+            <AdvancedFilters
+              label="Filtros avançados"
+              hasActiveFilters={hasAdvancedFilters}
+              onClear={() => {
+                setTravelDate('')
+                setDateFrom('')
+                setDateTo('')
+                setDestination('')
+                setDriverFilterId('')
               }}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="manager-date-from">Período inicial</label>
-            <input
-              id="manager-date-from"
-              type="date"
-              value={dateFrom}
-              onChange={(event) => {
-                setPeriodPreset('custom')
-                setDateFrom(event.target.value)
-              }}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="manager-date-to">Período final</label>
-            <input
-              id="manager-date-to"
-              type="date"
-              value={dateTo}
-              onChange={(event) => {
-                setPeriodPreset('custom')
-                setDateTo(event.target.value)
-              }}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="manager-destination">Destino</label>
-            <input
-              id="manager-destination"
-              value={destination}
-              onChange={(event) => setDestination(event.target.value)}
-              placeholder="Cidade de destino"
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="manager-status">Status</label>
-            <select
-              id="manager-status"
-              value={selectedStatus}
-              onChange={(event) => setSelectedStatus(event.target.value as 'todos' | TravelRequest['status'])}
             >
-              <option value="todos">Todos os status</option>
-              <option value="recebida">Recebida</option>
-              <option value="em_analise">Em análise</option>
-              <option value="aguardando_documentos">Aguardando documentos</option>
-              <option value="aprovada">Aprovada</option>
-              <option value="agendada">Agendada</option>
-              <option value="cancelada">Cancelada</option>
-              <option value="concluida">Concluída</option>
-            </select>
+              <div className="field">
+                <label htmlFor="manager-date">Data da viagem</label>
+                <input
+                  id="manager-date"
+                  type="date"
+                  value={travelDate}
+                  onChange={(event) => {
+                    setPeriodPreset('custom')
+                    setTravelDate(event.target.value)
+                  }}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="manager-date-from">Período inicial</label>
+                <input
+                  id="manager-date-from"
+                  type="date"
+                  value={dateFrom}
+                  onChange={(event) => {
+                    setPeriodPreset('custom')
+                    setDateFrom(event.target.value)
+                  }}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="manager-date-to">Período final</label>
+                <input
+                  id="manager-date-to"
+                  type="date"
+                  value={dateTo}
+                  onChange={(event) => {
+                    setPeriodPreset('custom')
+                    setDateTo(event.target.value)
+                  }}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="manager-destination">Destino</label>
+                <input
+                  id="manager-destination"
+                  value={destination}
+                  onChange={(event) => setDestination(event.target.value)}
+                  placeholder="Cidade de destino"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="manager-driver-filter">Motorista</label>
+                <select
+                  id="manager-driver-filter"
+                  value={driverFilterId}
+                  onChange={(event) => setDriverFilterId(event.target.value)}
+                >
+                  <option value="">Todos os motoristas</option>
+                  {drivers.map((driver) => (
+                    <option key={driver.id} value={driver.id}>
+                      {driver.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </AdvancedFilters>
           </div>
-          <div className="field">
-            <label htmlFor="manager-driver-filter">Motorista</label>
-            <select
-              id="manager-driver-filter"
-              value={driverFilterId}
-              onChange={(event) => setDriverFilterId(event.target.value)}
-            >
-              <option value="">Todos os motoristas</option>
-              {drivers.map((driver) => (
-                <option key={driver.id} value={driver.id}>
-                  {driver.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
         <div className="filter-actions compact-filter-actions">
           <div className="field period-inline-field">
             <label htmlFor="manager-period-preset">Período rápido</label>
@@ -758,7 +793,7 @@ export function ManagerPage() {
           ) : requests.length > 0 && selectedRequest ? (
             <div className="manager-workspace">
               <div className="manager-request-list">
-                {requests.map((request) => (
+                {paginatedRequests.map((request) => (
                   <button
                     key={request.id}
                     className={`manager-request-list-item ${selectedRequest.id === request.id ? 'active' : ''}`}
@@ -787,6 +822,14 @@ export function ManagerPage() {
                   </button>
                 ))}
               </div>
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={requests.length}
+                  onPageChange={setCurrentPage}
+                />
+              )}
 
               <article className="assignment-card manager-request-card manager-request-focus compact-assignment-card">
                 <div className="assignment-header">

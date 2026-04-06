@@ -1,6 +1,7 @@
 import { Filter, ListChecks, LockKeyhole, LogOut, Plus, RefreshCcw, Route, Search, ShieldCheck, UserRoundSearch } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AdvancedFilters } from '../components/AdvancedFilters'
 import { AsyncActionButton } from '../components/AsyncActionButton'
 import { Pagination } from '../components/Pagination'
 import { InternalSidebar } from '../components/InternalSidebar'
@@ -194,6 +195,12 @@ export function DashboardPage() {
   function applyFilters() {
     setFilters(draftFilters)
   }
+
+  const hasAdvancedFilters =
+    Boolean(draftFilters.travelDate) ||
+    Boolean(draftFilters.dateFrom) ||
+    Boolean(draftFilters.dateTo) ||
+    Boolean(draftFilters.destination)
 
   function applyQuickPeriod(mode: Exclude<PeriodPreset, 'custom'>) {
     const now = new Date()
@@ -569,51 +576,6 @@ export function DashboardPage() {
                 </div>
               </div>
               <div className="field">
-                <label htmlFor="request-date-filter">Data da viagem</label>
-                <input
-                  id="request-date-filter"
-                  type="date"
-                  value={draftFilters.travelDate}
-                  onChange={(event) => {
-                    setPeriodPreset('custom')
-                    updateDraftFilter('travelDate', event.target.value)
-                  }}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="request-date-from">Período inicial</label>
-                <input
-                  id="request-date-from"
-                  type="date"
-                  value={draftFilters.dateFrom}
-                  onChange={(event) => {
-                    setPeriodPreset('custom')
-                    updateDraftFilter('dateFrom', event.target.value)
-                  }}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="request-date-to">Período final</label>
-                <input
-                  id="request-date-to"
-                  type="date"
-                  value={draftFilters.dateTo}
-                  onChange={(event) => {
-                    setPeriodPreset('custom')
-                    updateDraftFilter('dateTo', event.target.value)
-                  }}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="destination-filter">Destino</label>
-                <input
-                  id="destination-filter"
-                  value={draftFilters.destination}
-                  onChange={(event) => updateDraftFilter('destination', toInstitutionalText(event.target.value))}
-                  placeholder="Cidade"
-                />
-              </div>
-              <div className="field">
                 <label htmlFor="status-filter">Filtrar por status</label>
                 <select
                   id="status-filter"
@@ -627,6 +589,62 @@ export function DashboardPage() {
                   ))}
                 </select>
               </div>
+              <AdvancedFilters
+                label="Filtros avançados"
+                hasActiveFilters={hasAdvancedFilters}
+                onClear={() => {
+                  updateDraftFilter('travelDate', '')
+                  updateDraftFilter('dateFrom', '')
+                  updateDraftFilter('dateTo', '')
+                  updateDraftFilter('destination', '')
+                }}
+              >
+                <div className="field">
+                  <label htmlFor="request-date-filter">Data da viagem</label>
+                  <input
+                    id="request-date-filter"
+                    type="date"
+                    value={draftFilters.travelDate}
+                    onChange={(event) => {
+                      setPeriodPreset('custom')
+                      updateDraftFilter('travelDate', event.target.value)
+                    }}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="request-date-from">Período inicial</label>
+                  <input
+                    id="request-date-from"
+                    type="date"
+                    value={draftFilters.dateFrom}
+                    onChange={(event) => {
+                      setPeriodPreset('custom')
+                      updateDraftFilter('dateFrom', event.target.value)
+                    }}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="request-date-to">Período final</label>
+                  <input
+                    id="request-date-to"
+                    type="date"
+                    value={draftFilters.dateTo}
+                    onChange={(event) => {
+                      setPeriodPreset('custom')
+                      updateDraftFilter('dateTo', event.target.value)
+                    }}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="destination-filter">Destino</label>
+                  <input
+                    id="destination-filter"
+                    value={draftFilters.destination}
+                    onChange={(event) => updateDraftFilter('destination', toInstitutionalText(event.target.value))}
+                    placeholder="Cidade"
+                  />
+                </div>
+              </AdvancedFilters>
               <div className="form-actions operator-filter-actions">
                 <div className="field period-inline-field">
                   <label htmlFor="operator-period-preset">Período rápido</label>
