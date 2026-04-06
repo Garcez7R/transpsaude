@@ -39,10 +39,11 @@ transp-saude/
 │   │   ├── DriversPage.tsx        ✅ Atualizado (ConfirmDialog)
 │   │   └── ...outras páginas
 │   └── index.css                  ✅ Atualizado (estilos)
-├── UX_IMPROVEMENTS.md             ✅ Documentação
-├── LAYOUT_ANALYSIS.md             ✅ Análise
-├── LAYOUT_RECOMMENDATIONS.md      ✅ Recomendações
-├── IMPLEMENTATION_GUIDE.md        ✅ Guia
+├── docs/
+│   ├── UX_IMPROVEMENTS.md         ✅ Documentação
+│   ├── LAYOUT_ANALYSIS.md         ✅ Análise
+│   ├── LAYOUT_RECOMMENDATIONS.md  ✅ Recomendações
+│   └── IMPLEMENTATION_GUIDE.md    ✅ Guia
 └── PROJECT_SUMMARY.md             ✅ Este arquivo
 ```
 
@@ -124,6 +125,6 @@ exportData('patients', patientsList)
 ## 📞 Contato e Suporte
 
 Para dúvidas ou problemas, consulte a documentação nos arquivos:
-- `UX_IMPROVEMENTS.md` - Exemplos de uso
-- `IMPLEMENTATION_GUIDE.md` - Guia completo
-- `LAYOUT_RECOMMENDATIONS.md` - Recomendações de layout
+- `docs/UX_IMPROVEMENTS.md` - Exemplos de uso
+- `docs/IMPLEMENTATION_GUIDE.md` - Guia completo
+- `docs/LAYOUT_RECOMMENDATIONS.md` - Recomendações de layout
