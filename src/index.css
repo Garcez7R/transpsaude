@@ -332,6 +332,11 @@ button {
   background: rgba(22, 133, 83, 0.2);
 }
 
+.wizard-step:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .filter-stack {
   display: grid;
   gap: 14px;
@@ -1040,8 +1045,8 @@ button {
 .internal-shell .metrics-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 12px;
-  margin-bottom: 16px;
+  margin-top: 10px;
+  margin-bottom: 12px;
 }
 
 .internal-shell .metric-card {
@@ -1066,7 +1071,7 @@ button {
 }
 
 .internal-shell .dashboard-grid {
-  gap: 16px;
+  gap: 14px;
 }
 
 .internal-shell .dashboard-grid-main {
@@ -1092,11 +1097,11 @@ button {
   box-shadow:
     0 22px 42px rgba(49, 65, 70, 0.07),
     inset 0 1px 0 rgba(255, 255, 255, 0.68);
-  padding: 20px;
+  padding: 18px;
 }
 
 .internal-shell .compact-workspace-card {
-  padding: 18px;
+  padding: 16px;
 }
 
 .internal-shell .content-card::before,
@@ -1895,17 +1900,21 @@ th {
 .public-layout,
 .dashboard-side {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .dashboard-main-stack {
   display: grid;
-  gap: 18px;
+  gap: 14px;
   min-width: 0;
 }
 
 .dashboard-side {
   align-content: start;
+}
+
+.internal-shell .dashboard-side {
+  gap: 12px;
 }
 
 .dashboard-side > .content-card {

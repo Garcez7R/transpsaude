@@ -84,6 +84,7 @@ export function RegisterRequestPage() {
     { id: 'observacoes', label: 'Observações' },
   ]
   const lastStep = steps.length - 1
+  const [maxStep, setMaxStep] = useState(0)
 
   function canAdvanceStep(currentStep: number) {
     const cpfLength = form.cpf.replace(/\D/g, '').length
@@ -132,7 +133,11 @@ export function RegisterRequestPage() {
     if (!canAdvanceStep(step)) {
       return
     }
-    setStep((current) => Math.min(current + 1, lastStep))
+    setStep((current) => {
+      const next = Math.min(current + 1, lastStep)
+      setMaxStep((previous) => Math.max(previous, next))
+      return next
+    })
   }
 
   function handleStepBack() {
@@ -194,6 +199,7 @@ export function RegisterRequestPage() {
       setSuccess({ protocol: result.protocol, message: result.message })
       setForm(initialForm)
       setStep(0)
+      setMaxStep(0)
       setLookupMessage('')
       setLookupStatus('idle')
     } catch {
@@ -383,8 +389,9 @@ export function RegisterRequestPage() {
                   role="tab"
                   className={`wizard-step${step === index ? ' is-active' : ''}${step > index ? ' is-complete' : ''}`}
                   aria-selected={step === index}
+                  disabled={index > maxStep}
                   onClick={() => {
-                    if (index <= step) {
+                    if (index <= maxStep) {
                       setStep(index)
                     }
                   }}
