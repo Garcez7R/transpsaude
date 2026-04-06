@@ -165,7 +165,7 @@ export function VehicleDetailsPage() {
       <div className="dashboard-shell internal-shell">
         <article className="content-card">
           <h2>Acesso negado</h2>
-          <p>Somente gerente e administrador podem acessar os detalhes do veículo.</p>
+          <p>Somente a gestão interna pode acessar os detalhes do veículo.</p>
           <div className="form-actions">
             <Link className="action-button primary" to="/gerente">
               Voltar para a gerência

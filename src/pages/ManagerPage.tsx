@@ -471,7 +471,7 @@ export function ManagerPage() {
           </div>
           <div className="institutional-copy">
             <strong>Gerência de transporte em saúde</strong>
-            <span>Acesso reservado a gerente e administrador</span>
+            <span>Acesso reservado à gestão interna</span>
           </div>
         </section>
 
@@ -482,7 +482,7 @@ export function ManagerPage() {
               Acesso da gerência
             </div>
             <h1>Entrar na gerência</h1>
-            <p>Somente gerente ou administrador podem acessar esta área.</p>
+            <p>Somente a gestão interna pode acessar esta área.</p>
             <form onSubmit={handleLogin}>
               <div className="login-grid">
                 <div className="field">

@@ -255,6 +255,7 @@ export interface VehicleLogEntry {
   vehicleId: number
   driverId?: number | null
   driverName?: string | null
+  travelRequestId?: number | null
   entryType: VehicleLogEntryType
   odometerKm: number
   liters?: number | null
@@ -313,6 +314,8 @@ export interface CreateVehicleLogInput {
 export interface CreateDriverFuelLogInput {
   odometerKm: number
   liters: number
+  vehicleId?: number
+  travelRequestId?: number
   fuelType?: string
   notes?: string
   recordedAt?: string

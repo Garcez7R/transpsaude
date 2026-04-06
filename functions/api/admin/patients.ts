@@ -142,10 +142,10 @@ export const onRequestPatch: PagesFunction<Env> = async ({ env, request }) => {
 }
 
 export const onRequestDelete: PagesFunction<Env> = async ({ env, request }) => {
-  const session = await requireInternalRole(env, request, ['manager', 'admin'])
+  const session = await requireInternalRole(env, request, ['admin'])
 
   if (!session) {
-    return forbidden('Somente gerente ou administrador podem excluir pacientes.')
+    return forbidden('Somente o acesso master pode desativar pacientes por motivos de auditoria.')
   }
 
   const url = new URL(request.url)

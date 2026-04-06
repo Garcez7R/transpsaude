@@ -141,7 +141,12 @@ export function DriverPortalPage() {
   const [fuelLiters, setFuelLiters] = useState('')
   const [fuelType, setFuelType] = useState('Diesel')
   const [fuelNotes, setFuelNotes] = useState('')
+  const [fuelVehicleId, setFuelVehicleId] = useState('')
   const [savingFuel, setSavingFuel] = useState(false)
+  const [tripFuelDrafts, setTripFuelDrafts] = useState<
+    Record<number, { odometerKm: string; liters: string; fuelType: string; notes: string; vehicleId: string }>
+  >({})
+  const [savingTripFuel, setSavingTripFuel] = useState<Record<number, boolean>>({})
 
   useEffect(() => {
     setSession(getDriverSession())
@@ -209,6 +214,16 @@ export function DriverPortalPage() {
     }
   }, [sortedTrips, todayKey])
 
+  const availableVehicles = useMemo(() => {
+    const map = new Map<number, string>()
+    trips.forEach((trip) => {
+      if (trip.assignedVehicleId && trip.assignedVehicleName) {
+        map.set(trip.assignedVehicleId, trip.assignedVehicleName)
+      }
+    })
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+  }, [trips])
+
   const filteredTrips = useMemo(() => {
     if (selectedDate) {
       return sortedTrips.filter((trip) => trip.travelDate === selectedDate)
@@ -273,6 +288,11 @@ export function DriverPortalPage() {
   async function handleFuelSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    if (!fuelVehicleId) {
+      showToast({ type: 'error', message: 'Selecione o veículo antes de registrar o abastecimento.' })
+      return
+    }
+
     if (!fuelOdometer || !fuelLiters) {
       showToast({ type: 'error', message: 'Informe quilometragem e litros abastecidos.' })
       return
@@ -286,6 +306,7 @@ export function DriverPortalPage() {
         liters: Number(fuelLiters),
         fuelType,
         notes: fuelNotes.trim(),
+        vehicleId: Number(fuelVehicleId),
       })
       showToast({ type: 'success', message: result.message })
       setFuelOdometer('')
@@ -298,6 +319,81 @@ export function DriverPortalPage() {
       })
     } finally {
       setSavingFuel(false)
+    }
+  }
+
+  function getTripFuelDraft(trip: TravelRequest) {
+    return (
+      tripFuelDrafts[trip.id] ?? {
+        odometerKm: '',
+        liters: '',
+        fuelType: 'Diesel',
+        notes: '',
+        vehicleId: trip.assignedVehicleId ? String(trip.assignedVehicleId) : '',
+      }
+    )
+  }
+
+  function updateTripFuelDraft(trip: TravelRequest, patch: Partial<{ odometerKm: string; liters: string; fuelType: string; notes: string; vehicleId: string }>) {
+    setTripFuelDrafts((current) => {
+      const base =
+        current[trip.id] ?? {
+          odometerKm: '',
+          liters: '',
+          fuelType: 'Diesel',
+          notes: '',
+          vehicleId: trip.assignedVehicleId ? String(trip.assignedVehicleId) : '',
+        }
+
+      return {
+        ...current,
+        [trip.id]: { ...base, ...patch },
+      }
+    })
+  }
+
+  async function handleTripFuelSubmit(trip: TravelRequest) {
+    const draft = getTripFuelDraft(trip)
+
+    if (!draft.vehicleId) {
+      showToast({ type: 'error', message: 'Selecione o veículo utilizado nesta viagem.' })
+      return
+    }
+
+    if (!draft.odometerKm || !draft.liters) {
+      showToast({ type: 'error', message: 'Informe quilometragem e litros abastecidos.' })
+      return
+    }
+
+    setSavingTripFuel((current) => ({ ...current, [trip.id]: true }))
+
+    try {
+      const result = await createDriverFuelLog({
+        odometerKm: Number(draft.odometerKm),
+        liters: Number(draft.liters),
+        fuelType: draft.fuelType,
+        notes: draft.notes.trim(),
+        vehicleId: Number(draft.vehicleId),
+        travelRequestId: trip.id,
+      })
+      showToast({ type: 'success', message: result.message })
+      setTripFuelDrafts((current) => ({
+        ...current,
+        [trip.id]: {
+          odometerKm: '',
+          liters: '',
+          fuelType: draft.fuelType,
+          notes: '',
+          vehicleId: draft.vehicleId,
+        },
+      }))
+    } catch (error) {
+      showToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Não foi possível registrar o abastecimento desta viagem.',
+      })
+    } finally {
+      setSavingTripFuel((current) => ({ ...current, [trip.id]: false }))
     }
   }
 
@@ -577,7 +673,7 @@ export function DriverPortalPage() {
           title="Portal do motorista"
         />
 
-        <main className="saas-main saas-main--admin">
+        <main className="saas-main saas-main--driver">
           <header className="public-header driver-portal-header">
             <div className="eyebrow">
               <BusFront size={16} />
@@ -594,90 +690,27 @@ export function DriverPortalPage() {
 
           {error ? <p className="table-note">{error}</p> : null}
 
-      <section className="driver-toolbar">
-        <div className="metrics-grid driver-metrics-grid" aria-label="Resumo do portal do motorista">
-          <article className="metric-card">
-            <strong>{summary.total}</strong>
-            <p>viagem(ns) atribuída(s)</p>
-          </article>
-          <article className="metric-card emphasis">
-            <strong>{summary.today}</strong>
-            <p>saída(s) prevista(s) para hoje</p>
-          </article>
-          <article className="metric-card">
-            <strong>{summary.confirmedTotal}</strong>
-            <p>agenda(s) confirmada(s) pelo paciente</p>
-          </article>
-          <article className="metric-card">
-            <strong>{summary.patientMessageTotal}</strong>
-            <p>viagem(ns) com mensagem do paciente</p>
-          </article>
-        </div>
-
-        <article className="content-card">
-          <div className="eyebrow">
-            <Fuel size={16} />
-            Registro operacional
-          </div>
-          <h2>Registrar abastecimento</h2>
-          <form onSubmit={handleFuelSubmit}>
-            <div className="form-grid">
-              <div className="field">
-                <label htmlFor="driver-odometer">Odômetro (km)</label>
-                <input
-                  id="driver-odometer"
-                  type="number"
-                  value={fuelOdometer}
-                  onChange={(event) => setFuelOdometer(event.target.value)}
-                  placeholder="Ex.: 52300"
-                  required
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="driver-liters">Litros abastecidos</label>
-                <input
-                  id="driver-liters"
-                  type="number"
-                  value={fuelLiters}
-                  onChange={(event) => setFuelLiters(event.target.value)}
-                  placeholder="Ex.: 42"
-                  required
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="driver-fuel-type">Combustível</label>
-                <select
-                  id="driver-fuel-type"
-                  value={fuelType}
-                  onChange={(event) => setFuelType(event.target.value)}
-                >
-                  <option value="Diesel">Diesel</option>
-                  <option value="Gasolina">Gasolina</option>
-                  <option value="Etanol">Etanol</option>
-                  <option value="GNV">GNV</option>
-                  <option value="Flex">Flex</option>
-                </select>
-              </div>
-              <div className="field full">
-                <label htmlFor="driver-fuel-notes">Observações</label>
-                <textarea
-                  id="driver-fuel-notes"
-                  rows={3}
-                  value={fuelNotes}
-                  onChange={(event) => setFuelNotes(event.target.value)}
-                  placeholder="Posto, quilometragem adicional ou observações."
-                />
-              </div>
+          <section className="driver-toolbar">
+            <div className="metrics-grid driver-metrics-grid" aria-label="Resumo do portal do motorista">
+              <article className="metric-card">
+                <strong>{summary.total}</strong>
+                <p>viagem(ns) atribuída(s)</p>
+              </article>
+              <article className="metric-card emphasis">
+                <strong>{summary.today}</strong>
+                <p>saída(s) prevista(s) para hoje</p>
+              </article>
+              <article className="metric-card">
+                <strong>{summary.confirmedTotal}</strong>
+                <p>agenda(s) confirmada(s) pelo paciente</p>
+              </article>
+              <article className="metric-card">
+                <strong>{summary.patientMessageTotal}</strong>
+                <p>viagem(ns) com mensagem do paciente</p>
+              </article>
             </div>
-            <div className="form-actions">
-              <AsyncActionButton icon={Fuel} loading={savingFuel} loadingLabel="Salvando..." type="submit">
-                Registrar abastecimento
-              </AsyncActionButton>
-            </div>
-          </form>
-        </article>
 
-        <div className="driver-filter-bar" aria-label="Filtros de viagens">
+            <div className="driver-filter-bar" aria-label="Filtros de viagens">
           {(['today', 'upcoming', 'confirmed', 'withMessages', 'all'] as DriverTripFilter[]).map((filter) => (
             <button
               key={filter}
@@ -762,8 +795,8 @@ export function DriverPortalPage() {
               Limpar datas
             </button>
           ) : null}
-        </div>
-      </section>
+            </div>
+          </section>
 
       <div className="public-layout driver-portal-layout">
         {loading ? (
@@ -781,6 +814,12 @@ export function DriverPortalPage() {
               const companionPhone = isMeaningfulValue(trip.companionPhone) ? trip.companionPhone!.trim() : ''
               const expanded = expandedTripId === trip.id
               const saveState = messageSaveState[trip.id] ?? 'idle'
+              const tripFuelDraft = getTripFuelDraft(trip)
+              const savingTrip = savingTripFuel[trip.id] ?? false
+              const tripVehicleOptions =
+                trip.assignedVehicleId && trip.assignedVehicleName && !availableVehicles.some((vehicle) => vehicle.id === trip.assignedVehicleId)
+                  ? [{ id: trip.assignedVehicleId, name: trip.assignedVehicleName }, ...availableVehicles]
+                  : availableVehicles
 
               return (
                 <article className={`request-card driver-request-card compact ${expanded ? 'expanded' : ''}`} key={trip.id}>
@@ -815,6 +854,14 @@ export function DriverPortalPage() {
                       <span>
                         <small>Embarque</small>
                         <strong>{boardingLocation}</strong>
+                      </span>
+                      <span>
+                        <small>Contato</small>
+                        <strong>{patientPhone || 'Não informado'}</strong>
+                      </span>
+                      <span>
+                        <small>Destino</small>
+                        <strong>{trip.destinationCity}/{trip.destinationState}</strong>
                       </span>
                       <span>
                         <small>Veículo</small>
@@ -930,6 +977,93 @@ export function DriverPortalPage() {
                       </section>
 
                       <section className="detail-section-card">
+                        <div className="eyebrow">
+                          <Fuel size={16} />
+                          Registro da viagem
+                        </div>
+                        <p className="table-note">Registre odômetro e litros desta viagem. Se houver troca, selecione o veículo correto.</p>
+                        <div className="form-grid" style={{ marginTop: '12px' }}>
+                          <div className="field">
+                            <label htmlFor={`trip-fuel-vehicle-${trip.id}`}>Veículo da viagem</label>
+                            <select
+                              id={`trip-fuel-vehicle-${trip.id}`}
+                              value={tripFuelDraft.vehicleId}
+                              onChange={(event) => updateTripFuelDraft(trip, { vehicleId: event.target.value })}
+                              required
+                            >
+                              <option value="">Selecionar veículo</option>
+                              {tripVehicleOptions.map((vehicle) => (
+                                <option key={vehicle.id} value={vehicle.id}>
+                                  {vehicle.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="field">
+                            <label htmlFor={`trip-odometer-${trip.id}`}>Odômetro (km)</label>
+                            <input
+                              id={`trip-odometer-${trip.id}`}
+                              type="number"
+                              value={tripFuelDraft.odometerKm}
+                              onChange={(event) => updateTripFuelDraft(trip, { odometerKm: event.target.value })}
+                              placeholder="Ex.: 52300"
+                              required
+                            />
+                          </div>
+                          <div className="field">
+                            <label htmlFor={`trip-liters-${trip.id}`}>Litros abastecidos</label>
+                            <input
+                              id={`trip-liters-${trip.id}`}
+                              type="number"
+                              value={tripFuelDraft.liters}
+                              onChange={(event) => updateTripFuelDraft(trip, { liters: event.target.value })}
+                              placeholder="Ex.: 42"
+                              required
+                            />
+                          </div>
+                          <div className="field">
+                            <label htmlFor={`trip-fuel-type-${trip.id}`}>Combustível</label>
+                            <select
+                              id={`trip-fuel-type-${trip.id}`}
+                              value={tripFuelDraft.fuelType}
+                              onChange={(event) => updateTripFuelDraft(trip, { fuelType: event.target.value })}
+                            >
+                              <option value="Diesel">Diesel</option>
+                              <option value="Gasolina">Gasolina</option>
+                              <option value="Etanol">Etanol</option>
+                              <option value="GNV">GNV</option>
+                              <option value="Flex">Flex</option>
+                            </select>
+                          </div>
+                          <div className="field full">
+                            <label htmlFor={`trip-fuel-notes-${trip.id}`}>Observações</label>
+                            <textarea
+                              id={`trip-fuel-notes-${trip.id}`}
+                              rows={3}
+                              value={tripFuelDraft.notes}
+                              onChange={(event) => updateTripFuelDraft(trip, { notes: event.target.value })}
+                              placeholder="Posto, quilometragem adicional ou observações."
+                            />
+                          </div>
+                        </div>
+                        <div className="form-actions">
+                          <AsyncActionButton
+                            icon={Fuel}
+                            loading={savingTrip}
+                            loadingLabel="Salvando..."
+                            onClick={() => void handleTripFuelSubmit(trip)}
+                            type="button"
+                            disabled={tripVehicleOptions.length === 0}
+                          >
+                            Registrar abastecimento
+                          </AsyncActionButton>
+                        </div>
+                        {tripVehicleOptions.length === 0 ? (
+                          <p className="table-note">Nenhum veículo disponível para esta viagem. Aguarde a gerência atualizar o roteiro.</p>
+                        ) : null}
+                      </section>
+
+                      <section className="detail-section-card">
                         <h3>Mensagens da equipe</h3>
                         {teamMessages.length > 0 ? (
                           <ol className="status-history">
@@ -1033,6 +1167,97 @@ export function DriverPortalPage() {
           </article>
         )}
       </div>
+
+      <section className="driver-quick-fuel">
+        <article className="content-card">
+          <div className="eyebrow">
+            <Fuel size={16} />
+            Registro operacional
+          </div>
+          <h2>Registro rápido de abastecimento</h2>
+          <p className="table-note">Atalho para emergências. Selecione o veículo antes de salvar.</p>
+          <form onSubmit={handleFuelSubmit}>
+            <div className="form-grid">
+              <div className="field">
+                <label htmlFor="driver-fuel-vehicle">Veículo</label>
+                <select
+                  id="driver-fuel-vehicle"
+                  value={fuelVehicleId}
+                  onChange={(event) => setFuelVehicleId(event.target.value)}
+                  required
+                >
+                  <option value="">Selecionar veículo</option>
+                  {availableVehicles.map((vehicle) => (
+                    <option key={vehicle.id} value={vehicle.id}>
+                      {vehicle.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="driver-odometer">Odômetro (km)</label>
+                <input
+                  id="driver-odometer"
+                  type="number"
+                  value={fuelOdometer}
+                  onChange={(event) => setFuelOdometer(event.target.value)}
+                  placeholder="Ex.: 52300"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="driver-liters">Litros abastecidos</label>
+                <input
+                  id="driver-liters"
+                  type="number"
+                  value={fuelLiters}
+                  onChange={(event) => setFuelLiters(event.target.value)}
+                  placeholder="Ex.: 42"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="driver-fuel-type">Combustível</label>
+                <select
+                  id="driver-fuel-type"
+                  value={fuelType}
+                  onChange={(event) => setFuelType(event.target.value)}
+                >
+                  <option value="Diesel">Diesel</option>
+                  <option value="Gasolina">Gasolina</option>
+                  <option value="Etanol">Etanol</option>
+                  <option value="GNV">GNV</option>
+                  <option value="Flex">Flex</option>
+                </select>
+              </div>
+              <div className="field full">
+                <label htmlFor="driver-fuel-notes">Observações</label>
+                <textarea
+                  id="driver-fuel-notes"
+                  rows={3}
+                  value={fuelNotes}
+                  onChange={(event) => setFuelNotes(event.target.value)}
+                  placeholder="Posto, quilometragem adicional ou observações."
+                />
+              </div>
+            </div>
+            <div className="form-actions">
+              <AsyncActionButton
+                icon={Fuel}
+                loading={savingFuel}
+                loadingLabel="Salvando..."
+                type="submit"
+                disabled={availableVehicles.length === 0}
+              >
+                Registrar abastecimento
+              </AsyncActionButton>
+            </div>
+          </form>
+          {availableVehicles.length === 0 ? (
+            <p className="table-note">Nenhum veículo disponível. Aguarde a gerência vincular um veículo à sua rota.</p>
+          ) : null}
+        </article>
+      </section>
         </main>
       </div>
     </div>

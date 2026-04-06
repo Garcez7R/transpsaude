@@ -2567,7 +2567,7 @@ th {
 
 .driver-trip-summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 10px;
 }
 
@@ -2605,6 +2605,10 @@ th {
   padding: 0 20px 20px;
   border-top: 1px solid rgba(15, 23, 42, 0.08);
   animation: driver-expand-in 0.18s ease;
+}
+
+.driver-quick-fuel {
+  margin-top: 18px;
 }
 
 .driver-request-card .assignment-header {

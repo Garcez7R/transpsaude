@@ -385,7 +385,7 @@ export function DashboardPage() {
               Acesso administrativo
             </div>
             <h1>Entrar no painel</h1>
-            <p>Ambiente restrito para operadores e administradores autorizados.</p>
+            <p>Ambiente restrito para operadores e gestão autorizada.</p>
             <form onSubmit={handleLogin}>
               <div className="login-grid">
                 <div className="field">

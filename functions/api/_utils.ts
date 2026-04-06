@@ -1719,6 +1719,15 @@ export async function confirmCitizenRequest(env: Env, cpf: string, password: str
     return false
   }
 
+  const status = String(requestRecord.status ?? '')
+  if (!['aprovada', 'agendada'].includes(status)) {
+    return {
+      ...access,
+      message: 'Esta solicitação não está disponível para confirmação no momento.',
+      confirmedAt: String(requestRecord.patientConfirmedAt ?? ''),
+    }
+  }
+
   const existingConfirmation = String(requestRecord.patientConfirmedAt ?? '').trim()
 
   if (!existingConfirmation) {

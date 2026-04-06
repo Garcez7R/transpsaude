@@ -476,7 +476,7 @@ export function DriversPage() {
       <div className="dashboard-shell internal-shell">
         <article className="content-card">
           <h2>Acesso negado</h2>
-          <p>Somente gerente e administrador podem cadastrar ou gerenciar motoristas e veículos.</p>
+          <p>Somente a gestão interna pode cadastrar ou gerenciar motoristas e veículos.</p>
           <div className="form-actions">
             <Link className="action-button primary" to="/gerente">
               Ir para gerência
@@ -1007,9 +1007,9 @@ export function DriversPage() {
               <article className="content-card dashboard-side-sticky fleet-guidance-card">
                 <h2>Permissões nesta área</h2>
                 <ul className="check-list">
-                  <li>Gerente e admin criam motoristas</li>
-                  <li>Gerente e admin criam operadores</li>
-                  <li>Somente admin cria gerentes</li>
+                  <li>A gestão interna cria motoristas</li>
+                  <li>A gestão interna cria operadores</li>
+                  <li>Acesso master cria gerentes</li>
                   <li>O veículo no cadastro do motorista é apenas preferencial</li>
                 </ul>
               </article>

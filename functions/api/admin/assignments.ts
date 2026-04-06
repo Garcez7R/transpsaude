@@ -85,6 +85,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
     return notFound('Solicitação não encontrada.')
   }
 
+  const currentStatus = String(travelRequest.status ?? '')
+  if (!['aprovada', 'agendada'].includes(currentStatus)) {
+    return badRequest('Somente solicitações aprovadas ou agendadas podem receber motorista e veículo.')
+  }
+
   try {
     await env.DB.prepare(
       `
