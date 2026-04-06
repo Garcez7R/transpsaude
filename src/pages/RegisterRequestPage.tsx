@@ -619,41 +619,6 @@ export function RegisterRequestPage() {
 
         <aside className="dashboard-side">
           <article className="content-card">
-            <h2>Resumo em tempo real</h2>
-            <p className="table-note">Confira o essencial antes de salvar e use este quadro como última revisão do atendimento.</p>
-            <dl className="request-summary">
-              <div>
-                <dt>Paciente</dt>
-                <dd>{liveSummary.patientName}</dd>
-              </div>
-              <div>
-                <dt>CPF de acesso</dt>
-                <dd>{liveSummary.accessCpf}</dd>
-              </div>
-              <div>
-                <dt>Destino</dt>
-                <dd>{liveSummary.destination}</dd>
-              </div>
-              <div>
-                <dt>Unidade</dt>
-                <dd>{liveSummary.treatmentUnit}</dd>
-              </div>
-              <div>
-                <dt>Data da viagem</dt>
-                <dd>{liveSummary.travelDate}</dd>
-              </div>
-              <div>
-                <dt>Horário da consulta</dt>
-                <dd>{liveSummary.appointmentTime}</dd>
-              </div>
-              <div>
-                <dt>Acompanhante</dt>
-                <dd>{liveSummary.companion}</dd>
-              </div>
-            </dl>
-          </article>
-
-          <article className="content-card">
             <h2>Validação do cadastro</h2>
             {validationHints.length > 0 ? (
               <ul className="check-list">
@@ -664,16 +629,6 @@ export function RegisterRequestPage() {
             ) : (
               <p className="table-note">Os principais campos obrigatórios já estão preenchidos.</p>
             )}
-          </article>
-
-          <article className="content-card">
-            <h2>Fluxo rápido</h2>
-            <ul className="check-list">
-              <li>Busque primeiro pelo CPF para reaproveitar cadastro e evitar redigitação.</li>
-              <li>O acesso do cidadão usa o CPF do paciente, salvo quando houver responsável definido.</li>
-              <li>Se houver acompanhante, os dados dele aparecem e passam a ser obrigatórios.</li>
-              <li>Horário da consulta e data da viagem ajudam a organizar melhor a saída do transporte.</li>
-            </ul>
           </article>
 
           {success ? (
@@ -706,17 +661,7 @@ export function RegisterRequestPage() {
               </div>
               {copyMessage ? <p className="table-note">{copyMessage}</p> : null}
             </article>
-          ) : (
-            <article className="content-card">
-              <h2>O que acontece depois</h2>
-              <ul className="check-list">
-              <li>Solicitação nasce com status `agendada`</li>
-              <li>Horário da consulta fica salvo para organizar melhor a ordem dos pacientes</li>
-              <li>Mensagens e confirmação do paciente ficam disponíveis no detalhe da solicitação</li>
-              <li>Cidadão ou responsável consulta andamento no PWA com CPF de acesso e PIN</li>
-            </ul>
-            </article>
-          )}
+          ) : null}
         </aside>
       </section>
         </main>
