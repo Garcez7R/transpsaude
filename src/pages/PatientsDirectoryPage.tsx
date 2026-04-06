@@ -1,6 +1,8 @@
 import { ArrowLeft, Download, FilePlus2, Route, Search, ShieldCheck, UserRoundSearch, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AdvancedFilters } from '../components/AdvancedFilters'
+import { Pagination } from '../components/Pagination'
 import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessOperator, getInternalRoleLabel } from '../lib/access'
 import { fetchPatients, logoutSession } from '../lib/api'
@@ -65,6 +67,8 @@ export function PatientsDirectoryPage() {
   const [responsibleFilter, setResponsibleFilter] = useState('')
   const [whatsappOnly, setWhatsappOnly] = useState(false)
   const [responsibleOnly, setResponsibleOnly] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 14
 
   useEffect(() => {
     if (!session) {
@@ -158,6 +162,26 @@ export function PatientsDirectoryPage() {
       return true
     })
   }, [addressFilter, patients, phoneFilter, responsibleFilter, responsibleOnly, search, whatsappOnly])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, phoneFilter, addressFilter, responsibleFilter, whatsappOnly, responsibleOnly])
+
+  const totalPages = Math.ceil(filteredPatients.length / ITEMS_PER_PAGE)
+
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
+
+  const paginatedPatients = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    const end = start + ITEMS_PER_PAGE
+    return filteredPatients.slice(start, end)
+  }, [currentPage, filteredPatients])
+
+  const hasAdvancedFilters = Boolean(phoneFilter) || Boolean(addressFilter) || Boolean(responsibleFilter)
 
   const withResponsibleCount = patients.filter((patient) => patient.useResponsibleCpfForAccess).length
   const withWhatsappCount = patients.filter((patient) => patient.isWhatsapp).length
@@ -294,35 +318,7 @@ export function PatientsDirectoryPage() {
                   id="patient-directory-search"
                   value={search}
                   onChange={(event) => setSearch(toInstitutionalText(event.target.value))}
-                  placeholder="Nome, CPF, telefone, CPF de acesso, CNS ou responsável..."
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="patient-directory-phone">Telefone</label>
-                <input
-                  id="patient-directory-phone"
-                  value={phoneFilter}
-                  onChange={(event) => setPhoneFilter(event.target.value)}
-                  inputMode="tel"
-                  placeholder="(53) 99999-9999"
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="patient-directory-address">Endereço</label>
-                <input
-                  id="patient-directory-address"
-                  value={addressFilter}
-                  onChange={(event) => setAddressFilter(toInstitutionalText(event.target.value))}
-                  placeholder="Rua, bairro ou referência"
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="patient-directory-responsible">Responsável</label>
-                <input
-                  id="patient-directory-responsible"
-                  value={responsibleFilter}
-                  onChange={(event) => setResponsibleFilter(toInstitutionalText(event.target.value))}
-                  placeholder="Nome ou CPF do responsável"
+                  placeholder="Nome, CPF, telefone, CNS ou responsável..."
                 />
               </div>
               <div className="field checkbox-field checkbox-field-inline">
@@ -333,7 +329,7 @@ export function PatientsDirectoryPage() {
                     checked={whatsappOnly}
                     onChange={(event) => setWhatsappOnly(event.target.checked)}
                   />
-                  <span>Somente com WhatsApp</span>
+                  <span>Somente WhatsApp</span>
                 </label>
               </div>
               <div className="field checkbox-field checkbox-field-inline">
@@ -344,9 +340,47 @@ export function PatientsDirectoryPage() {
                     checked={responsibleOnly}
                     onChange={(event) => setResponsibleOnly(event.target.checked)}
                   />
-                  <span>Somente com acesso por responsável</span>
+                  <span>Somente com responsável</span>
                 </label>
               </div>
+              <AdvancedFilters
+                label="Filtros avançados"
+                hasActiveFilters={hasAdvancedFilters}
+                onClear={() => {
+                  setPhoneFilter('')
+                  setAddressFilter('')
+                  setResponsibleFilter('')
+                }}
+              >
+                <div className="field">
+                  <label htmlFor="patient-directory-phone">Telefone</label>
+                  <input
+                    id="patient-directory-phone"
+                    value={phoneFilter}
+                    onChange={(event) => setPhoneFilter(event.target.value)}
+                    inputMode="tel"
+                    placeholder="(53) 99999-9999"
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="patient-directory-address">Endereço</label>
+                  <input
+                    id="patient-directory-address"
+                    value={addressFilter}
+                    onChange={(event) => setAddressFilter(toInstitutionalText(event.target.value))}
+                    placeholder="Rua, bairro ou referência"
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="patient-directory-responsible">Responsável</label>
+                  <input
+                    id="patient-directory-responsible"
+                    value={responsibleFilter}
+                    onChange={(event) => setResponsibleFilter(toInstitutionalText(event.target.value))}
+                    placeholder="Nome ou CPF do responsável"
+                  />
+                </div>
+              </AdvancedFilters>
             </div>
           </div>
 
@@ -391,7 +425,7 @@ export function PatientsDirectoryPage() {
             <p className="table-note">Carregando pacientes...</p>
           ) : filteredPatients.length > 0 ? (
             <div className="assignment-list scroll-list directory-patient-list">
-              {filteredPatients.map((patient) => (
+              {paginatedPatients.map((patient) => (
                 <article className="assignment-card directory-patient-card" key={patient.id}>
                   <div className="assignment-header">
                     <div>
@@ -435,6 +469,16 @@ export function PatientsDirectoryPage() {
               <p>Refine os filtros para localizar nome, CPF, telefone, endereço ou dados do responsável.</p>
             </article>
           )}
+
+          {totalPages > 1 ? (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredPatients.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={setCurrentPage}
+            />
+          ) : null}
         </div>
       </section>
         </main>
