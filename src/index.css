@@ -2647,6 +2647,9 @@ th {
   padding: 0 20px 20px;
   border-top: 1px solid rgba(15, 23, 42, 0.08);
   animation: driver-expand-in 0.18s ease;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
 }
 
 .driver-quick-fuel {
@@ -2676,7 +2679,15 @@ th {
 }
 
 .driver-request-card .detail-section-card {
-  margin-top: 16px;
+  margin-top: 0;
+}
+
+.driver-trip-details .travel-actions {
+  grid-column: 1 / -1;
+}
+
+.driver-trip-details .span-full {
+  grid-column: 1 / -1;
 }
 
 .driver-request-card .detail-section-card h3 {
@@ -2951,6 +2962,7 @@ th {
 
   .driver-trip-details {
     padding: 0 16px 16px;
+    grid-template-columns: 1fr;
   }
 
   .driver-trip-summary-grid {

@@ -976,7 +976,7 @@ export function DriverPortalPage() {
                         </dl>
                       </section>
 
-                      <section className="detail-section-card">
+                      <section className="detail-section-card span-full">
                         <div className="eyebrow">
                           <Fuel size={16} />
                           Registro da viagem
@@ -1063,7 +1063,7 @@ export function DriverPortalPage() {
                         ) : null}
                       </section>
 
-                      <section className="detail-section-card">
+                      <section className="detail-section-card span-full">
                         <h3>Mensagens da equipe</h3>
                         {teamMessages.length > 0 ? (
                           <ol className="status-history">
@@ -1082,7 +1082,7 @@ export function DriverPortalPage() {
                       </section>
 
                       {patientMessages.length > 0 ? (
-                        <section className="detail-section-card message-highlight">
+                        <section className="detail-section-card message-highlight span-full">
                           <div className="eyebrow">
                             <MessageSquare size={16} />
                             Mensagens do paciente
@@ -1099,7 +1099,7 @@ export function DriverPortalPage() {
                         </section>
                       ) : null}
 
-                      <section className="detail-section-card">
+                      <section className="detail-section-card span-full">
                         <h3>Nova mensagem</h3>
                         <div className="form-grid" style={{ marginTop: '12px' }}>
                           <div className="field">
