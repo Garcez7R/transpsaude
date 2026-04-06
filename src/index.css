@@ -1897,6 +1897,12 @@ th {
   color: var(--accent-strong);
 }
 
+.saas-main--driver .empty-state {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
 .public-layout,
 .dashboard-side {
   display: grid;
