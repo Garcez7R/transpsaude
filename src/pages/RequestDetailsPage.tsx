@@ -66,6 +66,7 @@ export function RequestDetailsPage() {
   const [savingSchedule, setSavingSchedule] = useState(false)
   const [savingMessage, setSavingMessage] = useState(false)
   const [savingDriverPhoneVisibility, setSavingDriverPhoneVisibility] = useState(false)
+  const [activeTab, setActiveTab] = useState<'dados' | 'historico' | 'mensagens' | 'acoes'>('dados')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const patientMessages = details?.messages.filter((entry) => entry.createdByRole === 'patient') ?? []
@@ -386,11 +387,50 @@ export function RequestDetailsPage() {
           {error ? <p className="table-note">{error}</p> : null}
           {message ? <p className="table-note">{message}</p> : null}
 
+          <div className="content-tabs" role="tablist" aria-label="Seções da solicitação">
+            <button
+              type="button"
+              role="tab"
+              className={activeTab === 'dados' ? 'is-active' : ''}
+              aria-selected={activeTab === 'dados'}
+              onClick={() => setActiveTab('dados')}
+            >
+              Dados
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className={activeTab === 'historico' ? 'is-active' : ''}
+              aria-selected={activeTab === 'historico'}
+              onClick={() => setActiveTab('historico')}
+            >
+              Histórico
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className={activeTab === 'mensagens' ? 'is-active' : ''}
+              aria-selected={activeTab === 'mensagens'}
+              onClick={() => setActiveTab('mensagens')}
+            >
+              Mensagens
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className={activeTab === 'acoes' ? 'is-active' : ''}
+              aria-selected={activeTab === 'acoes'}
+              onClick={() => setActiveTab('acoes')}
+            >
+              Ações
+            </button>
+          </div>
+
       {loading || !details ? (
         <article className="content-card">
           <p className="table-note">Carregando detalhes da solicitação...</p>
         </article>
-      ) : (
+      ) : activeTab === 'dados' ? (
         <section className="dashboard-grid dashboard-grid-main">
           <div className="dashboard-main-stack">
             <article className="content-card">
@@ -607,29 +647,137 @@ export function RequestDetailsPage() {
 
           <aside className="dashboard-side">
             <article className="content-card">
-              <h2>Contato do motorista</h2>
-              <form onSubmit={handleDriverPhoneVisibilitySubmit}>
-                <div className="form-grid">
-                  <div className="field full checkbox-field">
-                    <label className="checkbox-row" htmlFor="request-driver-phone-visibility">
-                      <input
-                        id="request-driver-phone-visibility"
-                        type="checkbox"
-                        checked={showDriverPhoneToPatient}
-                        onChange={(event) => setShowDriverPhoneToPatient(event.target.checked)}
-                      />
-                      <span>Exibir telefone do motorista na consulta do paciente</span>
-                    </label>
-                  </div>
+              <h2>Resumo operacional</h2>
+              <dl className="request-summary">
+                <div>
+                  <dt>Status</dt>
+                  <dd>
+                    <span className={`status-badge ${details.status}`}>{details.status}</span>
+                  </dd>
                 </div>
-                <div className="form-actions">
-                  <AsyncActionButton icon={Save} loading={savingDriverPhoneVisibility} loadingLabel="Salvando..." type="submit">
-                    Salvar visibilidade
-                  </AsyncActionButton>
+                <div>
+                  <dt>Motorista</dt>
+                  <dd>{details.assignedDriverName || 'Não atribuído'}</dd>
                 </div>
-              </form>
+                <div>
+                  <dt>Saída</dt>
+                  <dd>{details.departureTime || 'A definir'}</dd>
+                </div>
+                <div>
+                  <dt>Consulta</dt>
+                  <dd>{details.appointmentTime || 'A definir'}</dd>
+                </div>
+              </dl>
             </article>
+          </aside>
+        </section>
+      ) : activeTab === 'historico' ? (
+        <section className="dashboard-grid dashboard-grid-single">
+          <article className="content-card">
+            <h2>Histórico da solicitação</h2>
+            <ol className="status-history">
+              {history.map((entry) => (
+                <li key={`${entry.status}-${entry.updatedAt}`}>
+                  <strong>{entry.label}</strong> em {formatDisplayTimestamp(entry.updatedAt)}
+                  {entry.note ? ` - ${entry.note}` : ''}
+                </li>
+              ))}
+            </ol>
+          </article>
+        </section>
+      ) : activeTab === 'mensagens' ? (
+        <section className="dashboard-grid dashboard-grid-single">
+          <article className="content-card">
+            <h2>Mensagens e avisos</h2>
+            <form onSubmit={handleMessageSubmit}>
+              <div className="form-grid">
+                <div className="field">
+                  <label htmlFor="request-message-type">Tipo</label>
+                  <select id="request-message-type" value={messageType} onChange={(event) => setMessageType(event.target.value)}>
+                    <option value="general">Aviso geral</option>
+                    <option value="schedule">Mudança de horário</option>
+                    <option value="documents">Documentos</option>
+                    <option value="boarding">Embarque</option>
+                  </select>
+                </div>
+                <div className="field full">
+                  <label htmlFor="request-message-title">Título</label>
+                  <input
+                    id="request-message-title"
+                    value={messageTitle}
+                    onChange={(event) => setMessageTitle(toInstitutionalText(event.target.value))}
+                    placeholder="Ex.: Comparecer com antecedência"
+                  />
+                </div>
+                <div className="field full">
+                  <label htmlFor="request-message-body">Mensagem</label>
+                  <textarea
+                    id="request-message-body"
+                    rows={4}
+                    value={messageBody}
+                    onChange={(event) => setMessageBody(toInstitutionalText(event.target.value))}
+                    placeholder="Escreva a orientação que deve ficar registrada nesta solicitação."
+                    required
+                  />
+                </div>
+                <div className="field checkbox-field checkbox-field-inline">
+                  <label className="checkbox-row" htmlFor="request-message-visible">
+                    <input
+                      id="request-message-visible"
+                      type="checkbox"
+                      checked={visibleToCitizen}
+                      onChange={(event) => setVisibleToCitizen(event.target.checked)}
+                    />
+                    <span>Exibir esta mensagem na consulta do paciente</span>
+                  </label>
+                </div>
+              </div>
+              <div className="form-actions">
+                <AsyncActionButton disabled={!messageBody.trim()} icon={Save} loading={savingMessage} loadingLabel="Registrando..." type="submit">
+                  Registrar mensagem
+                </AsyncActionButton>
+              </div>
+            </form>
+          </article>
 
+          <article className="content-card">
+            <h2>Mensagens da equipe</h2>
+            {teamMessages.length > 0 ? (
+              <ol className="status-history">
+                {teamMessages.map((entry) => (
+                  <li key={`team-message-${entry.id}`}>
+                    <strong>{entry.title || 'Mensagem registrada'}</strong> em {formatDisplayTimestamp(entry.createdAt)} por {entry.createdByName}
+                    {entry.visibleToCitizen ? ' • Visível ao paciente' : ' • Uso interno'}
+                    <br />
+                    {entry.body}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="table-note">Nenhuma mensagem da equipe registrada até o momento.</p>
+            )}
+          </article>
+
+          <article className="content-card" id="mensagens-paciente">
+            <h2>Mensagens do paciente</h2>
+            {patientMessages.length > 0 ? (
+              <ol className="status-history">
+                {patientMessages.map((entry) => (
+                  <li key={`patient-message-${entry.id}`}>
+                    <strong>{entry.title || 'Mensagem enviada pelo paciente'}</strong> em {formatDisplayTimestamp(entry.createdAt)}
+                    <br />
+                    {entry.body}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="table-note">O paciente ainda não enviou mensagens por esta solicitação.</p>
+            )}
+          </article>
+        </section>
+      ) : (
+        <section className="dashboard-grid dashboard-grid-main">
+          <div className="dashboard-main-stack">
             <article className="content-card">
               <h2>Atualizar status</h2>
               <form onSubmit={handleSubmit}>
@@ -721,102 +869,31 @@ export function RequestDetailsPage() {
                 </form>
               </article>
             ) : null}
+          </div>
 
+          <aside className="dashboard-side">
             <article className="content-card">
-              <h2>Mensagens e avisos</h2>
-              <form onSubmit={handleMessageSubmit}>
+              <h2>Contato do motorista</h2>
+              <form onSubmit={handleDriverPhoneVisibilitySubmit}>
                 <div className="form-grid">
-                  <div className="field">
-                    <label htmlFor="request-message-type">Tipo</label>
-                    <select id="request-message-type" value={messageType} onChange={(event) => setMessageType(event.target.value)}>
-                      <option value="general">Aviso geral</option>
-                      <option value="schedule">Mudança de horário</option>
-                      <option value="documents">Documentos</option>
-                      <option value="boarding">Embarque</option>
-                    </select>
-                  </div>
-                  <div className="field full">
-                    <label htmlFor="request-message-title">Título</label>
-                    <input
-                      id="request-message-title"
-                      value={messageTitle}
-                      onChange={(event) => setMessageTitle(toInstitutionalText(event.target.value))}
-                      placeholder="Ex.: Comparecer com antecedência"
-                    />
-                  </div>
-                  <div className="field full">
-                    <label htmlFor="request-message-body">Mensagem</label>
-                    <textarea
-                      id="request-message-body"
-                      rows={4}
-                      value={messageBody}
-                      onChange={(event) => setMessageBody(toInstitutionalText(event.target.value))}
-                      placeholder="Escreva a orientação que deve ficar registrada nesta solicitação."
-                      required
-                    />
-                  </div>
-                  <div className="field checkbox-field checkbox-field-inline">
-                    <label className="checkbox-row" htmlFor="request-message-visible">
+                  <div className="field full checkbox-field">
+                    <label className="checkbox-row" htmlFor="request-driver-phone-visibility">
                       <input
-                        id="request-message-visible"
+                        id="request-driver-phone-visibility"
                         type="checkbox"
-                        checked={visibleToCitizen}
-                        onChange={(event) => setVisibleToCitizen(event.target.checked)}
+                        checked={showDriverPhoneToPatient}
+                        onChange={(event) => setShowDriverPhoneToPatient(event.target.checked)}
                       />
-                      <span>Exibir esta mensagem na consulta do paciente</span>
+                      <span>Exibir telefone do motorista na consulta do paciente</span>
                     </label>
                   </div>
                 </div>
                 <div className="form-actions">
-                  <AsyncActionButton disabled={!messageBody.trim()} icon={Save} loading={savingMessage} loadingLabel="Registrando..." type="submit">
-                    Registrar mensagem
+                  <AsyncActionButton icon={Save} loading={savingDriverPhoneVisibility} loadingLabel="Salvando..." type="submit">
+                    Salvar visibilidade
                   </AsyncActionButton>
                 </div>
               </form>
-
-              {teamMessages.length > 0 ? (
-                <ol className="status-history">
-                  {teamMessages.map((entry) => (
-                    <li key={`team-message-${entry.id}`}>
-                      <strong>{entry.title || 'Mensagem registrada'}</strong> em {formatDisplayTimestamp(entry.createdAt)} por {entry.createdByName}
-                      {entry.visibleToCitizen ? ' • Visível ao paciente' : ' • Uso interno'}
-                      <br />
-                      {entry.body}
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="table-note">Nenhuma mensagem da equipe registrada até o momento.</p>
-              )}
-            </article>
-
-            <article className="content-card" id="mensagens-paciente">
-              <h2>Mensagens do paciente</h2>
-              {patientMessages.length > 0 ? (
-                <ol className="status-history">
-                  {patientMessages.map((entry) => (
-                    <li key={`patient-message-${entry.id}`}>
-                      <strong>{entry.title || 'Mensagem enviada pelo paciente'}</strong> em {formatDisplayTimestamp(entry.createdAt)}
-                      <br />
-                      {entry.body}
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="table-note">O paciente ainda não enviou mensagens por esta solicitação.</p>
-              )}
-            </article>
-
-            <article className="content-card">
-              <h2>Histórico da solicitação</h2>
-              <ol className="status-history">
-                {history.map((entry) => (
-                  <li key={`${entry.status}-${entry.updatedAt}`}>
-                    <strong>{entry.label}</strong> em {formatDisplayTimestamp(entry.updatedAt)}
-                    {entry.note ? ` - ${entry.note}` : ''}
-                  </li>
-                ))}
-              </ol>
             </article>
           </aside>
         </section>

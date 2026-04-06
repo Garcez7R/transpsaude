@@ -22,7 +22,7 @@ alter table travel_requests add column manager_notes text;
 alter table travel_requests add column scheduled_at text;
 
 insert into drivers (name, cpf, phone, is_whatsapp, vehicle_name, password, active)
-select 'Motorista Demo', '33322211100', '(53) 99999-0202', 1, 'Van 01', '0000', 1
+select 'John Doe', '33322211100', '(53) 99999-0202', 1, 'Van 01', '0000', 1
 where not exists (select 1 from drivers where cpf = '33322211100');
 
 update travel_requests

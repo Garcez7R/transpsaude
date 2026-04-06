@@ -191,7 +191,7 @@ select 'Van 01', 'IZA1A23', 'Van', 1
 where not exists (select 1 from vehicles where plate = 'IZA1A23');
 
 insert into drivers (name, cpf, phone, is_whatsapp, vehicle_id, vehicle_name, password, must_change_password, active)
-select 'Motorista Demo', '33322211100', '(53) 99999-0202', 1, (select id from vehicles where plate = 'IZA1A23' limit 1), 'Van 01', '0000', 1, 1
+select 'John Doe', '33322211100', '(53) 99999-0202', 1, (select id from vehicles where plate = 'IZA1A23' limit 1), 'Van 01', '0000', 1, 1
 where not exists (select 1 from drivers where cpf = '33322211100');
 
 insert into patients (
