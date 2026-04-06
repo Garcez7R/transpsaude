@@ -8,9 +8,11 @@ import type {
   CreateManagerInput,
   CreateOperatorInput,
   CreateRequestMessageInput,
+  CreateDriverFuelLogInput,
   CreateTravelRequestInput,
   CreateTravelRequestResponse,
   CreateVehicleInput,
+  CreateVehicleLogInput,
   DashboardSummary,
   DriverLoginResponse,
   DriverRecord,
@@ -28,6 +30,7 @@ import type {
   UpdateRequestScheduleInput,
   UpdateRequestStatusInput,
   UpdateVehicleInput,
+  VehicleDetailResponse,
   VehicleRecord,
 } from '../types'
 import { getAdminSession } from './admin-session'
@@ -169,6 +172,30 @@ export async function fetchRequests(filters: RequestQueryFilters = {}, accessMod
   const suffix = search.toString() ? `?${search.toString()}` : ''
   const response = await fetch(`/api/requests${suffix}`, accessMode === 'operator' ? withOperatorHeaders() : withInternalHeaders())
   return parseJson<TravelRequest[]>(response)
+}
+
+export async function fetchVehicleDetail(vehicleId: number) {
+  const search = new URLSearchParams({ id: String(vehicleId) })
+  const response = await fetch(`/api/admin/vehicle-detail?${search.toString()}`, withInternalHeaders())
+  return parseJson<VehicleDetailResponse>(response)
+}
+
+export async function createVehicleLog(input: CreateVehicleLogInput) {
+  const response = await fetch('/api/admin/vehicle-logs', withInternalHeaders({
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  }))
+  return parseJson<{ message: string }>(response)
+}
+
+export async function createDriverFuelLog(input: CreateDriverFuelLogInput) {
+  const response = await fetch('/api/driver/vehicle-logs', withDriverHeaders({
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  }))
+  return parseJson<{ message: string }>(response)
 }
 
 export async function fetchRequestDetails(requestId: number, accessMode: 'internal' | 'operator' = 'internal') {

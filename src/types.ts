@@ -248,6 +248,76 @@ export interface CreateOperatorInput {
   email: string
 }
 
+export type VehicleLogEntryType = 'fuel' | 'maintenance' | 'odometer'
+
+export interface VehicleLogEntry {
+  id: number
+  vehicleId: number
+  driverId?: number | null
+  driverName?: string | null
+  entryType: VehicleLogEntryType
+  odometerKm: number
+  liters?: number | null
+  fuelType?: string | null
+  maintenanceType?: string | null
+  nextDueKm?: number | null
+  notes?: string | null
+  recordedAt: string
+}
+
+export interface VehicleTripSummary {
+  id: number
+  travelDate: string
+  destinationCity: string
+  destinationState: string
+  driverName?: string | null
+}
+
+export interface VehicleDriverSummary {
+  driverName: string
+  totalTrips: number
+}
+
+export interface VehicleDetailResponse {
+  vehicle: VehicleRecord
+  summary: {
+    lastOdometerKm?: number | null
+    lastFuel?: {
+      odometerKm: number
+      liters: number
+      fuelType?: string | null
+      recordedAt: string
+    } | null
+    averageConsumptionKmPerLiter?: number | null
+    estimatedAutonomyKm?: number | null
+    lastMaintenance?: VehicleLogEntry | null
+  }
+  fuelLogs: VehicleLogEntry[]
+  maintenanceLogs: VehicleLogEntry[]
+  trips: VehicleTripSummary[]
+  driverTotals: VehicleDriverSummary[]
+}
+
+export interface CreateVehicleLogInput {
+  vehicleId: number
+  entryType: VehicleLogEntryType
+  odometerKm: number
+  liters?: number
+  fuelType?: string
+  maintenanceType?: string
+  nextDueKm?: number
+  notes?: string
+  recordedAt?: string
+}
+
+export interface CreateDriverFuelLogInput {
+  odometerKm: number
+  liters: number
+  fuelType?: string
+  notes?: string
+  recordedAt?: string
+}
+
 export interface UpdateOperatorInput {
   id: number
   name: string

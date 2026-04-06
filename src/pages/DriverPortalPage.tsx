@@ -3,6 +3,7 @@ import {
   CalendarClock,
   ChevronDown,
   ChevronUp,
+  Fuel,
   LogOut,
   MapPin,
   MessageSquare,
@@ -12,7 +13,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { AsyncActionButton } from '../components/AsyncActionButton'
 import { InternalSidebar } from '../components/InternalSidebar'
-import { activateDriverPassword, createDriverRequestMessage, fetchDriverTrips, loginDriver, logoutSession } from '../lib/api'
+import { activateDriverPassword, createDriverFuelLog, createDriverRequestMessage, fetchDriverTrips, loginDriver, logoutSession } from '../lib/api'
 import { useAppToast } from '../lib/app-toast'
 import { clearDriverSession, getDriverSession, saveDriverSession } from '../lib/driver-session'
 import type { DriverSession, TravelRequest } from '../types'
@@ -136,6 +137,11 @@ export function DriverPortalPage() {
   const [expandedTripId, setExpandedTripId] = useState<number | null>(null)
   const [messageDrafts, setMessageDrafts] = useState<Record<number, { title: string; body: string; visibleToCitizen: boolean }>>({})
   const [messageSaveState, setMessageSaveState] = useState<Record<number, SaveState>>({})
+  const [fuelOdometer, setFuelOdometer] = useState('')
+  const [fuelLiters, setFuelLiters] = useState('')
+  const [fuelType, setFuelType] = useState('Diesel')
+  const [fuelNotes, setFuelNotes] = useState('')
+  const [savingFuel, setSavingFuel] = useState(false)
 
   useEffect(() => {
     setSession(getDriverSession())
@@ -261,6 +267,37 @@ export function DriverPortalPage() {
 
     if (!value) {
       setActiveFilter('today')
+    }
+  }
+
+  async function handleFuelSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!fuelOdometer || !fuelLiters) {
+      showToast({ type: 'error', message: 'Informe quilometragem e litros abastecidos.' })
+      return
+    }
+
+    setSavingFuel(true)
+
+    try {
+      const result = await createDriverFuelLog({
+        odometerKm: Number(fuelOdometer),
+        liters: Number(fuelLiters),
+        fuelType,
+        notes: fuelNotes.trim(),
+      })
+      showToast({ type: 'success', message: result.message })
+      setFuelOdometer('')
+      setFuelLiters('')
+      setFuelNotes('')
+    } catch (error) {
+      showToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Não foi possível registrar o abastecimento.',
+      })
+    } finally {
+      setSavingFuel(false)
     }
   }
 
@@ -557,7 +594,7 @@ export function DriverPortalPage() {
 
           {error ? <p className="table-note">{error}</p> : null}
 
-          <section className="driver-toolbar">
+      <section className="driver-toolbar">
         <div className="metrics-grid driver-metrics-grid" aria-label="Resumo do portal do motorista">
           <article className="metric-card">
             <strong>{summary.total}</strong>
@@ -576,6 +613,69 @@ export function DriverPortalPage() {
             <p>viagem(ns) com mensagem do paciente</p>
           </article>
         </div>
+
+        <article className="content-card">
+          <div className="eyebrow">
+            <Fuel size={16} />
+            Registro operacional
+          </div>
+          <h2>Registrar abastecimento</h2>
+          <form onSubmit={handleFuelSubmit}>
+            <div className="form-grid">
+              <div className="field">
+                <label htmlFor="driver-odometer">Odômetro (km)</label>
+                <input
+                  id="driver-odometer"
+                  type="number"
+                  value={fuelOdometer}
+                  onChange={(event) => setFuelOdometer(event.target.value)}
+                  placeholder="Ex.: 52300"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="driver-liters">Litros abastecidos</label>
+                <input
+                  id="driver-liters"
+                  type="number"
+                  value={fuelLiters}
+                  onChange={(event) => setFuelLiters(event.target.value)}
+                  placeholder="Ex.: 42"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="driver-fuel-type">Combustível</label>
+                <select
+                  id="driver-fuel-type"
+                  value={fuelType}
+                  onChange={(event) => setFuelType(event.target.value)}
+                >
+                  <option value="Diesel">Diesel</option>
+                  <option value="Gasolina">Gasolina</option>
+                  <option value="Etanol">Etanol</option>
+                  <option value="GNV">GNV</option>
+                  <option value="Flex">Flex</option>
+                </select>
+              </div>
+              <div className="field full">
+                <label htmlFor="driver-fuel-notes">Observações</label>
+                <textarea
+                  id="driver-fuel-notes"
+                  rows={3}
+                  value={fuelNotes}
+                  onChange={(event) => setFuelNotes(event.target.value)}
+                  placeholder="Posto, quilometragem adicional ou observações."
+                />
+              </div>
+            </div>
+            <div className="form-actions">
+              <AsyncActionButton icon={Fuel} loading={savingFuel} loadingLabel="Salvando..." type="submit">
+                Registrar abastecimento
+              </AsyncActionButton>
+            </div>
+          </form>
+        </article>
 
         <div className="driver-filter-bar" aria-label="Filtros de viagens">
           {(['today', 'upcoming', 'confirmed', 'withMessages', 'all'] as DriverTripFilter[]).map((filter) => (

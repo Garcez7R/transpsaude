@@ -10,6 +10,7 @@ import { PatientsDirectoryPage } from './pages/PatientsDirectoryPage'
 import { PublicStatusPage } from './pages/PublicStatusPage'
 import { RequestDetailsPage } from './pages/RequestDetailsPage'
 import { RegisterRequestPage } from './pages/RegisterRequestPage'
+import { VehicleDetailsPage } from './pages/VehicleDetailsPage'
 import { useKeyboardShortcuts } from './lib/keyboard-shortcuts'
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/admin/gerentes" element={<Navigate to="/admin" replace />} />
           <Route path="/gerente" element={<ManagerPage />} />
           <Route path="/gerente/equipe" element={<DriversPage />} />
+          <Route path="/gerente/veiculos/:id" element={<VehicleDetailsPage />} />
           <Route path="/gerente/pacientes" element={<PatientsDirectoryPage />} />
           <Route path="/gerente/motoristas" element={<Navigate to="/motorista" replace />} />
           <Route path="/motorista" element={<DriverPortalPage />} />

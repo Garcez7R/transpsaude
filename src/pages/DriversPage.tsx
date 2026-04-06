@@ -900,13 +900,16 @@ export function DriversPage() {
               ) : (
                 <div className="assignment-list scroll-list">
                   {vehicles.map((vehicle) => (
-                    <article className="assignment-card" key={vehicle.id}>
-                      <strong>{vehicle.name}</strong>
-                      <p className="table-note">{vehicle.plate} • {vehicle.category}</p>
-                      <div className="form-actions">
-                        <button
-                          className="action-button secondary"
-                          type="button"
+                <article className="assignment-card" key={vehicle.id}>
+                  <strong>{vehicle.name}</strong>
+                  <p className="table-note">{vehicle.plate} • {vehicle.category}</p>
+                  <div className="form-actions">
+                    <Link className="action-button secondary" to={`/gerente/veiculos/${vehicle.id}`}>
+                      Detalhes
+                    </Link>
+                    <button
+                      className="action-button secondary"
+                      type="button"
                           onClick={() => {
                             setEditingVehicleId(vehicle.id)
                             setVehicleForm({
