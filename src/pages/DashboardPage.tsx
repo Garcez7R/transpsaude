@@ -491,10 +491,7 @@ export function DashboardPage() {
     { to: '/operador/cadastro', label: 'Nova solicitação', icon: Plus },
     { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
     ...(session?.role === 'manager' || session?.role === 'admin'
-      ? [{ to: '/gerente', label: 'Gerência', icon: Route }]
-      : []),
-    ...(session?.role === 'admin'
-      ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
+      ? [{ to: '/gerente', label: 'Gestão interna', icon: Route }]
       : []),
   ]
 
@@ -521,7 +518,7 @@ export function DashboardPage() {
           title="Ambiente interno"
         />
 
-        <main className="saas-main saas-main--admin">
+        <main className="saas-main saas-main--operator">
           <header className="topbar">
             <div className="page-title-block">
               <div className="eyebrow">
@@ -543,7 +540,7 @@ export function DashboardPage() {
             </div>
           </header>
 
-      <section className="metrics-grid">
+      <section className="metrics-grid operator-metrics-grid">
         <article className="metric-card">
           <strong>{summary?.totalRequests ?? '--'}</strong>
           <p>solicitações registradas</p>
@@ -562,7 +559,7 @@ export function DashboardPage() {
         </article>
       </section>
 
-      <section className="content-card compact-workspace-card data-access-card">
+      <section className="content-card compact-workspace-card data-access-card operator-workspace-card">
           <h2>Agendamentos e solicitações</h2>
           <div className="filter-stack">
             <form className="filter-stack" onSubmit={handleFilterSubmit}>
@@ -582,7 +579,7 @@ export function DashboardPage() {
                 </div>
               </div>
               <div className="field">
-                <label htmlFor="status-filter">Filtrar por status</label>
+                <label htmlFor="status-filter">Status</label>
                 <select
                   id="status-filter"
                   value={draftFilters.status}
@@ -653,7 +650,7 @@ export function DashboardPage() {
               </AdvancedFilters>
               <div className="form-actions operator-filter-actions">
                 <div className="field period-inline-field">
-                  <label htmlFor="operator-period-preset">Período rápido</label>
+                  <label htmlFor="operator-period-preset">Período</label>
                   <select
                     id="operator-period-preset"
                     value={periodPreset}

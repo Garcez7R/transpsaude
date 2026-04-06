@@ -2187,6 +2187,42 @@ th {
   margin-top: -2px;
 }
 
+.operator-workspace-card .status-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.operator-metrics-grid {
+  margin-bottom: 12px;
+}
+
+.saas-main--operator .assignment-list.scroll-list {
+  max-height: 64vh;
+}
+
+.saas-main--operator .operator-request-card {
+  padding: 14px;
+}
+
+.saas-main--operator .operator-request-card .assignment-header {
+  margin-bottom: 8px;
+}
+
+.saas-main--operator .operator-request-card .assignment-meta {
+  margin-bottom: 10px;
+}
+
+.saas-main--operator .operator-request-card .travel-overview-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.saas-main--operator .operator-request-card .assignment-actions {
+  justify-content: space-between;
+}
+
 .status-line-actions {
   display: flex;
   flex-wrap: wrap;
