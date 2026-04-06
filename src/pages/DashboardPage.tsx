@@ -135,6 +135,12 @@ export function DashboardPage() {
   const totalPages = Math.ceil(requests.length / ITEMS_PER_PAGE)
 
   useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
+
+  useEffect(() => {
     setSession(getOperatorSession())
   }, [])
 

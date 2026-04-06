@@ -167,6 +167,23 @@ export function ManagerPage() {
 
   const totalPages = Math.ceil(requests.length / ITEMS_PER_PAGE)
 
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
+
+  useEffect(() => {
+    if (paginatedRequests.length === 0) {
+      setSelectedRequestId(null)
+      return
+    }
+
+    if (!selectedRequestId || !paginatedRequests.some((request) => request.id === selectedRequestId)) {
+      setSelectedRequestId(paginatedRequests[0].id)
+    }
+  }, [paginatedRequests, selectedRequestId])
+
   const selectedRequest =
     requests.find((request) => request.id === selectedRequestId) ??
     requests[0] ??
