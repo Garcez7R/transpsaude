@@ -2358,6 +2358,26 @@ th {
   padding: 16px;
 }
 
+.manager-route-planner {
+  border: 1px dashed rgba(49, 65, 70, 0.22);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.manager-route-grid {
+  margin-bottom: 8px;
+}
+
+.manager-request-list-item {
+  cursor: grab;
+}
+
+.manager-request-list-item:active {
+  cursor: grabbing;
+}
+
 .manager-request-focus .assignment-header {
   align-items: flex-start;
   gap: 6px;

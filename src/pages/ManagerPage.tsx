@@ -112,6 +112,8 @@ export function ManagerPage() {
   const [driverFilterId, setDriverFilterId] = useState('')
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null)
   const [assignment, setAssignment] = useState<AssignmentState>({})
+  const [routeDriverId, setRouteDriverId] = useState('')
+  const [routeVehicleId, setRouteVehicleId] = useState('')
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<number | null>(null)
   const [message, setMessage] = useState('')
@@ -330,6 +332,30 @@ export function ManagerPage() {
         [key]: value,
       },
     }))
+  }
+
+  function handleRequestDragStart(event: React.DragEvent<HTMLButtonElement>, requestId: number) {
+    event.dataTransfer.setData('text/plain', String(requestId))
+    event.dataTransfer.effectAllowed = 'move'
+  }
+
+  function handleDropOnRoute(event: React.DragEvent<HTMLElement>) {
+    event.preventDefault()
+    const requestId = Number(event.dataTransfer.getData('text/plain') ?? '')
+
+    if (!Number.isFinite(requestId) || requestId <= 0) {
+      return
+    }
+
+    if (!routeDriverId || !routeVehicleId) {
+      setError('Selecione motorista e veículo antes de arrastar a viagem para a rota.')
+      return
+    }
+
+    setSelectedRequestId(requestId)
+    updateAssignment(requestId, 'driverId', routeDriverId)
+    updateAssignment(requestId, 'vehicleId', routeVehicleId)
+    setMessage('Viagem vinculada à rota selecionada. Ajuste a saída e salve a distribuição.')
   }
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
@@ -816,6 +842,8 @@ export function ManagerPage() {
                     className={`manager-request-list-item ${selectedRequest.id === request.id ? 'active' : ''}`}
                     type="button"
                     onClick={() => setSelectedRequestId(request.id)}
+                    draggable
+                    onDragStart={(event) => handleRequestDragStart(event, request.id)}
                   >
                     <div className="request-list-header">
                       <span className={`status-badge ${request.status}`}>{statusLabels[request.status]}</span>
@@ -849,6 +877,54 @@ export function ManagerPage() {
               )}
 
               <article className="assignment-card manager-request-card manager-request-focus compact-assignment-card">
+                <div
+                  className="manager-route-planner"
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={handleDropOnRoute}
+                >
+                  <div className="form-grid manager-route-grid">
+                    <div className="field">
+                      <label htmlFor="route-driver">Motorista da rota</label>
+                      <select
+                        id="route-driver"
+                        value={routeDriverId}
+                        onChange={(event) => {
+                          const nextDriverId = event.target.value
+                          setRouteDriverId(nextDriverId)
+                          const selectedDriver = drivers.find((driver) => String(driver.id) === nextDriverId)
+                          if (selectedDriver?.vehicleId && !routeVehicleId) {
+                            setRouteVehicleId(String(selectedDriver.vehicleId))
+                          }
+                        }}
+                      >
+                        <option value="">Selecione</option>
+                        {drivers.map((driver) => (
+                          <option key={driver.id} value={driver.id}>
+                            {driver.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label htmlFor="route-vehicle">Veículo da rota</label>
+                      <select
+                        id="route-vehicle"
+                        value={routeVehicleId}
+                        onChange={(event) => setRouteVehicleId(event.target.value)}
+                      >
+                        <option value="">Selecione</option>
+                        {vehicles.map((vehicle) => (
+                          <option key={vehicle.id} value={vehicle.id}>
+                            {vehicle.name} • {vehicle.plate}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="table-note">
+                    Arraste uma viagem da lista para esta área para atribuir motorista e veículo. Depois ajuste o horário de saída e salve.
+                  </p>
+                </div>
                 <div className="assignment-header">
                   <div>
                     <strong>{getDisplayValue(selectedRequest.patientName, 'Paciente não informado')}</strong>
