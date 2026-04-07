@@ -2358,6 +2358,12 @@ th {
   padding: 16px;
 }
 
+.manager-request-focus {
+  align-self: start;
+  position: sticky;
+  top: 14px;
+}
+
 .manager-route-planner {
   border: 1px dashed rgba(49, 65, 70, 0.22);
   border-radius: 16px;
