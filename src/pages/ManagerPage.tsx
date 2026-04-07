@@ -593,8 +593,8 @@ export function ManagerPage() {
           <h2>Acesso negado</h2>
           <p>Seu perfil atual não tem permissão para entrar na gerência.</p>
           <div className="form-actions">
-            <Link className="action-button secondary" to="/operador">
-              Ir para operador
+            <Link className="action-button secondary" to="/gerente">
+              Ir para gerência
             </Link>
             <button className="action-button primary" type="button" onClick={handleLogout}>
               <LogOut size={16} />
@@ -612,9 +612,9 @@ export function ManagerPage() {
         <InternalSidebar
           actions={
             <>
-              <Link className="action-button secondary" to="/operador">
+              <Link className="action-button secondary" to="/gerente">
                 <ArrowLeft size={16} />
-                Operador
+                Painel da gerência
               </Link>
               <button className="action-button primary" type="button" onClick={handleLogout}>
                 <LogOut size={16} />
@@ -626,7 +626,6 @@ export function ManagerPage() {
             { to: '/gerente', label: 'Gerência', icon: Route, exact: true },
             { to: '/gerente/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
             { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
-            { to: '/operador', label: 'Operador', icon: ArrowLeft },
             { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
           ]}
           sessionName={session.name}
