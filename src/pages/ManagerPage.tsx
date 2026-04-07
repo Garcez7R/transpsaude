@@ -911,18 +911,6 @@ export function ManagerPage() {
             Limpar filtros
           </button>
         </div>
-        <div className="status-line">
-          <span className="subtle-label">
-            {search || travelDate || dateFrom || dateTo || destination || driverFilterId ? <Search size={14} /> : <RefreshCcw size={14} />}
-            {visibleCountLabel}
-          </span>
-          <span className="status-pill">Confirmadas pelo paciente: {reports.confirmedByPatientTotal}</span>
-          <span className={reports.unreadPatientMessagesTotal > 0 ? 'attention-badge' : 'read-badge'}>
-            {reports.unreadPatientMessagesTotal > 0
-              ? `${reports.unreadPatientMessagesTotal} com mensagem nova do paciente`
-              : 'Sem mensagem nova do paciente'}
-          </span>
-        </div>
       </section>
 
       <section className="dashboard-grid dashboard-grid-single manager-distribution-shell">
@@ -930,18 +918,41 @@ export function ManagerPage() {
           <h2>Central de distribuição</h2>
           {loading ? (
             <p className="table-note">Carregando viagens...</p>
-          ) : requests.length > 0 && selectedRequest ? (
-            <div className="manager-workspace">
-              <div className="manager-request-list">
-                {paginatedRequests.map((request) => (
-                  <button
-                    key={request.id}
-                    className={`manager-request-list-item ${selectedRequest.id === request.id ? 'active' : ''}`}
-                    type="button"
-                    onClick={() => setSelectedRequestId(request.id)}
-                    draggable
-                    onDragStart={(event) => handleRequestDragStart(event, request.id)}
-                  >
+          ) : requests.length > 0 ? (
+            <div className="manager-workspace manager-workspace--tri">
+              <section className="manager-panel manager-panel--list">
+                <div className="panel-header">
+                  <div>
+                    <strong>Fila de solicitações</strong>
+                    <p className="table-note">{visibleCountLabel}</p>
+                  </div>
+                  <div className="panel-summary">
+                    <span className="status-pill">Confirmadas pelo paciente: {reports.confirmedByPatientTotal}</span>
+                    <span className={reports.unreadPatientMessagesTotal > 0 ? 'attention-badge' : 'read-badge'}>
+                      {reports.unreadPatientMessagesTotal > 0
+                        ? `${reports.unreadPatientMessagesTotal} com mensagem nova`
+                        : 'Sem mensagem nova'}
+                    </span>
+                  </div>
+                </div>
+                <div className="manager-request-list">
+                  {paginatedRequests.map((request) => {
+                    const canAssign = ['aprovada', 'agendada'].includes(request.status)
+                    return (
+                      <button
+                        key={request.id}
+                        className={`manager-request-list-item ${selectedRequest?.id === request.id ? 'active' : ''} ${!canAssign ? 'is-disabled' : ''}`}
+                        type="button"
+                        onClick={() => setSelectedRequestId(request.id)}
+                        draggable={canAssign}
+                        onDragStart={(event) => {
+                          if (!canAssign) {
+                            event.preventDefault()
+                            return
+                          }
+                          handleRequestDragStart(event, request.id)
+                        }}
+                      >
                     <div className="request-list-header">
                       <span className={`status-badge ${request.status}`}>{statusLabels[request.status]}</span>
                       <span className="status-pill">{formatDisplayDate(request.travelDate)}</span>
@@ -962,8 +973,9 @@ export function ManagerPage() {
                       ) : null}
                     </div>
                   </button>
-                ))}
-              </div>
+                    )
+                  })}
+                </div>
               {totalPages > 1 && (
                 <Pagination
                   currentPage={currentPage}
@@ -972,8 +984,9 @@ export function ManagerPage() {
                   onPageChange={setCurrentPage}
                 />
               )}
+              </section>
 
-              <article className="assignment-card manager-request-card manager-request-focus compact-assignment-card">
+              <section className="manager-panel manager-panel--route">
                 <div
                   className="manager-route-planner"
                   onDragOver={(event) => {
@@ -1102,7 +1115,11 @@ export function ManagerPage() {
                     <p className="table-note">Selecione um motorista para visualizar a fila atual de pacientes.</p>
                   )}
                 </div>
-                <div className="assignment-header">
+              </section>
+
+              <section className="manager-panel manager-panel--details">
+                <article className="assignment-card manager-request-card manager-request-focus compact-assignment-card">
+                  <div className="assignment-header">
                   <div>
                     <strong>{getDisplayValue(selectedRequest.patientName, 'Paciente não informado')}</strong>
                     <p className="table-note">
@@ -1120,32 +1137,11 @@ export function ManagerPage() {
                   <span className={`status-badge ${selectedRequest.status}`}>{statusLabels[selectedRequest.status]}</span>
                 </div>
 
-                <div className="travel-overview-grid">
-                  <article className="travel-overview-card">
-                    <span>Consulta</span>
-                    <strong>{selectedRequest.appointmentTime || 'Não definido'}</strong>
-                  </article>
-                  <article className="travel-overview-card">
-                    <span>Saída</span>
-                    <strong>{selectedRequest.departureTime || 'Não definido'}</strong>
-                  </article>
-                  <article className="travel-overview-card">
-                    <span>Motorista</span>
-                    <strong>{selectedRequest.assignedDriverName || 'Não atribuído'}</strong>
-                  </article>
-                  <article className="travel-overview-card">
-                    <span>Embarque</span>
-                    <strong>{getDisplayValue(selectedRequest.boardingLocationLabel || selectedRequest.addressLine)}</strong>
-                  </article>
-                </div>
-
                 <div className="assignment-meta">
+                  <span>Motorista: {selectedRequest.assignedDriverName || 'Não atribuído'}</span>
+                  <span>Veículo: {selectedRequest.assignedVehicleName || 'Não atribuído'}</span>
+                  <span>Embarque: {getDisplayValue(selectedRequest.boardingLocationLabel || selectedRequest.addressLine)}</span>
                   <span>CPF de acesso: {selectedRequest.accessCpfMasked ?? selectedRequest.cpfMasked}</span>
-                  {selectedRequest.assignedVehicleName ? <span>Veículo da viagem: {selectedRequest.assignedVehicleName}</span> : null}
-                  {selectedRequest.companionRequired ? <span>Acompanhante: {selectedRequest.companionName || 'Sim'}</span> : null}
-                  {Number(selectedRequest.patientMessageCount ?? 0) > 0 ? (
-                    <span>{selectedRequest.hasUnreadPatientMessage ? 'Nova mensagem do paciente' : 'Mensagem do paciente já lida'}</span>
-                  ) : null}
                 </div>
 
                 <div className="status-pill-row">
@@ -1162,44 +1158,6 @@ export function ManagerPage() {
                 </div>
 
                 <div className="form-grid">
-                  <div className="field">
-                    <label htmlFor={`driver-${selectedRequest.id}`}>Motorista</label>
-                    <select
-                      id={`driver-${selectedRequest.id}`}
-                      value={selectedAssignment.driverId}
-                      onChange={(event) => {
-                        const nextDriverId = event.target.value
-                        const selectedDriver = drivers.find((driver) => String(driver.id) === nextDriverId)
-                        updateAssignment(selectedRequest.id, 'driverId', nextDriverId)
-
-                        if (selectedDriver?.vehicleId) {
-                          updateAssignment(selectedRequest.id, 'vehicleId', String(selectedDriver.vehicleId))
-                        }
-                      }}
-                    >
-                      <option value="">Selecione</option>
-                      {drivers.map((driver) => (
-                        <option key={driver.id} value={driver.id}>
-                          {driver.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="field">
-                    <label htmlFor={`vehicle-${selectedRequest.id}`}>Veículo da viagem</label>
-                    <select
-                      id={`vehicle-${selectedRequest.id}`}
-                      value={selectedAssignment.vehicleId}
-                      onChange={(event) => updateAssignment(selectedRequest.id, 'vehicleId', event.target.value)}
-                    >
-                      <option value="">Selecione</option>
-                      {vehicles.map((vehicle) => (
-                        <option key={vehicle.id} value={vehicle.id}>
-                          {vehicle.name} • {vehicle.plate}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                   <div className="field">
                     <label htmlFor={`appointment-${selectedRequest.id}`}>Horário da consulta</label>
                     <input
@@ -1282,10 +1240,11 @@ export function ManagerPage() {
                     onClick={() => void handleAssign(selectedRequest.id)}
                     type="button"
                   >
-                    {selectedRequest.assignedDriverId ? 'Salvar distribuição' : 'Atribuir motorista'}
+                    Salvar ajustes
                   </AsyncActionButton>
                 </div>
               </article>
+              </section>
             </div>
           ) : (
             <article className="empty-state">

@@ -2359,9 +2359,8 @@ th {
 }
 
 .manager-request-focus {
-  align-self: start;
-  position: sticky;
-  top: 14px;
+  align-self: stretch;
+  position: static;
 }
 
 .manager-route-planner {
@@ -2401,6 +2400,12 @@ th {
   color: var(--muted);
 }
 
+.manager-route-dropzone.is-ready {
+  border-color: rgba(22, 133, 83, 0.35);
+  color: rgba(22, 133, 83, 0.85);
+  background: rgba(236, 253, 245, 0.9);
+}
+
 .manager-route-grid {
   margin-bottom: 8px;
 }
@@ -2413,6 +2418,11 @@ th {
   cursor: grabbing;
 }
 
+.manager-request-list-item.is-disabled,
+.manager-request-list-item.is-disabled:active {
+  cursor: not-allowed;
+}
+
 .manager-route-queue {
   margin-top: 10px;
   display: grid;
@@ -2421,6 +2431,12 @@ th {
   border-radius: 14px;
   border: 1px solid rgba(49, 65, 70, 0.12);
   background: rgba(250, 251, 250, 0.9);
+}
+
+.route-queue-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .manager-route-queue strong {
@@ -2494,6 +2510,38 @@ th {
   align-items: start;
 }
 
+.manager-workspace--tri {
+  grid-template-columns: minmax(280px, 360px) minmax(320px, 1fr) minmax(280px, 360px);
+}
+
+.manager-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(18, 48, 58, 0.1);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
+}
+
+.manager-panel--details {
+  position: sticky;
+  top: 110px;
+  align-self: start;
+}
+
+.panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.panel-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .manager-request-list {
   display: grid;
   gap: 12px;
@@ -2533,6 +2581,13 @@ th {
     linear-gradient(135deg, rgba(22, 133, 83, 0.09), rgba(255, 255, 255, 0.96)),
     rgba(255, 255, 255, 0.96);
   box-shadow: 0 18px 34px rgba(15, 23, 42, 0.1);
+}
+
+.manager-request-list-item.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(243, 244, 246, 0.9);
+  border-style: dashed;
 }
 
 .manager-request-list-item strong {
@@ -2590,6 +2645,10 @@ th {
   grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
   gap: 18px;
   align-items: start;
+}
+
+.manager-distribution-card .manager-workspace--tri {
+  grid-template-columns: minmax(280px, 360px) minmax(320px, 1fr) minmax(280px, 360px);
 }
 
 .manager-distribution-card .manager-request-list {
@@ -3085,6 +3144,10 @@ th {
   }
 
   .manager-request-focus {
+    position: static;
+  }
+
+  .manager-panel--details {
     position: static;
   }
 
