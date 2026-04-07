@@ -197,7 +197,7 @@ export function VehicleDetailsPage() {
             { to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users },
             { to: '/gerente/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
             ...(session.role === 'admin'
-              ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
+              ? [{ to: '/admin', label: 'Acesso master', icon: ShieldCheck }]
               : []),
           ]}
           sessionName={session.name}

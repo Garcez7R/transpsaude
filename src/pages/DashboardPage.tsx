@@ -305,7 +305,7 @@ export function DashboardPage() {
       saveOperatorSession(result.session)
       setSession(result.session)
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Não foi possível autenticar esse acesso administrativo.')
+      setAuthError(error instanceof Error ? error.message : 'Não foi possível autenticar esse acesso interno.')
     } finally {
       setAuthLoading(false)
     }
@@ -374,7 +374,7 @@ export function DashboardPage() {
           </div>
           <div className="institutional-copy">
             <strong>Ambiente interno da Prefeitura Municipal de Capão do Leão</strong>
-            <span>Acesso destinado a operador, regulação e apoio administrativo</span>
+            <span>Acesso destinado a operador, regulação e apoio interno</span>
           </div>
         </section>
 
@@ -382,7 +382,7 @@ export function DashboardPage() {
           <article className="content-card login-card">
             <div className="eyebrow">
               <LockKeyhole size={16} />
-              Acesso administrativo
+              Acesso interno
             </div>
             <h1>Entrar no painel</h1>
             <p>Ambiente restrito para operadores e gestão autorizada.</p>
@@ -514,7 +514,7 @@ export function DashboardPage() {
           items={sidebarItems}
           sessionName={session.name}
           sessionRole={getInternalRoleLabel(session.role)}
-          subtitle="Acesso destinado a operador, regulação e apoio administrativo"
+          subtitle="Acesso destinado a operador, regulação e apoio interno"
           title="Ambiente interno"
         />
 

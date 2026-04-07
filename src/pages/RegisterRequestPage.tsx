@@ -303,7 +303,7 @@ export function RegisterRequestPage() {
           </div>
           <div className="institutional-copy">
             <strong>Cadastro interno da Prefeitura Municipal de Capão do Leão</strong>
-            <span>Entre primeiro no painel administrativo</span>
+            <span>Entre primeiro no painel interno</span>
           </div>
         </section>
 
@@ -340,13 +340,13 @@ export function RegisterRequestPage() {
             { to: '/operador/cadastro', label: 'Nova solicitação', icon: FilePlus2, exact: true },
             { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
             ...(session.role === 'manager' || session.role === 'admin'
-              ? [{ to: '/gerente', label: 'Gerência', icon: Route }]
+              ? [{ to: '/gerente', label: 'Gestão interna', icon: Route }]
               : []),
             ...(session.role === 'manager' || session.role === 'admin'
               ? [{ to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users }]
               : []),
             ...(session.role === 'admin'
-              ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
+              ? [{ to: '/admin', label: 'Acesso master', icon: ShieldCheck }]
               : []),
           ]}
           sessionName={session.name}

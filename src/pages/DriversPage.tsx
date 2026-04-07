@@ -459,7 +459,7 @@ export function DriversPage() {
     return (
       <div className="dashboard-shell internal-shell">
         <article className="content-card">
-          <h2>Sessão administrativa necessária</h2>
+          <h2>Sessão interna necessária</h2>
           <p>Cadastros de motoristas e veículos ficam disponíveis somente para a equipe interna.</p>
           <div className="form-actions">
             <Link className="action-button primary" to="/gerente">
@@ -508,12 +508,12 @@ export function DriversPage() {
             { to: '/gerente/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
             { to: '/motorista', label: 'Portal do motorista', icon: BusFront },
             ...(session.role === 'admin'
-              ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
+              ? [{ to: '/admin', label: 'Acesso master', icon: ShieldCheck }]
               : []),
           ]}
           sessionName={session.name}
           sessionRole={getInternalRoleLabel(session.role)}
-          subtitle="Cadastros administrativos e visão operacional das viagens por motorista"
+          subtitle="Cadastros internos e visão operacional das viagens por motorista"
           title="Equipe e veículos"
         />
 

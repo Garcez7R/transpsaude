@@ -73,7 +73,7 @@ export function RequestDetailsPage() {
   const teamMessages = details?.messages.filter((entry) => entry.createdByRole !== 'patient') ?? []
   const accessMode = canAccessManager(session) ? 'internal' : 'operator'
   const backTo = session?.role === 'admin' ? '/admin' : canAccessManager(session) ? '/gerente' : '/operador'
-  const sidebarRole = session ? (session.role === 'admin' ? 'Administrador' : canAccessManager(session) ? 'Gestão interna' : 'Operador') : 'Área interna'
+  const sidebarRole = session ? (session.role === 'admin' ? 'Acesso master' : canAccessManager(session) ? 'Gestão interna' : 'Operador') : 'Área interna'
 
   useToastOnChange(error, 'error')
   useToastOnChange(message, 'success')
@@ -346,13 +346,13 @@ export function RequestDetailsPage() {
             </>
           }
           items={[
-            { to: backTo, label: session.role === 'admin' ? 'Admin' : session.role === 'manager' ? 'Gerência' : 'Operador', icon: session.role === 'admin' ? ShieldCheck : session.role === 'manager' ? Route : ListChecks },
+            { to: backTo, label: session.role === 'admin' ? 'Acesso master' : session.role === 'manager' ? 'Gerência' : 'Operador', icon: session.role === 'admin' ? ShieldCheck : session.role === 'manager' ? Route : ListChecks },
             { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch },
             ...(session.role === 'manager' || session.role === 'admin'
               ? [{ to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users }]
               : []),
             ...(session.role === 'admin'
-              ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
+              ? [{ to: '/admin', label: 'Acesso master', icon: ShieldCheck }]
               : []),
           ]}
           sessionName={session.name}

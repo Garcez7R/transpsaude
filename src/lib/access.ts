@@ -18,11 +18,11 @@ export function canAccessAdmin(session: AdminSession | null) {
 
 export function getInternalRoleLabel(role: InternalRole) {
   if (role === 'admin') {
-    return 'administrador'
+    return 'Acesso master'
   }
 
   if (role === 'manager') {
-    return 'gerente'
+    return 'Gestão interna'
   }
 
   return 'operador'
