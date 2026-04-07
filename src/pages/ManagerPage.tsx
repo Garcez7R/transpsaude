@@ -114,6 +114,7 @@ export function ManagerPage() {
   const [assignment, setAssignment] = useState<AssignmentState>({})
   const [routeDriverId, setRouteDriverId] = useState('')
   const [routeVehicleId, setRouteVehicleId] = useState('')
+  const [routeOrder, setRouteOrder] = useState<Record<string, number[]>>({})
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<number | null>(null)
   const [message, setMessage] = useState('')
@@ -362,6 +363,39 @@ export function ManagerPage() {
     updateAssignment(requestId, 'driverId', routeDriverId)
     updateAssignment(requestId, 'vehicleId', routeVehicleId)
     setMessage('Viagem vinculada à rota selecionada. Ajuste a saída e salve a distribuição.')
+  }
+
+  function handleRouteItemDragStart(event: React.DragEvent<HTMLDivElement>, requestId: number) {
+    event.dataTransfer.setData('text/plain', String(requestId))
+    event.dataTransfer.effectAllowed = 'move'
+  }
+
+  function handleRouteItemDrop(event: React.DragEvent<HTMLDivElement>, targetId: number) {
+    event.preventDefault()
+    if (!routeDriverId) {
+      return
+    }
+
+    const draggedId = Number(event.dataTransfer.getData('text/plain') ?? '')
+    if (!Number.isFinite(draggedId) || draggedId <= 0 || draggedId === targetId) {
+      return
+    }
+
+    setRouteOrder((current) => {
+      const currentOrder = current[routeDriverId] ?? []
+      const withoutDragged = currentOrder.filter((id) => id !== draggedId)
+      const targetIndex = withoutDragged.indexOf(targetId)
+      const nextOrder = [...withoutDragged]
+      if (targetIndex >= 0) {
+        nextOrder.splice(targetIndex, 0, draggedId)
+      } else {
+        nextOrder.push(draggedId)
+      }
+      return {
+        ...current,
+        [routeDriverId]: nextOrder,
+      }
+    })
   }
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
@@ -941,14 +975,52 @@ export function ManagerPage() {
                   {routeDriverId ? (
                     <div className="manager-route-queue">
                       <strong>Rota do motorista</strong>
-                      {requests
-                        .filter((request) => String(request.assignedDriverId ?? '') === routeDriverId)
-                        .map((request) => (
-                          <div className="route-queue-item" key={request.id}>
-                            <span>{getDisplayValue(request.patientName, 'Paciente')}</span>
-                            <small>{request.destinationCity}/{request.destinationState}</small>
-                          </div>
-                        ))}
+                      {(() => {
+                        const assigned = requests.filter((request) => String(request.assignedDriverId ?? '') === routeDriverId)
+                        if (assigned.length === 0) {
+                          return <p className="table-note">Nenhuma viagem atribuída para este motorista ainda.</p>
+                        }
+
+                        const order = routeOrder[routeDriverId] ?? []
+                        const byId = new Map(assigned.map((request) => [request.id, request]))
+                        const ordered = order.map((id) => byId.get(id)).filter(Boolean) as TravelRequest[]
+                        const remaining = assigned.filter((request) => !order.includes(request.id))
+                        const finalList = [...ordered, ...remaining]
+
+                        return finalList.map((request) => {
+                          const draft = assignment[request.id] ?? emptyAssignment
+                          const estimatedTime =
+                            draft.departureTime ||
+                            request.departureTime ||
+                            draft.appointmentTime ||
+                            request.appointmentTime ||
+                            '--:--'
+
+                          return (
+                            <div
+                              className="route-queue-item"
+                              key={request.id}
+                              draggable
+                              onDragStart={(event) => handleRouteItemDragStart(event, request.id)}
+                              onDragOver={(event) => {
+                                event.preventDefault()
+                                event.currentTarget.classList.add('is-dragover')
+                              }}
+                              onDragLeave={(event) => event.currentTarget.classList.remove('is-dragover')}
+                              onDrop={(event) => {
+                                event.currentTarget.classList.remove('is-dragover')
+                                handleRouteItemDrop(event, request.id)
+                              }}
+                            >
+                              <div className="route-queue-line">
+                                <span>{getDisplayValue(request.patientName, 'Paciente')}</span>
+                                <em>Saída {estimatedTime}</em>
+                              </div>
+                              <small>{request.destinationCity}/{request.destinationState}</small>
+                            </div>
+                          )
+                        })
+                      })()}
                     </div>
                   ) : (
                     <p className="table-note">Selecione um motorista para visualizar a fila atual de pacientes.</p>

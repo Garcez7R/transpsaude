@@ -2408,6 +2408,7 @@ th {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(49, 65, 70, 0.12);
+  cursor: grab;
 }
 
 .route-queue-item span {
@@ -2417,6 +2418,25 @@ th {
 .route-queue-item small {
   color: var(--muted);
   font-size: 0.78rem;
+}
+
+.route-queue-item.is-dragover {
+  border-color: rgba(22, 133, 83, 0.5);
+  background: rgba(22, 133, 83, 0.08);
+}
+
+.route-queue-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.route-queue-line em {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .manager-request-focus .assignment-header {
