@@ -248,17 +248,14 @@ export function PatientsDirectoryPage() {
             </>
           }
           items={[
-            { to: backTo, label: backTo === '/gerente' || backTo === '/admin' ? 'Painel principal' : 'Operador', icon: ArrowLeft, exact: true },
+            { to: backTo, label: backTo === '/gerente' || backTo === '/admin' ? 'Painel interno' : 'Operador', icon: ArrowLeft, exact: true },
             { to: '/operador/pacientes', label: 'Base de pacientes', icon: UserRoundSearch, exact: true },
             { to: '/operador/cadastro', label: 'Nova solicitação', icon: FilePlus2 },
             ...(session.role === 'manager' || session.role === 'admin'
-              ? [{ to: '/gerente', label: 'Gerência', icon: Route }]
+              ? [{ to: '/gerente', label: 'Gestão interna', icon: Route }]
               : []),
             ...(session.role === 'manager' || session.role === 'admin'
               ? [{ to: '/gerente/equipe', label: 'Equipe e veículos', icon: Users }]
-              : []),
-            ...(session.role === 'admin'
-              ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }]
               : []),
           ]}
           sessionName={session.name}
@@ -267,7 +264,7 @@ export function PatientsDirectoryPage() {
           title="Base de pacientes"
         />
 
-        <main className="saas-main saas-main--admin">
+        <main className={`saas-main ${session.role === 'manager' || session.role === 'admin' ? 'saas-main--manager' : 'saas-main--operator'}`}>
           <header className="topbar">
             <div className="page-title-block">
               <div className="eyebrow">

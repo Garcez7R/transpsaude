@@ -2489,6 +2489,31 @@ th {
   padding: 12px 14px;
 }
 
+.saas-main--operator .directory-patient-list,
+.saas-main--manager .directory-patient-list {
+  max-height: 68vh;
+}
+
+.saas-main--operator .directory-patient-card,
+.saas-main--manager .directory-patient-card {
+  padding: 12px;
+}
+
+.saas-main--operator .directory-patient-summary,
+.saas-main--manager .directory-patient-summary {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.saas-main--operator .directory-patient-summary > div,
+.saas-main--manager .directory-patient-summary > div {
+  padding: 10px 12px;
+}
+
+.saas-main--operator .directory-results-card .status-line-actions,
+.saas-main--manager .directory-results-card .status-line-actions {
+  gap: 8px;
+}
+
 .fleet-overview-card .travel-overview-grid,
 .fleet-list-card .travel-overview-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
