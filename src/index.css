@@ -2358,6 +2358,25 @@ th {
   padding: 16px;
 }
 
+.manager-request-focus .assignment-header {
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.manager-request-focus .assignment-header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.manager-request-focus .assignment-patient-name {
+  margin-top: 4px;
+}
+
+.manager-request-focus .table-note {
+  margin-top: 2px;
+}
+
 .manager-workspace {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
