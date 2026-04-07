@@ -689,8 +689,20 @@ export async function listRequests(env: Env, filters: RequestFilters = {}) {
   }
 
   if (filters.destination?.trim()) {
-    whereClauses.push(`lower(tr.destination_city) like ?${params.length + 1}`)
-    params.push(`%${filters.destination.trim().toLowerCase()}%`)
+    const raw = filters.destination.trim()
+    const parts = raw
+      .split(/[,;]+/g)
+      .map((item) => item.trim())
+      .filter(Boolean)
+
+    if (parts.length === 1) {
+      whereClauses.push(`lower(tr.destination_city) like ?${params.length + 1}`)
+      params.push(`%${parts[0].toLowerCase()}%`)
+    } else if (parts.length > 1) {
+      const orClauses = parts.map((_, index) => `lower(tr.destination_city) like ?${params.length + index + 1}`)
+      whereClauses.push(`(${orClauses.join(' or ')})`)
+      parts.forEach((city) => params.push(`%${city.toLowerCase()}%`))
+    }
   }
 
   if (filters.search?.trim()) {

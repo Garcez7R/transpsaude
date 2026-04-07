@@ -644,7 +644,7 @@ export function DashboardPage() {
                     id="destination-filter"
                     value={draftFilters.destination}
                     onChange={(event) => updateDraftFilter('destination', toInstitutionalText(event.target.value))}
-                    placeholder="Cidade"
+                    placeholder="Cidade ou várias (Porto Alegre, Jaguarão)"
                   />
                 </div>
               </AdvancedFilters>

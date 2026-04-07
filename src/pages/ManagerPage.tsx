@@ -754,7 +754,7 @@ export function ManagerPage() {
                   id="manager-destination"
                   value={destination}
                   onChange={(event) => setDestination(event.target.value)}
-                  placeholder="Cidade de destino"
+                  placeholder="Cidade ou várias (Porto Alegre, Jaguarão)"
                 />
               </div>
               <div className="field">
