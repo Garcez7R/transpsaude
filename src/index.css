@@ -2385,6 +2385,16 @@ th {
   margin-bottom: 10px;
 }
 
+.manager-route-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.manager-route-header-actions .route-save-button {
+  min-width: 150px;
+}
+
 .manager-route-header strong {
   font-size: 0.95rem;
 }
@@ -2484,6 +2494,61 @@ th {
   white-space: nowrap;
 }
 
+.route-queue-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.route-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  border-radius: 999px;
+  padding: 4px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(248, 250, 252, 0.9);
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.route-remove:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #b91c1c;
+  background: rgba(254, 242, 242, 0.9);
+}
+
+.manager-route-editor {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  display: grid;
+  gap: 10px;
+}
+
+.route-editor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.route-editor-header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.manager-route-editor .assignment-meta {
+  margin-bottom: 6px;
+}
+
 .manager-request-focus .assignment-header {
   align-items: flex-start;
   gap: 6px;
@@ -2510,8 +2575,8 @@ th {
   align-items: start;
 }
 
-.manager-workspace--tri {
-  grid-template-columns: minmax(280px, 360px) minmax(320px, 1fr) minmax(280px, 360px);
+.manager-workspace--dual {
+  grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
 }
 
 .manager-panel {
@@ -2647,8 +2712,8 @@ th {
   align-items: start;
 }
 
-.manager-distribution-card .manager-workspace--tri {
-  grid-template-columns: minmax(280px, 360px) minmax(320px, 1fr) minmax(280px, 360px);
+.manager-distribution-card .manager-workspace--dual {
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
 }
 
 .manager-distribution-card .manager-request-list {
