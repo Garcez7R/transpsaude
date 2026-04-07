@@ -603,7 +603,7 @@ export function ManagerPage() {
           title="Gerência de transporte"
         />
 
-        <main className="saas-main saas-main--admin">
+        <main className="saas-main saas-main--manager">
           <header className="topbar">
             <div className="page-title-block">
               <div className="eyebrow">

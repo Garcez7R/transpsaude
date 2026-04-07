@@ -2075,11 +2075,104 @@ th {
   color: var(--primary-dark);
 }
 
+.saas-main--operator .status-pill,
+.saas-main--operator .confirmed-badge,
+.saas-main--operator .attention-badge,
+.saas-main--operator .read-badge,
+.saas-main--operator .status-pill-live,
+.saas-main--manager .status-pill,
+.saas-main--manager .confirmed-badge,
+.saas-main--manager .attention-badge,
+.saas-main--manager .read-badge,
+.saas-main--manager .status-pill-live,
+.saas-main--driver .status-pill,
+.saas-main--driver .confirmed-badge,
+.saas-main--driver .attention-badge,
+.saas-main--driver .read-badge,
+.saas-main--driver .status-pill-live {
+  font-size: 0.68rem;
+  padding: 0.18rem 0.45rem;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   align-items: start;
+}
+
+.saas-main--operator .form-grid,
+.saas-main--manager .form-grid,
+.saas-main--driver .form-grid {
+  gap: 12px;
+}
+
+.saas-main--operator .action-button,
+.saas-main--manager .action-button,
+.saas-main--driver .action-button,
+.saas-main--operator .ghost-button,
+.saas-main--manager .ghost-button,
+.saas-main--driver .ghost-button {
+  padding: 0.6rem 0.85rem;
+  min-height: 34px;
+  font-size: 0.9rem;
+}
+
+.saas-main--operator .checkbox-row input,
+.saas-main--manager .checkbox-row input,
+.saas-main--driver .checkbox-row input {
+  width: 16px;
+  height: 16px;
+}
+
+.saas-main--operator .checkbox-row span,
+.saas-main--manager .checkbox-row span,
+.saas-main--driver .checkbox-row span {
+  font-size: 0.9rem;
+}
+
+.saas-main--operator .operator-request-card .travel-overview-grid,
+.saas-main--manager .manager-request-card .travel-overview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.saas-main--operator .operator-request-card .travel-overview-card,
+.saas-main--manager .manager-request-card .travel-overview-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(18, 48, 58, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.saas-main--operator .operator-request-card .travel-overview-card span,
+.saas-main--manager .manager-request-card .travel-overview-card span {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.saas-main--operator .operator-request-card .travel-overview-card strong,
+.saas-main--manager .manager-request-card .travel-overview-card strong {
+  font-size: 0.85rem;
+}
+
+.saas-main--manager .manager-request-list-item {
+  padding: 12px 14px;
+  gap: 6px;
+}
+
+.saas-main--manager .request-list-flags {
+  gap: 6px;
+}
+
+.saas-main--driver .detail-section-card {
+  padding: 14px 16px;
 }
 
 .form-grid > .field,
