@@ -2378,6 +2378,29 @@ th {
   box-shadow: 0 12px 26px rgba(22, 133, 83, 0.18);
 }
 
+.manager-route-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.manager-route-header strong {
+  font-size: 0.95rem;
+}
+
+.manager-route-dropzone {
+  margin: 10px 0;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px dashed rgba(49, 65, 70, 0.2);
+  background: rgba(250, 251, 250, 0.9);
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .manager-route-grid {
   margin-bottom: 8px;
 }

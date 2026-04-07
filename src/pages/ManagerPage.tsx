@@ -988,9 +988,19 @@ export function ManagerPage() {
                     handleDropOnRoute(event)
                   }}
                 >
+                  <div className="manager-route-header">
+                    <div>
+                      <strong>Criar viagem do dia</strong>
+                      <p className="table-note">
+                        Arraste pacientes filtrados por data e destino para montar a rota. Atribua motorista e veículo antes de soltar.
+                      </p>
+                    </div>
+                    {routeDayKey ? <span className="status-pill">Data {formatDisplayDate(routeDayKey)}</span> : null}
+                  </div>
+
                   <div className="form-grid manager-route-grid">
                     <div className="field">
-                      <label htmlFor="route-driver">Motorista da rota</label>
+                      <label htmlFor="route-driver">Motorista</label>
                       <select
                         id="route-driver"
                         value={routeDriverId}
@@ -1012,7 +1022,7 @@ export function ManagerPage() {
                       </select>
                     </div>
                     <div className="field">
-                      <label htmlFor="route-vehicle">Veículo da rota</label>
+                      <label htmlFor="route-vehicle">Veículo</label>
                       <select
                         id="route-vehicle"
                         value={routeVehicleId}
@@ -1027,14 +1037,17 @@ export function ManagerPage() {
                       </select>
                     </div>
                   </div>
-                  <p className="table-note">
-                    Arraste uma viagem da lista para esta área para atribuir motorista e veículo. Depois ajuste o horário de saída e salve.
-                  </p>
+
                   {!routeDayKey ? (
                     <p className="table-note">
                       Para salvar a ordem da rota, selecione uma data única (Data da viagem ou período com mesmo dia).
                     </p>
                   ) : null}
+
+                  <div className="manager-route-dropzone">
+                    <span>Arraste pacientes aqui para criar a viagem da rota</span>
+                  </div>
+
                   {routeDriverId ? (
                     <div className="manager-route-queue">
                       <strong>Rota do motorista</strong>
