@@ -174,6 +174,21 @@ export async function fetchRequests(filters: RequestQueryFilters = {}, accessMod
   return parseJson<TravelRequest[]>(response)
 }
 
+export async function fetchRouteOrder(driverId: number, travelDate: string) {
+  const search = new URLSearchParams({ driverId: String(driverId), travelDate })
+  const response = await fetch(`/api/admin/route-order?${search.toString()}`, withInternalHeaders())
+  return parseJson<{ requestIds: number[] }>(response)
+}
+
+export async function saveRouteOrder(driverId: number, travelDate: string, requestIds: number[]) {
+  const response = await fetch('/api/admin/route-order', withInternalHeaders({
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ driverId, travelDate, requestIds }),
+  }))
+  return parseJson<{ message: string }>(response)
+}
+
 export async function fetchVehicleDetail(vehicleId: number) {
   const search = new URLSearchParams({ id: String(vehicleId) })
   const response = await fetch(`/api/admin/vehicle-detail?${search.toString()}`, withInternalHeaders())

@@ -7,7 +7,7 @@ import { Pagination } from '../components/Pagination'
 import { InternalSidebar } from '../components/InternalSidebar'
 import { canAccessManager, getInternalRoleLabel, isValidInternalRole } from '../lib/access'
 import { boardingLocations } from '../lib/boarding-locations'
-import { activateAdminPassword, assignDriver, fetchDrivers, fetchRequests, fetchVehicles, loginAdmin, logoutSession } from '../lib/api'
+import { activateAdminPassword, assignDriver, fetchDrivers, fetchRequests, fetchRouteOrder, fetchVehicles, loginAdmin, logoutSession, saveRouteOrder } from '../lib/api'
 import { clearAdminSession, saveAdminSession } from '../lib/admin-session'
 import { clearAdminAreaSession } from '../lib/admin-area-session'
 import { clearManagerSession, getManagerSession, saveManagerSession } from '../lib/manager-session'
@@ -154,6 +154,16 @@ export function ManagerPage() {
     }
   }, [requests])
 
+  const routeDayKey = useMemo(() => {
+    if (travelDate) {
+      return travelDate
+    }
+    if (dateFrom && dateTo && dateFrom === dateTo) {
+      return dateFrom
+    }
+    return ''
+  }, [dateFrom, dateTo, travelDate])
+
   const visibleCountLabel = useMemo(() => {
     if (loading) {
       return 'Carregando solicitações...'
@@ -268,6 +278,36 @@ export function ManagerPage() {
     }
   }, [dateFrom, dateTo, destination, driverFilterId, search, selectedStatus, session, travelDate])
 
+  useEffect(() => {
+    if (!routeDriverId || !routeDayKey) {
+      return
+    }
+
+    let active = true
+    async function loadRouteOrder() {
+      try {
+        const result = await fetchRouteOrder(Number(routeDriverId), routeDayKey)
+        if (!active) {
+          return
+        }
+        setRouteOrder((current) => ({
+          ...current,
+          [`${routeDriverId}-${routeDayKey}`]: result.requestIds ?? [],
+        }))
+      } catch {
+        if (active) {
+          setError('Não foi possível carregar a ordem da rota.')
+        }
+      }
+    }
+
+    void loadRouteOrder()
+
+    return () => {
+      active = false
+    }
+  }, [routeDayKey, routeDriverId])
+
   function applyQuickPeriod(mode: Exclude<PeriodPreset, 'custom'>) {
     const now = new Date()
     const today = now.toISOString().slice(0, 10)
@@ -363,6 +403,22 @@ export function ManagerPage() {
     updateAssignment(requestId, 'driverId', routeDriverId)
     updateAssignment(requestId, 'vehicleId', routeVehicleId)
     setMessage('Viagem vinculada à rota selecionada. Ajuste a saída e salve a distribuição.')
+
+    if (routeDayKey) {
+      const key = `${routeDriverId}-${routeDayKey}`
+      setRouteOrder((current) => {
+        const currentOrder = current[key] ?? []
+        if (currentOrder.includes(requestId)) {
+          return current
+        }
+        const nextOrder = [...currentOrder, requestId]
+        void saveRouteOrder(Number(routeDriverId), routeDayKey, nextOrder)
+        return {
+          ...current,
+          [key]: nextOrder,
+        }
+      })
+    }
   }
 
   function handleRouteItemDragStart(event: React.DragEvent<HTMLDivElement>, requestId: number) {
@@ -372,7 +428,7 @@ export function ManagerPage() {
 
   function handleRouteItemDrop(event: React.DragEvent<HTMLDivElement>, targetId: number) {
     event.preventDefault()
-    if (!routeDriverId) {
+    if (!routeDriverId || !routeDayKey) {
       return
     }
 
@@ -381,8 +437,9 @@ export function ManagerPage() {
       return
     }
 
+    const key = `${routeDriverId}-${routeDayKey}`
     setRouteOrder((current) => {
-      const currentOrder = current[routeDriverId] ?? []
+      const currentOrder = current[key] ?? []
       const withoutDragged = currentOrder.filter((id) => id !== draggedId)
       const targetIndex = withoutDragged.indexOf(targetId)
       const nextOrder = [...withoutDragged]
@@ -391,9 +448,10 @@ export function ManagerPage() {
       } else {
         nextOrder.push(draggedId)
       }
+      void saveRouteOrder(Number(routeDriverId), routeDayKey, nextOrder)
       return {
         ...current,
-        [routeDriverId]: nextOrder,
+        [key]: nextOrder,
       }
     })
   }
@@ -972,6 +1030,11 @@ export function ManagerPage() {
                   <p className="table-note">
                     Arraste uma viagem da lista para esta área para atribuir motorista e veículo. Depois ajuste o horário de saída e salve.
                   </p>
+                  {!routeDayKey ? (
+                    <p className="table-note">
+                      Para salvar a ordem da rota, selecione uma data única (Data da viagem ou período com mesmo dia).
+                    </p>
+                  ) : null}
                   {routeDriverId ? (
                     <div className="manager-route-queue">
                       <strong>Rota do motorista</strong>
@@ -981,7 +1044,7 @@ export function ManagerPage() {
                           return <p className="table-note">Nenhuma viagem atribuída para este motorista ainda.</p>
                         }
 
-                        const order = routeOrder[routeDriverId] ?? []
+                        const order = routeDayKey ? (routeOrder[`${routeDriverId}-${routeDayKey}`] ?? []) : []
                         const byId = new Map(assigned.map((request) => [request.id, request]))
                         const ordered = order.map((id) => byId.get(id)).filter(Boolean) as TravelRequest[]
                         const remaining = assigned.filter((request) => !order.includes(request.id))
