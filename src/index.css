@@ -2366,6 +2366,12 @@ th {
   background: rgba(255, 255, 255, 0.82);
 }
 
+.manager-route-planner.is-dragover {
+  border-color: rgba(22, 133, 83, 0.6);
+  background: rgba(22, 133, 83, 0.08);
+  box-shadow: 0 12px 26px rgba(22, 133, 83, 0.18);
+}
+
 .manager-route-grid {
   margin-bottom: 8px;
 }
@@ -2376,6 +2382,41 @@ th {
 
 .manager-request-list-item:active {
   cursor: grabbing;
+}
+
+.manager-route-queue {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(49, 65, 70, 0.12);
+  background: rgba(250, 251, 250, 0.9);
+}
+
+.manager-route-queue strong {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.route-queue-item {
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(49, 65, 70, 0.12);
+}
+
+.route-queue-item span {
+  font-weight: 600;
+}
+
+.route-queue-item small {
+  color: var(--muted);
+  font-size: 0.78rem;
 }
 
 .manager-request-focus .assignment-header {

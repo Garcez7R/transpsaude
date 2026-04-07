@@ -347,6 +347,12 @@ export function ManagerPage() {
       return
     }
 
+    const request = requests.find((item) => item.id === requestId)
+    if (!request || !['aprovada', 'agendada'].includes(request.status)) {
+      setError('Somente viagens aprovadas ou agendadas podem ser atribuídas na rota.')
+      return
+    }
+
     if (!routeDriverId || !routeVehicleId) {
       setError('Selecione motorista e veículo antes de arrastar a viagem para a rota.')
       return
@@ -879,8 +885,17 @@ export function ManagerPage() {
               <article className="assignment-card manager-request-card manager-request-focus compact-assignment-card">
                 <div
                   className="manager-route-planner"
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={handleDropOnRoute}
+                  onDragOver={(event) => {
+                    event.preventDefault()
+                    event.currentTarget.classList.add('is-dragover')
+                  }}
+                  onDragLeave={(event) => {
+                    event.currentTarget.classList.remove('is-dragover')
+                  }}
+                  onDrop={(event) => {
+                    event.currentTarget.classList.remove('is-dragover')
+                    handleDropOnRoute(event)
+                  }}
                 >
                   <div className="form-grid manager-route-grid">
                     <div className="field">
@@ -924,6 +939,21 @@ export function ManagerPage() {
                   <p className="table-note">
                     Arraste uma viagem da lista para esta área para atribuir motorista e veículo. Depois ajuste o horário de saída e salve.
                   </p>
+                  {routeDriverId ? (
+                    <div className="manager-route-queue">
+                      <strong>Rota do motorista</strong>
+                      {requests
+                        .filter((request) => String(request.assignedDriverId ?? '') === routeDriverId)
+                        .map((request) => (
+                          <div className="route-queue-item" key={request.id}>
+                            <span>{getDisplayValue(request.patientName, 'Paciente')}</span>
+                            <small>{request.destinationCity}/{request.destinationState}</small>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="table-note">Selecione um motorista para visualizar a fila atual de pacientes.</p>
+                  )}
                 </div>
                 <div className="assignment-header">
                   <div>
